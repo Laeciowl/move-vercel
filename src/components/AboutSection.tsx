@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Linkedin, FileText, Users, MessageSquare } from "lucide-react";
+import { Linkedin, FileText, Users, Video } from "lucide-react";
 
 const features = [
   {
@@ -18,9 +18,9 @@ const features = [
     description: "Conecte-se com mentores voluntários que vão te guiar nessa jornada.",
   },
   {
-    icon: MessageSquare,
-    title: "Comunicação & Negócios",
-    description: "Desenvolva habilidades de comunicação e visão de negócios.",
+    icon: Video,
+    title: "Encontros ao Vivo",
+    description: "Lives sobre tópicos diversos: negócios, comunicação, marketing e tecnologia.",
   },
 ];
 
