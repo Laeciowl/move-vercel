@@ -39,12 +39,12 @@ const AboutSection = () => {
             Sobre o Projeto
           </span>
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mt-3 mb-6">
-            O empurrãozinho que você precisa
+            Combatendo o desemprego através da educação
           </h2>
           <p className="text-muted-foreground text-lg leading-relaxed mb-6">
-            O Movê é para estudantes, pessoas em busca do primeiro emprego ou em 
-            recolocação profissional. Oferecemos capacitação gratuita e prática, 
-            além de uma comunidade de mentores voluntários prontos para te apoiar.
+            O Movê nasceu com a missão de combater o desemprego no Brasil. 
+            Oferecemos capacitação gratuita e prática para quem precisa de apoio, 
+            além de uma comunidade de mentores voluntários prontos para te acolher.
           </p>
           <div className="inline-flex items-center gap-3 bg-accent px-5 py-3 rounded-xl">
             <span className="text-2xl">🎯</span>

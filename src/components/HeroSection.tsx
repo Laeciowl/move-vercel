@@ -61,7 +61,7 @@ const HeroSection = () => {
               <br />
               <span className="text-foreground">sua jornada</span>
               <br />
-              <span className="text-gradient">profissional.</span>
+              <span className="text-secondary">profissional.</span>
             </motion.h1>
 
             <motion.p
@@ -70,8 +70,8 @@ const HeroSection = () => {
               transition={{ duration: 0.6, delay: 0.4 }}
               className="text-lg md:text-xl text-muted-foreground mb-10 max-w-md mx-auto lg:mx-0"
             >
-              Capacitação gratuita para quem está começando no mercado ou buscando 
-              recolocação. LinkedIn, currículo, mentoria e comunidade.
+              Capacitação gratuita para quem precisa de apoio na jornada profissional. 
+              LinkedIn, currículo, mentoria e uma comunidade que te acolhe.
             </motion.p>
 
             <motion.div
