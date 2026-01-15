@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Linkedin, FileText, Globe, MessageSquare } from "lucide-react";
+import { Linkedin, FileText, Users, MessageSquare } from "lucide-react";
 
 const features = [
   {
@@ -13,9 +13,9 @@ const features = [
     description: "Construa um currículo profissional que chame atenção dos recrutadores.",
   },
   {
-    icon: Globe,
-    title: "Inglês para Negócios",
-    description: "Domine o inglês essencial para o ambiente corporativo e entrevistas.",
+    icon: Users,
+    title: "Comunidade & Mentoria",
+    description: "Conecte-se com mentores voluntários que vão te guiar nessa jornada.",
   },
   {
     icon: MessageSquare,
@@ -39,13 +39,12 @@ const AboutSection = () => {
             Sobre o Projeto
           </span>
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mt-3 mb-6">
-            Seu primeiro passo para o mercado de trabalho
+            O empurrãozinho que você precisa
           </h2>
           <p className="text-muted-foreground text-lg leading-relaxed mb-6">
-            O Movê é para você que está começando sua jornada profissional — seja jovem em busca 
-            do primeiro emprego ou alguém que precisa daquele empurrãozinho para conquistar 
-            sua vaga. Oferecemos capacitação gratuita e prática nas habilidades mais 
-            valorizadas pelo mercado.
+            O Movê é para estudantes, pessoas em busca do primeiro emprego ou em 
+            recolocação profissional. Oferecemos capacitação gratuita e prática, 
+            além de uma comunidade de mentores voluntários prontos para te apoiar.
           </p>
           <div className="inline-flex items-center gap-3 bg-accent px-5 py-3 rounded-xl">
             <span className="text-2xl">🎯</span>
