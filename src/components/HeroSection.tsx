@@ -37,7 +37,7 @@ const HeroSection = () => {
             transition={{ duration: 0.5, delay: 0.3 }}
             className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-primary-foreground leading-tight mb-6"
           >
-            Comece sua jornada profissional com o{" "}
+            Um guia para sua jornada profissional.{" "}
             <span className="text-primary">Movê</span>
           </motion.h1>
 
