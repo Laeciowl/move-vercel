@@ -57,11 +57,14 @@ const HeroSection = () => {
               transition={{ duration: 0.6, delay: 0.3 }}
               className="text-5xl md:text-6xl lg:text-7xl font-extrabold leading-[1.1] mb-6"
             >
-              <span className="text-foreground">Um guia para</span>
+              <span className="text-foreground">Um </span>
+              <span className="text-card bg-secondary px-3 py-1 rounded-xl inline-block">guia</span>
+              <span className="text-foreground"> para</span>
               <br />
-              <span className="text-foreground">sua jornada</span>
+              <span className="text-primary font-black">movê</span>
+              <span className="text-foreground"> sua jornada</span>
               <br />
-              <span className="text-card bg-secondary px-4 py-1 rounded-xl inline-block">profissional.</span>
+              <span className="text-foreground">profissional.</span>
             </motion.h1>
 
             <motion.p
