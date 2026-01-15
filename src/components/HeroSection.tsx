@@ -37,7 +37,7 @@ const HeroSection = () => {
             transition={{ duration: 0.5, delay: 0.3 }}
             className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-primary-foreground leading-tight mb-6"
           >
-            Transforme seu futuro com o{" "}
+            Conquiste seu primeiro emprego com o{" "}
             <span className="text-primary">Movê</span>
           </motion.h1>
 
@@ -47,9 +47,9 @@ const HeroSection = () => {
             transition={{ duration: 0.5, delay: 0.4 }}
             className="text-lg md:text-xl text-primary-foreground/80 mb-8 leading-relaxed"
           >
-            Capacitação profissional gratuita para jovens que querem conquistar
-            seu espaço no mercado de trabalho. Educação de qualidade,
-            mentoria e oportunidades reais.
+            Capacitação gratuita em LinkedIn, currículo, inglês para negócios 
+            e muito mais. Damos o empurrãozinho que você precisa para 
+            começar sua carreira.
           </motion.p>
 
           <motion.div

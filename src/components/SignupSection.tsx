@@ -8,7 +8,6 @@ const SignupSection = () => {
     name: "",
     email: "",
     phone: "",
-    age: "",
     message: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -126,39 +125,21 @@ const SignupSection = () => {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="phone" className="block text-sm font-medium text-foreground mb-2">
-                  Telefone *
-                </label>
-                <input
-                  type="tel"
-                  id="phone"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-xl border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-shadow"
-                  placeholder="(11) 99999-9999"
-                  required
-                  maxLength={20}
-                />
-              </div>
-              <div>
-                <label htmlFor="age" className="block text-sm font-medium text-foreground mb-2">
-                  Idade
-                </label>
-                <input
-                  type="number"
-                  id="age"
-                  name="age"
-                  value={formData.age}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-xl border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-shadow"
-                  placeholder="18"
-                  min="14"
-                  max="99"
-                />
-              </div>
+            <div>
+              <label htmlFor="phone" className="block text-sm font-medium text-foreground mb-2">
+                Telefone / WhatsApp *
+              </label>
+              <input
+                type="tel"
+                id="phone"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                className="w-full px-4 py-3 rounded-xl border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-shadow"
+                placeholder="(11) 99999-9999"
+                required
+                maxLength={20}
+              />
             </div>
 
             <div>

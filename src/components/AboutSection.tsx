@@ -1,26 +1,26 @@
 import { motion } from "framer-motion";
-import { BookOpen, Users, Briefcase, Heart } from "lucide-react";
+import { Linkedin, FileText, Globe, MessageSquare } from "lucide-react";
 
 const features = [
   {
-    icon: BookOpen,
-    title: "Educação de Qualidade",
-    description: "Cursos e workshops focados nas habilidades mais demandadas pelo mercado.",
+    icon: Linkedin,
+    title: "LinkedIn Estratégico",
+    description: "Aprenda a criar um perfil atrativo e fazer networking de forma eficiente.",
   },
   {
-    icon: Users,
-    title: "Mentoria Personalizada",
-    description: "Acompanhamento individual com profissionais experientes do mercado.",
+    icon: FileText,
+    title: "Currículo que Destaca",
+    description: "Construa um currículo profissional que chame atenção dos recrutadores.",
   },
   {
-    icon: Briefcase,
-    title: "Conexão com Empresas",
-    description: "Parcerias com empresas que valorizam talentos em desenvolvimento.",
+    icon: Globe,
+    title: "Inglês para Negócios",
+    description: "Domine o inglês essencial para o ambiente corporativo e entrevistas.",
   },
   {
-    icon: Heart,
-    title: "Apoio Integral",
-    description: "Suporte emocional e desenvolvimento de soft skills essenciais.",
+    icon: MessageSquare,
+    title: "Comunicação & Negócios",
+    description: "Desenvolva habilidades de comunicação e visão de negócios.",
   },
 ];
 
@@ -39,13 +39,21 @@ const AboutSection = () => {
             Sobre o Projeto
           </span>
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mt-3 mb-6">
-            Movimentando vidas através da educação
+            Seu primeiro passo para o mercado de trabalho
           </h2>
-          <p className="text-muted-foreground text-lg leading-relaxed">
-            O Movê nasceu da crença de que todo jovem merece uma chance justa no mercado de trabalho.
-            Oferecemos capacitação profissional gratuita, conectando educação à empregabilidade
-            e transformando potencial em oportunidade.
+          <p className="text-muted-foreground text-lg leading-relaxed mb-6">
+            O Movê é para você que está começando sua jornada profissional — seja jovem em busca 
+            do primeiro emprego ou alguém que precisa daquele empurrãozinho para conquistar 
+            sua vaga. Oferecemos capacitação gratuita e prática nas habilidades mais 
+            valorizadas pelo mercado.
           </p>
+          <div className="inline-flex items-center gap-3 bg-accent px-5 py-3 rounded-xl">
+            <span className="text-2xl">🎯</span>
+            <p className="text-sm text-accent-foreground text-left">
+              <strong>ODS 4 - Educação de Qualidade:</strong> Alinhado aos Objetivos de Desenvolvimento 
+              Sustentável da ONU, promovemos oportunidades de aprendizagem ao longo da vida para todos.
+            </p>
+          </div>
         </motion.div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -70,29 +78,6 @@ const AboutSection = () => {
             </motion.div>
           ))}
         </div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="mt-16 bg-secondary rounded-3xl p-8 md:p-12 text-center"
-        >
-          <div className="grid md:grid-cols-3 gap-8">
-            <div>
-              <p className="text-4xl md:text-5xl font-extrabold text-primary">500+</p>
-              <p className="text-secondary-foreground/80 mt-2">Jovens impactados</p>
-            </div>
-            <div>
-              <p className="text-4xl md:text-5xl font-extrabold text-primary">85%</p>
-              <p className="text-secondary-foreground/80 mt-2">Taxa de empregabilidade</p>
-            </div>
-            <div>
-              <p className="text-4xl md:text-5xl font-extrabold text-primary">30+</p>
-              <p className="text-secondary-foreground/80 mt-2">Empresas parceiras</p>
-            </div>
-          </div>
-        </motion.div>
       </div>
     </section>
   );
