@@ -1,78 +1,150 @@
 import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
-import heroImage from "@/assets/hero-image.jpg";
+import { ArrowDown, Sparkles } from "lucide-react";
+import heroBg from "@/assets/hero-bg.jpg";
 
 const HeroSection = () => {
+  const scrollToAbout = () => {
+    const element = document.getElementById("sobre");
+    element?.scrollIntoView({ behavior: "smooth" });
+  };
+
   const scrollToSignup = () => {
     const element = document.getElementById("inscreva-se");
     element?.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
-    <section id="hero" className="relative min-h-screen flex items-center pt-20">
-      {/* Background Image */}
+    <section id="hero" className="relative min-h-screen flex items-center overflow-hidden">
+      {/* Background */}
       <div className="absolute inset-0 z-0">
         <img
-          src={heroImage}
-          alt="Jovens estudando juntos"
+          src={heroBg}
+          alt=""
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-secondary/95 via-secondary/80 to-secondary/60" />
+        <div className="absolute inset-0 bg-gradient-to-br from-secondary/40 via-transparent to-secondary/20" />
       </div>
 
+      {/* Floating Elements */}
+      <motion.div
+        animate={{ y: [0, -15, 0] }}
+        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute top-32 right-20 w-20 h-20 bg-primary/20 rounded-full blur-xl hidden lg:block"
+      />
+      <motion.div
+        animate={{ y: [0, 15, 0] }}
+        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute bottom-40 left-20 w-32 h-32 bg-secondary/30 rounded-full blur-2xl hidden lg:block"
+      />
+
       <div className="container mx-auto px-4 relative z-10">
-        <div className="max-w-2xl">
-          <motion.span
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="inline-block bg-primary/20 text-primary-foreground px-4 py-1.5 rounded-full text-sm font-medium mb-6 backdrop-blur-sm border border-primary/30"
-          >
-            Projeto Social de Educação
-          </motion.span>
-
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-primary-foreground leading-tight mb-6"
-          >
-            Um guia para sua jornada profissional.{" "}
-            <span className="text-primary">Movê</span>
-          </motion.h1>
-
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-            className="text-lg md:text-xl text-primary-foreground/80 mb-8 leading-relaxed"
-          >
-            Capacitação gratuita para quem está começando no mercado de trabalho 
-            ou buscando recolocação. LinkedIn, currículo, mentoria e uma 
-            comunidade que te apoia.
-          </motion.p>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.5 }}
-            className="flex flex-col sm:flex-row gap-4"
-          >
-            <button
-              onClick={scrollToSignup}
-              className="group bg-gradient-hero text-primary-foreground px-8 py-4 rounded-xl font-bold text-lg shadow-button hover:opacity-90 transition-all flex items-center justify-center gap-2"
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          {/* Left Content */}
+          <div className="text-center lg:text-left">
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="inline-flex items-center gap-2 bg-card/80 backdrop-blur-sm px-4 py-2 rounded-full mb-8 shadow-soft"
             >
-              Quero participar
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </button>
-            <button
-              onClick={() => document.getElementById("sobre")?.scrollIntoView({ behavior: "smooth" })}
-              className="border-2 border-primary-foreground/30 text-primary-foreground px-8 py-4 rounded-xl font-bold text-lg hover:bg-primary-foreground/10 transition-colors"
+              <Sparkles className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium text-foreground">Projeto Social de Educação</span>
+            </motion.div>
+
+            <motion.h1
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="text-5xl md:text-6xl lg:text-7xl font-extrabold leading-[1.1] mb-6"
             >
-              Saiba mais
-            </button>
-          </motion.div>
+              <span className="text-foreground">Um guia para</span>
+              <br />
+              <span className="text-foreground">sua jornada</span>
+              <br />
+              <span className="text-gradient">profissional.</span>
+            </motion.h1>
+
+            <motion.p
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="text-lg md:text-xl text-muted-foreground mb-10 max-w-md mx-auto lg:mx-0"
+            >
+              Capacitação gratuita para quem está começando no mercado ou buscando 
+              recolocação. LinkedIn, currículo, mentoria e comunidade.
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.5 }}
+              className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
+            >
+              <button
+                onClick={scrollToSignup}
+                className="group bg-gradient-hero text-primary-foreground px-8 py-4 rounded-2xl font-bold text-lg shadow-button hover:scale-105 transition-transform"
+              >
+                Quero participar
+              </button>
+              <button
+                onClick={scrollToAbout}
+                className="border-2 border-border text-foreground px-8 py-4 rounded-2xl font-bold text-lg hover:bg-muted transition-colors"
+              >
+                Conhecer mais
+              </button>
+            </motion.div>
+          </div>
+
+          {/* Right Content - Feature Cards */}
+          <div className="hidden lg:block">
+            <div className="relative">
+              <motion.div
+                initial={{ opacity: 0, y: 40, rotate: -3 }}
+                animate={{ opacity: 1, y: 0, rotate: -3 }}
+                transition={{ duration: 0.6, delay: 0.6 }}
+                className="bg-card/90 backdrop-blur-md p-6 rounded-3xl shadow-card mb-4 ml-12"
+              >
+                <p className="text-2xl font-bold text-foreground mb-1">LinkedIn</p>
+                <p className="text-muted-foreground">Perfil que atrai recrutadores</p>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 40, rotate: 2 }}
+                animate={{ opacity: 1, y: 0, rotate: 2 }}
+                transition={{ duration: 0.6, delay: 0.7 }}
+                className="bg-card/90 backdrop-blur-md p-6 rounded-3xl shadow-card mb-4 mr-12"
+              >
+                <p className="text-2xl font-bold text-foreground mb-1">Currículo</p>
+                <p className="text-muted-foreground">Destaque suas habilidades</p>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 40, rotate: -2 }}
+                animate={{ opacity: 1, y: 0, rotate: -2 }}
+                transition={{ duration: 0.6, delay: 0.8 }}
+                className="bg-gradient-hero p-6 rounded-3xl shadow-button ml-8"
+              >
+                <p className="text-2xl font-bold text-primary-foreground mb-1">Mentoria</p>
+                <p className="text-primary-foreground/80">Voluntários que te guiam</p>
+              </motion.div>
+            </div>
+          </div>
         </div>
+
+        {/* Scroll Indicator */}
+        <motion.button
+          onClick={scrollToAbout}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1, y: [0, 8, 0] }}
+          transition={{ 
+            opacity: { delay: 1, duration: 0.5 },
+            y: { delay: 1, duration: 1.5, repeat: Infinity }
+          }}
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <span className="text-sm font-medium">Saiba mais</span>
+          <ArrowDown className="w-5 h-5" />
+        </motion.button>
       </div>
     </section>
   );
