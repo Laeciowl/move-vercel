@@ -61,7 +61,7 @@ const HeroSection = () => {
               <span className="text-card bg-secondary px-3 py-1 rounded-xl inline-block">guia</span>
               <span className="text-foreground"> para</span>
               <br />
-              <span className="text-primary font-black">movê</span>
+              <span className="text-primary bg-card px-3 py-1 rounded-xl inline-block">movê</span>
               <span className="text-foreground"> sua jornada</span>
               <br />
               <span className="text-foreground">profissional.</span>
