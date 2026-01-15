@@ -61,7 +61,7 @@ const HeroSection = () => {
               <br />
               <span className="text-foreground">sua jornada</span>
               <br />
-              <span className="text-secondary">profissional.</span>
+              <span className="text-card bg-secondary px-4 py-1 rounded-xl inline-block">profissional.</span>
             </motion.h1>
 
             <motion.p
