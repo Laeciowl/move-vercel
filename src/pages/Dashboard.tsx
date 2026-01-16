@@ -499,7 +499,7 @@ const Dashboard = () => {
                     rel="noopener noreferrer"
                     className="text-primary hover:underline font-medium"
                   >
-                    Laécio Oliveira
+                    Laecio Oliveira
                   </a>
                 </p>
                 <a 

@@ -282,7 +282,7 @@ const Terms = () => {
                 rel="noopener noreferrer"
                 className="text-primary hover:underline font-medium"
               >
-                Laécio Oliveira
+                Laecio Oliveira
               </a>
             </p>
             <p className="text-muted-foreground text-xs mt-1">

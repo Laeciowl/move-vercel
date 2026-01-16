@@ -178,12 +178,12 @@ const HeroSection = () => {
         </div>
       </div>
 
-      {/* Scroll indicator - positioned to the left side */}
+      {/* Scroll indicator - positioned to the right side */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.5, duration: 0.5 }}
-        className="absolute bottom-32 left-8 md:left-16 pointer-events-none"
+        className="absolute bottom-32 right-12 md:right-20 pointer-events-none"
       >
         <motion.div
           animate={{ y: [0, 8, 0] }}
