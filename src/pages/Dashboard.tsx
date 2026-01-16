@@ -3,9 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
   LogOut, FileText, Video, RefreshCw, User, 
-  Loader2, BookOpen, History, ExternalLink, Filter, Edit
+  Loader2, BookOpen, History, ExternalLink, Filter, Edit, Shield
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAdminCheck } from "@/hooks/useAdminCheck";
 import MentorshipSection from "@/components/MentorshipSection";
 import NotificationBell from "@/components/NotificationBell";
 import ProfileEditModal from "@/components/ProfileEditModal";
@@ -75,6 +76,7 @@ const categoryOptions = [
 
 const Dashboard = () => {
   const { user, profile, loading: authLoading, signOut, refreshProfile } = useAuth();
+  const { isAdmin } = useAdminCheck();
   const navigate = useNavigate();
   const [contents, setContents] = useState<ContentItem[]>([]);
   const [impactHistory, setImpactHistory] = useState<ImpactHistory[]>([]);
@@ -205,6 +207,16 @@ const Dashboard = () => {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="text-2xl font-bold text-gradient">Movê</h1>
           <div className="flex items-center gap-3">
+            {isAdmin && (
+              <button
+                onClick={() => navigate("/admin")}
+                className="flex items-center gap-2 text-primary hover:text-primary/80 transition-colors"
+                title="Painel Admin"
+              >
+                <Shield className="w-5 h-5" />
+                <span className="hidden sm:inline">Admin</span>
+              </button>
+            )}
             <NotificationBell />
             <div className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground">
               <User className="w-4 h-4" />
