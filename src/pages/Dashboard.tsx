@@ -3,11 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
   LogOut, FileText, Video, RefreshCw, User, 
-  Loader2, BookOpen, History, ExternalLink, Filter
+  Loader2, BookOpen, History, ExternalLink, Filter, Edit
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import MentorshipSection from "@/components/MentorshipSection";
 import NotificationBell from "@/components/NotificationBell";
+import ProfileEditModal from "@/components/ProfileEditModal";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Enums } from "@/integrations/supabase/types";
@@ -78,6 +79,7 @@ const Dashboard = () => {
   const [impactHistory, setImpactHistory] = useState<ImpactHistory[]>([]);
   const [loadingContent, setLoadingContent] = useState(true);
   const [showUpdateForm, setShowUpdateForm] = useState(false);
+  const [showProfileEdit, setShowProfileEdit] = useState(false);
   const [updating, setUpdating] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [updateData, setUpdateData] = useState({
@@ -225,20 +227,47 @@ const Dashboard = () => {
           animate={{ opacity: 1, y: 0 }}
           className="bg-card rounded-2xl shadow-card p-8 mb-8"
         >
-          <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
-            Olá, {profile.name.split(" ")[0]}! 👋
-          </h2>
-          <p className="text-muted-foreground">
-            Bem-vindo(a) ao Movê. Aqui você encontra conteúdos para impulsionar sua jornada profissional.
-          </p>
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-center gap-4">
+              {/* Profile Photo */}
+              <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center overflow-hidden border-2 border-primary/20 shrink-0">
+                {profile.photo_url ? (
+                  <img
+                    src={profile.photo_url}
+                    alt={profile.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <User className="w-8 h-8 text-muted-foreground" />
+                )}
+              </div>
+              <div>
+                <h2 className="text-2xl md:text-3xl font-bold text-foreground">
+                  Olá, {profile.name.split(" ")[0]}! 👋
+                </h2>
+                <p className="text-muted-foreground">
+                  Bem-vindo(a) ao Movê. Aqui você encontra conteúdos para impulsionar sua jornada profissional.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowProfileEdit(true)}
+              className="p-2 rounded-full hover:bg-muted transition-colors shrink-0"
+              title="Editar perfil"
+            >
+              <Edit className="w-5 h-5 text-muted-foreground hover:text-foreground" />
+            </button>
+          </div>
           <div className="mt-4 flex flex-wrap gap-3">
             <span className="bg-accent text-accent-foreground px-3 py-1 rounded-full text-sm">
               {professionalStatusLabels[profile.professional_status]}
             </span>
-            <span className="bg-secondary text-secondary-foreground px-3 py-1 rounded-full text-sm">
-              {incomeRangeLabels[profile.income_range]}
-            </span>
           </div>
+          {profile.description && (
+            <p className="mt-4 text-sm text-muted-foreground italic">
+              "{profile.description}"
+            </p>
+          )}
         </motion.div>
 
         <div className="grid lg:grid-cols-3 gap-8">
@@ -486,6 +515,14 @@ const Dashboard = () => {
           </div>
         </div>
       </main>
+
+      {/* Profile Edit Modal */}
+      <ProfileEditModal
+        isOpen={showProfileEdit}
+        onClose={() => setShowProfileEdit(false)}
+        profile={profile}
+        onProfileUpdated={refreshProfile}
+      />
     </div>
   );
 };

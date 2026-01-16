@@ -13,6 +13,9 @@ interface Profile {
   income_range: string;
   lgpd_consent: boolean;
   created_at: string;
+  photo_url: string | null;
+  description: string | null;
+  phone: string | null;
 }
 
 interface AuthContextType {

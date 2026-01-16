@@ -183,11 +183,14 @@ export type Database = {
           age: number
           city: string
           created_at: string
+          description: string | null
           id: string
           income_range: Database["public"]["Enums"]["income_range"]
           lgpd_consent: boolean
           lgpd_consent_at: string | null
           name: string
+          phone: string | null
+          photo_url: string | null
           professional_status: Database["public"]["Enums"]["professional_status"]
           state: string
           updated_at: string
@@ -197,11 +200,14 @@ export type Database = {
           age: number
           city: string
           created_at?: string
+          description?: string | null
           id?: string
           income_range: Database["public"]["Enums"]["income_range"]
           lgpd_consent?: boolean
           lgpd_consent_at?: string | null
           name: string
+          phone?: string | null
+          photo_url?: string | null
           professional_status: Database["public"]["Enums"]["professional_status"]
           state: string
           updated_at?: string
@@ -211,11 +217,14 @@ export type Database = {
           age?: number
           city?: string
           created_at?: string
+          description?: string | null
           id?: string
           income_range?: Database["public"]["Enums"]["income_range"]
           lgpd_consent?: boolean
           lgpd_consent_at?: string | null
           name?: string
+          phone?: string | null
+          photo_url?: string | null
           professional_status?: Database["public"]["Enums"]["professional_status"]
           state?: string
           updated_at?: string
