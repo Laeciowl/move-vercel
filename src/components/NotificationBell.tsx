@@ -13,9 +13,10 @@ interface Notification {
   id: string;
   title: string;
   message: string;
-  type: "content" | "mentorship_request";
+  type: string;
   is_read: boolean;
   created_at: string;
+  user_id: string;
 }
 
 const NotificationBell = () => {
@@ -29,15 +30,15 @@ const NotificationBell = () => {
     if (!user) return;
 
     const fetchNotifications = async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("notifications")
         .select("*")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .limit(10);
 
-      if (data) {
-        setNotifications(data as Notification[]);
+      if (data && !error) {
+        setNotifications(data as unknown as Notification[]);
       }
     };
 
@@ -45,7 +46,7 @@ const NotificationBell = () => {
 
     // Subscribe to realtime notifications
     const channel = supabase
-      .channel("notifications")
+      .channel("schema-db-changes")
       .on(
         "postgres_changes",
         {
@@ -66,30 +67,34 @@ const NotificationBell = () => {
   }, [user]);
 
   const markAsRead = async (notificationId: string) => {
-    await supabase
+    const { error } = await supabase
       .from("notifications")
-      .update({ is_read: true })
+      .update({ is_read: true } as never)
       .eq("id", notificationId);
 
-    setNotifications((prev) =>
-      prev.map((n) =>
-        n.id === notificationId ? { ...n, is_read: true } : n
-      )
-    );
+    if (!error) {
+      setNotifications((prev) =>
+        prev.map((n) =>
+          n.id === notificationId ? { ...n, is_read: true } : n
+        )
+      );
+    }
   };
 
   const markAllAsRead = async () => {
     if (!user) return;
     
-    await supabase
+    const { error } = await supabase
       .from("notifications")
-      .update({ is_read: true })
+      .update({ is_read: true } as never)
       .eq("user_id", user.id)
       .eq("is_read", false);
 
-    setNotifications((prev) =>
-      prev.map((n) => ({ ...n, is_read: true }))
-    );
+    if (!error) {
+      setNotifications((prev) =>
+        prev.map((n) => ({ ...n, is_read: true }))
+      );
+    }
   };
 
   const getTimeAgo = (dateString: string) => {
