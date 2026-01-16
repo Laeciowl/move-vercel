@@ -1,80 +1,97 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
 
 const AboutSection = () => {
   return (
-    <section id="sobre" className="py-24 md:py-32 bg-secondary text-secondary-foreground overflow-hidden">
+    <section id="sobre" className="py-24 md:py-32 bg-background overflow-hidden">
       <div className="container mx-auto px-4">
-        {/* Manifesto */}
-        <div className="max-w-4xl mx-auto mb-24">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
+        {/* Manifesto - clean, flowing layout */}
+        <div className="max-w-3xl mb-32">
+          <motion.p
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            className="text-primary font-medium text-sm mb-8 tracking-widest uppercase"
+          >
+            Quem somos
+          </motion.p>
+
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="text-center"
+            className="text-3xl md:text-4xl lg:text-5xl font-bold leading-[1.2] mb-12 text-foreground"
           >
-            <p className="text-primary font-medium text-sm mb-6 tracking-wide uppercase">
-              Quem somos
-            </p>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight mb-8">
-              Acreditamos que todo jovem merece 
-              <span className="text-primary"> clareza, apoio e acesso </span>
-              para construir sua carreira.
-            </h2>
-          </motion.div>
+            Acreditamos que todo jovem merece{" "}
+            <span className="text-primary">clareza, apoio e acesso</span>{" "}
+            para construir sua carreira.
+          </motion.h2>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="space-y-6 text-lg md:text-xl leading-relaxed text-secondary-foreground/80"
+            transition={{ duration: 0.6, delay: 0.15 }}
+            className="space-y-8"
           >
-            <p>
+            <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed">
               O Movê nasce da realidade de milhares de jovens que querem trabalhar, 
               crescer e evoluir, mas não sabem por onde começar, que caminhos existem 
               ou se estão fazendo as escolhas certas.
             </p>
-            <p className="text-secondary-foreground font-semibold text-xl md:text-2xl">
-              Mais do que falta de oportunidades, existe falta de orientação.
+            
+            <p className="text-2xl md:text-3xl font-semibold text-foreground leading-snug">
+              Mais do que falta de oportunidades,<br />
+              <span className="text-primary">existe falta de orientação.</span>
             </p>
-            <p>
-              Por isso, o Movê é um <strong>hub de orientação profissional</strong> que 
+            
+            <p className="text-xl text-muted-foreground leading-relaxed max-w-2xl">
+              Por isso, o Movê é um hub de orientação profissional que 
               conecta jovens a profissionais voluntários, conteúdos práticos e uma 
               comunidade ativa — tudo para ajudar a transformar dúvidas em direção 
               e intenção em ação.
             </p>
           </motion.div>
 
+          {/* Highlight phrase */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, x: -20 }}
+            whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="mt-12 p-8 bg-primary/10 rounded-2xl border border-primary/20"
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="mt-16 flex items-center gap-4"
           >
-            <p className="text-xl md:text-2xl font-bold text-foreground mb-2">
+            <span className="w-12 h-[3px] bg-primary rounded-full" />
+            <p className="text-xl md:text-2xl font-bold text-foreground">
               Aqui, ninguém caminha sozinho.
             </p>
-            <p className="text-secondary-foreground/80 text-lg">
-              Pessoas ajudando pessoas a dar o próximo passo, com consciência e propósito.
-            </p>
           </motion.div>
-        </div>
 
-        {/* O que é o Movê - HUB structure */}
-        <div className="mb-24">
           <motion.p
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            className="text-primary font-medium text-sm mb-8 tracking-wide uppercase text-center"
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="mt-4 text-muted-foreground text-lg pl-16"
           >
-            O que é o Movê
+            Pessoas ajudando pessoas a dar o próximo passo, com consciência e propósito.
+          </motion.p>
+        </div>
+
+        {/* O que é o Movê - minimal structure */}
+        <div className="mb-32">
+          <motion.p
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            className="text-primary font-medium text-sm mb-16 tracking-widest uppercase"
+          >
+            O que oferecemos
           </motion.p>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="space-y-0">
             {[
               {
                 number: "01",
@@ -83,7 +100,7 @@ const AboutSection = () => {
               },
               {
                 number: "02", 
-                title: "Conteúdos práticos e aplicáveis",
+                title: "Conteúdos práticos",
                 description: "Materiais diretos sobre carreira, escolhas profissionais, currículo, LinkedIn, entrevistas, soft skills e vida profissional — sem romantização e sem discurso vazio."
               },
               {
@@ -94,46 +111,54 @@ const AboutSection = () => {
             ].map((item, index) => (
               <motion.div
                 key={item.number}
-                initial={{ opacity: 0, y: 30 }}
+                initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.15 }}
-                className="p-8 rounded-2xl bg-background/50 border border-border hover:border-primary/30 transition-colors"
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                className="group grid md:grid-cols-[80px_1fr] gap-6 py-10 border-t border-border first:border-t-0 hover:bg-muted/30 -mx-6 px-6 transition-colors rounded-lg"
               >
-                <span className="text-primary font-bold text-4xl mb-4 block">{item.number}</span>
-                <h3 className="font-bold text-xl mb-4 text-foreground">{item.title}</h3>
-                <p className="text-secondary-foreground/70 leading-relaxed">{item.description}</p>
+                <span className="text-primary/50 font-mono text-sm group-hover:text-primary transition-colors">
+                  {item.number}
+                </span>
+                <div>
+                  <h3 className="font-bold text-xl md:text-2xl mb-3 text-foreground group-hover:text-primary transition-colors">
+                    {item.title}
+                  </h3>
+                  <p className="text-muted-foreground leading-relaxed max-w-2xl">
+                    {item.description}
+                  </p>
+                </div>
               </motion.div>
             ))}
           </div>
         </div>
 
-        {/* ODS Banner */}
+        {/* ODS Banner - subtle */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="pt-12 border-t border-secondary-foreground/10"
+          className="flex flex-col md:flex-row items-start md:items-center justify-between gap-8 py-8 border-t border-border"
         >
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-            <div className="flex items-start gap-4">
-              <span className="text-4xl">🎯</span>
-              <div>
-                <p className="font-bold text-lg text-foreground">ODS 4 — Educação de Qualidade</p>
-                <p className="text-secondary-foreground/70 text-sm max-w-md">
-                  Acreditamos que orientação e acesso ao conhecimento são ferramentas 
-                  essenciais para inclusão produtiva e mobilidade social.
-                </p>
-              </div>
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+              <span className="text-xl">🎯</span>
             </div>
-            <Link
-              to="/voluntario"
-              className="text-primary font-semibold hover:underline underline-offset-4 whitespace-nowrap"
-            >
-              Quero ser voluntário →
-            </Link>
+            <div>
+              <p className="font-semibold text-foreground">ODS 4 — Educação de Qualidade</p>
+              <p className="text-muted-foreground text-sm">
+                Orientação e acesso ao conhecimento para inclusão e mobilidade social.
+              </p>
+            </div>
           </div>
+          <Link
+            to="/voluntario"
+            className="group inline-flex items-center gap-2 text-primary font-semibold hover:gap-3 transition-all"
+          >
+            Quero ser voluntário
+            <ArrowRight className="w-4 h-4" />
+          </Link>
         </motion.div>
       </div>
     </section>
