@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Mail, Briefcase, Check, X, Clock } from "lucide-react";
+import { Loader2, Mail, Briefcase, Check, X, Clock, User, Send, ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -17,11 +17,12 @@ interface VolunteerApplication {
   user_id: string | null;
 }
 
-const categoryLabels: Record<string, string> = {
-  aulas_lives: "Aulas/Lives",
-  templates_arquivos: "Templates/Arquivos",
-  mentoria: "Mentoria",
-};
+interface MentorInfo {
+  id: string;
+  status: "pending" | "approved" | "rejected";
+  photo_url: string | null;
+  description: string;
+}
 
 const statusLabels: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   pendente: { label: "Pendente", variant: "secondary" },
@@ -31,8 +32,10 @@ const statusLabels: Record<string, { label: string; variant: "default" | "second
 
 const AdminVolunteersPanel = () => {
   const [applications, setApplications] = useState<VolunteerApplication[]>([]);
+  const [mentorsByEmail, setMentorsByEmail] = useState<Record<string, MentorInfo>>({});
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [sendingInvite, setSendingInvite] = useState<string | null>(null);
 
   const fetchApplications = async () => {
     const { data, error } = await supabase
@@ -45,6 +48,28 @@ const AdminVolunteersPanel = () => {
       console.error(error);
     } else {
       setApplications((data || []) as VolunteerApplication[]);
+      
+      // Buscar informações de mentor para cada email
+      const emails = (data || []).map((app: VolunteerApplication) => app.email);
+      if (emails.length > 0) {
+        const { data: mentorsData } = await supabase
+          .from("mentors")
+          .select("id, email, status, photo_url, description")
+          .in("email", emails);
+        
+        if (mentorsData) {
+          const mentorsMap: Record<string, MentorInfo> = {};
+          mentorsData.forEach((m: any) => {
+            mentorsMap[m.email] = {
+              id: m.id,
+              status: m.status,
+              photo_url: m.photo_url,
+              description: m.description,
+            };
+          });
+          setMentorsByEmail(mentorsMap);
+        }
+      }
     }
     setLoading(false);
   };
@@ -124,13 +149,13 @@ const AdminVolunteersPanel = () => {
         // Create notification for the user
         await supabase.from("notifications").insert({
           user_id: app.user_id,
-          title: "Parabéns! Você foi aprovado como voluntário e mentor! 🎉",
+          title: "Parabéns! Você foi aprovado como voluntário! 🎉",
           message: "Agora você pode oferecer mentorias e contribuir com conteúdos. Acesse seu dashboard para começar!",
           type: "volunteer_approval",
         });
       }
 
-      toast.success(`${app.name} foi aprovado como voluntário e mentor!`);
+      toast.success(`${app.name} foi aprovado como voluntário!`);
       fetchApplications();
     } catch (error: any) {
       toast.error("Erro ao aprovar: " + error.message);
@@ -150,6 +175,15 @@ const AdminVolunteersPanel = () => {
 
       if (error) throw error;
 
+      // Também rejeitar o mentor se existir
+      const mentor = mentorsByEmail[app.email];
+      if (mentor) {
+        await supabase
+          .from("mentors")
+          .update({ status: "rejected" })
+          .eq("id", mentor.id);
+      }
+
       toast.success(`Aplicação de ${app.name} foi rejeitada`);
       fetchApplications();
     } catch (error: any) {
@@ -157,6 +191,45 @@ const AdminVolunteersPanel = () => {
     }
 
     setProcessingId(null);
+  };
+
+  const handleSendInvite = async (app: VolunteerApplication) => {
+    setSendingInvite(app.id);
+
+    try {
+      // Gerar magic link via Supabase Auth
+      const { error } = await supabase.auth.signInWithOtp({
+        email: app.email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/dashboard`,
+          data: {
+            name: app.name,
+          },
+        },
+      });
+
+      if (error) throw error;
+
+      toast.success(`Convite enviado para ${app.email}! O voluntário receberá um link para criar sua conta.`);
+    } catch (error: any) {
+      toast.error("Erro ao enviar convite: " + error.message);
+    }
+
+    setSendingInvite(null);
+  };
+
+  const getMentorStatusBadge = (email: string) => {
+    const mentor = mentorsByEmail[email];
+    if (!mentor) return null;
+
+    switch (mentor.status) {
+      case "approved":
+        return <Badge className="bg-green-500 text-white">Mentor Ativo</Badge>;
+      case "rejected":
+        return <Badge variant="destructive">Mentor Rejeitado</Badge>;
+      default:
+        return <Badge variant="secondary">Mentor Pendente</Badge>;
+    }
   };
 
   if (loading) {
@@ -168,7 +241,8 @@ const AdminVolunteersPanel = () => {
   }
 
   const pendingApplications = applications.filter(a => a.status === "pendente");
-  const processedApplications = applications.filter(a => a.status !== "pendente");
+  const approvedApplications = applications.filter(a => a.status === "aprovado");
+  const rejectedApplications = applications.filter(a => a.status === "rejeitado");
 
   return (
     <div className="space-y-6">
@@ -191,8 +265,25 @@ const AdminVolunteersPanel = () => {
                 className="bg-card border border-amber-200 rounded-xl p-4"
               >
                 <div className="flex flex-wrap items-center gap-2 mb-2">
+                  {mentorsByEmail[app.email]?.photo_url ? (
+                    <img
+                      src={mentorsByEmail[app.email].photo_url!}
+                      alt={app.name}
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                      <User className="w-5 h-5 text-muted-foreground" />
+                    </div>
+                  )}
                   <h4 className="font-semibold">{app.name}</h4>
                   <Badge variant="outline">{formatDate(app.submitted_at)}</Badge>
+                  {getMentorStatusBadge(app.email)}
+                  {app.user_id && (
+                    <Badge variant="outline" className="text-green-600 border-green-600">
+                      Conta Criada
+                    </Badge>
+                  )}
                 </div>
 
                 <div className="space-y-2 text-sm">
@@ -208,22 +299,11 @@ const AdminVolunteersPanel = () => {
                     <span>{app.area}</span>
                   </div>
 
-                  <div className="mt-3">
-                    <p className="text-xs text-muted-foreground mb-1">Categorias:</p>
-                    <div className="flex flex-wrap gap-1">
-                      {app.categories?.map((cat, idx) => (
-                        <Badge key={idx} variant="secondary" className="text-xs">
-                          {categoryLabels[cat] || cat}
-                        </Badge>
-                      )) || (
-                        app.how_to_help.split(",").map((help, idx) => (
-                          <Badge key={idx} variant="secondary" className="text-xs">
-                            {help.trim()}
-                          </Badge>
-                        ))
-                      )}
-                    </div>
-                  </div>
+                  {mentorsByEmail[app.email]?.description && (
+                    <p className="text-muted-foreground mt-2 line-clamp-2">
+                      {mentorsByEmail[app.email].description}
+                    </p>
+                  )}
 
                   <div className="flex gap-2 mt-4">
                     <Button
@@ -259,24 +339,102 @@ const AdminVolunteersPanel = () => {
         )}
       </div>
 
-      {/* Processed Applications */}
-      {processedApplications.length > 0 && (
+      {/* Approved Applications */}
+      {approvedApplications.length > 0 && (
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold">
-            Processados ({processedApplications.length})
+          <h3 className="text-lg font-semibold flex items-center gap-2">
+            <Check className="w-5 h-5 text-green-500" />
+            Aprovados ({approvedApplications.length})
           </h3>
 
           <div className="space-y-3">
-            {processedApplications.map((app) => (
+            {approvedApplications.map((app) => (
               <div
                 key={app.id}
-                className="bg-card border rounded-xl p-4 opacity-75"
+                className="bg-card border border-green-200 rounded-xl p-4"
+              >
+                <div className="flex flex-wrap items-center gap-2 mb-2">
+                  {mentorsByEmail[app.email]?.photo_url ? (
+                    <img
+                      src={mentorsByEmail[app.email].photo_url!}
+                      alt={app.name}
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                      <User className="w-5 h-5 text-muted-foreground" />
+                    </div>
+                  )}
+                  <h4 className="font-semibold">{app.name}</h4>
+                  <Badge variant="default">Aprovado</Badge>
+                  {getMentorStatusBadge(app.email)}
+                  {app.user_id ? (
+                    <Badge variant="outline" className="text-green-600 border-green-600">
+                      Conta Ativa
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="text-amber-600 border-amber-600">
+                      Sem Conta
+                    </Badge>
+                  )}
+                </div>
+
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Mail className="w-4 h-4" />
+                    <span>{app.email}</span>
+                  </div>
+
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Briefcase className="w-4 h-4" />
+                    <span>{app.area}</span>
+                  </div>
+
+                  {/* Botão de enviar convite para voluntários sem conta */}
+                  {!app.user_id && (
+                    <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                      <p className="text-sm text-amber-800 mb-2">
+                        Este voluntário ainda não tem uma conta. Envie um convite para que possa acessar a área logada.
+                      </p>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleSendInvite(app)}
+                        disabled={sendingInvite === app.id}
+                        className="gap-2"
+                      >
+                        {sendingInvite === app.id ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Send className="w-4 h-4" />
+                        )}
+                        Enviar Convite por E-mail
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Rejected Applications */}
+      {rejectedApplications.length > 0 && (
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-muted-foreground">
+            Rejeitados ({rejectedApplications.length})
+          </h3>
+
+          <div className="space-y-3">
+            {rejectedApplications.map((app) => (
+              <div
+                key={app.id}
+                className="bg-card border rounded-xl p-4 opacity-60"
               >
                 <div className="flex flex-wrap items-center gap-2 mb-2">
                   <h4 className="font-semibold">{app.name}</h4>
-                  <Badge variant={statusLabels[app.status]?.variant || "outline"}>
-                    {statusLabels[app.status]?.label || app.status}
-                  </Badge>
+                  <Badge variant="destructive">Rejeitado</Badge>
                   <Badge variant="outline">{formatDate(app.submitted_at)}</Badge>
                 </div>
 
