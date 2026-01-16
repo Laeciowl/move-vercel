@@ -57,10 +57,10 @@ const Mentors = () => {
 
   useEffect(() => {
     const fetchMentors = async () => {
+      // Use mentors_public view which excludes sensitive email data
       const { data, error } = await supabase
-        .from("mentors")
-        .select("*")
-        .eq("status", "approved");
+        .from("mentors_public")
+        .select("*");
 
       if (error) {
         console.error("Error fetching mentors:", error);
