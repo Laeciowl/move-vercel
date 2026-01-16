@@ -87,17 +87,19 @@ const HeroSection = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="mb-8"
+            className="mb-10"
           >
             <h1 className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-extrabold text-gradient leading-none tracking-tight">
               Movê
             </h1>
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: "100%" }}
-              transition={{ duration: 0.8, delay: 0.6 }}
-              className="h-1 bg-gradient-hero max-w-[200px] mt-4 rounded-full"
-            />
+            <motion.p
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.5 }}
+              className="text-muted-foreground text-lg md:text-xl mt-3 font-medium tracking-wide"
+            >
+              seu hub de orientação profissional
+            </motion.p>
           </motion.div>
 
           {/* Tagline - human, purposeful */}
