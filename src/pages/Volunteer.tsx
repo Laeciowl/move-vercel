@@ -1,10 +1,11 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, Heart, Loader2, CheckCircle, Upload, X, Plus, Video, FileText, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
+import { useAuth } from "@/contexts/AuthContext";
 import MentorDisclaimerModal from "@/components/MentorDisclaimerModal";
 
 const emailSchema = z.string().email("E-mail inválido").max(255);
@@ -63,8 +64,20 @@ interface ContentSubmission {
 
 const Volunteer = () => {
   const navigate = useNavigate();
+  const { user, profile } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const contentFileInputRef = useRef<HTMLInputElement>(null);
+
+  // Pre-fill form with user data if logged in
+  useEffect(() => {
+    if (profile) {
+      setFormData(prev => ({
+        ...prev,
+        name: profile.name || "",
+        email: user?.email || "",
+      }));
+    }
+  }, [profile, user]);
   
   const [formData, setFormData] = useState({
     name: "",
@@ -286,6 +299,7 @@ const Volunteer = () => {
           area: formData.area.trim(),
           how_to_help: formData.categories.join(", "),
           categories: formData.categories,
+          user_id: user?.id || null,
         })
         .select()
         .single();

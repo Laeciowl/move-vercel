@@ -3,16 +3,19 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
   LogOut, FileText, Video, RefreshCw, User, 
-  Loader2, BookOpen, History, ExternalLink, Filter, Edit, Shield
+  Loader2, BookOpen, History, ExternalLink, Filter, Edit, Shield, Heart
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
+import { useVolunteerCheck } from "@/hooks/useVolunteerCheck";
 import MentorshipSection from "@/components/MentorshipSection";
 import NotificationBell from "@/components/NotificationBell";
 import ProfileEditModal from "@/components/ProfileEditModal";
 import MentorPanel from "@/components/MentorPanel";
+import VolunteerPanel from "@/components/VolunteerPanel";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 import type { Enums } from "@/integrations/supabase/types";
 
 type ProfessionalStatus = Enums<"professional_status">;
@@ -77,6 +80,7 @@ const categoryOptions = [
 const Dashboard = () => {
   const { user, profile, loading: authLoading, signOut, refreshProfile } = useAuth();
   const { isAdmin } = useAdminCheck();
+  const { isVolunteer } = useVolunteerCheck();
   const navigate = useNavigate();
   const [contents, setContents] = useState<ContentItem[]>([]);
   const [impactHistory, setImpactHistory] = useState<ImpactHistory[]>([]);
@@ -271,10 +275,23 @@ const Dashboard = () => {
               <Edit className="w-5 h-5 text-muted-foreground hover:text-foreground" />
             </button>
           </div>
-          <div className="mt-4 flex flex-wrap gap-3">
-            <span className="bg-accent text-accent-foreground px-3 py-1 rounded-full text-sm">
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Badge variant="secondary">
               {professionalStatusLabels[profile.professional_status]}
-            </span>
+            </Badge>
+            <Badge variant="outline">Membro</Badge>
+            {isVolunteer && (
+              <Badge className="bg-primary text-primary-foreground">
+                <Heart className="w-3 h-3 mr-1" />
+                Voluntário
+              </Badge>
+            )}
+            {isAdmin && (
+              <Badge className="bg-amber-500 text-white">
+                <Shield className="w-3 h-3 mr-1" />
+                Admin
+              </Badge>
+            )}
           </div>
           {profile.description && (
             <p className="mt-4 text-sm text-muted-foreground italic">
@@ -286,6 +303,9 @@ const Dashboard = () => {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Content Section */}
           <div className="lg:col-span-2 space-y-8">
+            {/* Volunteer Panel (if user is a volunteer) */}
+            <VolunteerPanel />
+
             {/* Mentor Panel (if user is a mentor) */}
             <MentorPanel />
 

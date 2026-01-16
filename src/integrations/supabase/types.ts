@@ -325,7 +325,9 @@ export type Database = {
           how_to_help: string
           id: string
           name: string
+          status: string
           submitted_at: string
+          user_id: string | null
         }
         Insert: {
           area: string
@@ -334,7 +336,9 @@ export type Database = {
           how_to_help: string
           id?: string
           name: string
+          status?: string
           submitted_at?: string
+          user_id?: string | null
         }
         Update: {
           area?: string
@@ -343,7 +347,9 @@ export type Database = {
           how_to_help?: string
           id?: string
           name?: string
+          status?: string
           submitted_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -463,7 +469,7 @@ export type Database = {
       is_own_profile: { Args: { profile_user_id: string }; Returns: boolean }
     }
     Enums: {
-      app_role: "admin" | "moderator" | "user"
+      app_role: "admin" | "moderator" | "user" | "voluntario"
       income_range: "sem_renda" | "ate_1500" | "1500_3000" | "acima_3000"
       mentor_status: "pending" | "approved" | "rejected"
       professional_status:
@@ -601,7 +607,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "moderator", "user"],
+      app_role: ["admin", "moderator", "user", "voluntario"],
       income_range: ["sem_renda", "ate_1500", "1500_3000", "acima_3000"],
       mentor_status: ["pending", "approved", "rejected"],
       professional_status: [
