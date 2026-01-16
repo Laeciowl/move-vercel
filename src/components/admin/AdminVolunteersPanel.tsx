@@ -73,33 +73,48 @@ const AdminVolunteersPanel = () => {
 
       if (updateError) throw updateError;
 
-      // Check if this volunteer also applied as a mentor (has mentoria category)
-      const isMentorApplication = app.categories?.includes("mentoria") || app.how_to_help.toLowerCase().includes("mentoria");
-      
-      if (isMentorApplication) {
-        // Also approve the mentor record if it exists
+      // Verificar se já existe um mentor com este email
+      const { data: existingMentor } = await supabase
+        .from("mentors")
+        .select("id")
+        .eq("email", app.email)
+        .maybeSingle();
+
+      if (existingMentor) {
+        // Atualizar o mentor existente para approved
         const { error: mentorUpdateError } = await supabase
           .from("mentors")
           .update({ status: "approved" })
-          .eq("email", app.email);
+          .eq("id", existingMentor.id);
 
         if (mentorUpdateError) {
           console.error("Error updating mentor status:", mentorUpdateError);
         }
+      } else {
+        // Criar novo registro de mentor como aprovado
+        const { error: mentorInsertError } = await supabase
+          .from("mentors")
+          .insert({
+            name: app.name,
+            email: app.email,
+            area: app.area,
+            description: `Voluntário aprovado - ${app.how_to_help}`,
+            availability: [],
+            status: "approved",
+            disclaimer_accepted: true,
+            disclaimer_accepted_at: new Date().toISOString(),
+          });
+
+        if (mentorInsertError) {
+          console.error("Error creating mentor:", mentorInsertError);
+        }
       }
 
-      // Find user by email and add volunteer role
-      const { data: userData } = await supabase
-        .from("profiles")
-        .select("user_id")
-        .eq("user_id", app.user_id)
-        .maybeSingle();
-
-      if (userData?.user_id) {
-        // Add volunteer role
+      // Add volunteer role if user_id exists
+      if (app.user_id) {
         const { error: roleError } = await supabase
           .from("user_roles")
-          .insert({ user_id: userData.user_id, role: "voluntario" as any })
+          .insert({ user_id: app.user_id, role: "voluntario" as any })
           .select();
 
         if (roleError && !roleError.message.includes("duplicate")) {
@@ -108,16 +123,14 @@ const AdminVolunteersPanel = () => {
 
         // Create notification for the user
         await supabase.from("notifications").insert({
-          user_id: userData.user_id,
-          title: "Parabéns! Você foi aprovado como voluntário! 🎉",
-          message: isMentorApplication 
-            ? "Agora você tem acesso às funcionalidades de voluntário e mentor. Acesse seu dashboard para começar."
-            : "Agora você tem acesso às funcionalidades de voluntário. Acesse seu dashboard para começar.",
+          user_id: app.user_id,
+          title: "Parabéns! Você foi aprovado como voluntário e mentor! 🎉",
+          message: "Agora você pode oferecer mentorias e contribuir com conteúdos. Acesse seu dashboard para começar!",
           type: "volunteer_approval",
         });
       }
 
-      toast.success(`${app.name} foi aprovado como voluntário${isMentorApplication ? ' e mentor' : ''}!`);
+      toast.success(`${app.name} foi aprovado como voluntário e mentor!`);
       fetchApplications();
     } catch (error: any) {
       toast.error("Erro ao aprovar: " + error.message);
