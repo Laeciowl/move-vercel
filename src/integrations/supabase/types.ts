@@ -14,16 +14,144 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      content_items: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          item_type: string
+          title: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          item_type: string
+          title: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          item_type?: string
+          title?: string
+          url?: string
+        }
+        Relationships: []
+      }
+      impact_history: {
+        Row: {
+          id: string
+          income_range: Database["public"]["Enums"]["income_range"]
+          professional_status: Database["public"]["Enums"]["professional_status"]
+          recorded_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          income_range: Database["public"]["Enums"]["income_range"]
+          professional_status: Database["public"]["Enums"]["professional_status"]
+          recorded_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          income_range?: Database["public"]["Enums"]["income_range"]
+          professional_status?: Database["public"]["Enums"]["professional_status"]
+          recorded_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          age: number
+          city: string
+          created_at: string
+          id: string
+          income_range: Database["public"]["Enums"]["income_range"]
+          lgpd_consent: boolean
+          lgpd_consent_at: string | null
+          name: string
+          professional_status: Database["public"]["Enums"]["professional_status"]
+          state: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          age: number
+          city: string
+          created_at?: string
+          id?: string
+          income_range: Database["public"]["Enums"]["income_range"]
+          lgpd_consent?: boolean
+          lgpd_consent_at?: string | null
+          name: string
+          professional_status: Database["public"]["Enums"]["professional_status"]
+          state: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          age?: number
+          city?: string
+          created_at?: string
+          id?: string
+          income_range?: Database["public"]["Enums"]["income_range"]
+          lgpd_consent?: boolean
+          lgpd_consent_at?: string | null
+          name?: string
+          professional_status?: Database["public"]["Enums"]["professional_status"]
+          state?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      volunteer_applications: {
+        Row: {
+          area: string
+          email: string
+          how_to_help: string
+          id: string
+          name: string
+          submitted_at: string
+        }
+        Insert: {
+          area: string
+          email: string
+          how_to_help: string
+          id?: string
+          name: string
+          submitted_at?: string
+        }
+        Update: {
+          area?: string
+          email?: string
+          how_to_help?: string
+          id?: string
+          name?: string
+          submitted_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_own_profile: { Args: { profile_user_id: string }; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      income_range: "sem_renda" | "ate_1500" | "1500_3000" | "acima_3000"
+      professional_status:
+        | "desempregado"
+        | "estudante"
+        | "estagiario"
+        | "empregado"
+        | "freelancer_pj"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +278,15 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      income_range: ["sem_renda", "ate_1500", "1500_3000", "acima_3000"],
+      professional_status: [
+        "desempregado",
+        "estudante",
+        "estagiario",
+        "empregado",
+        "freelancer_pj",
+      ],
+    },
   },
 } as const
