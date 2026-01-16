@@ -276,10 +276,12 @@ const Dashboard = () => {
             </button>
           </div>
           <div className="mt-4 flex flex-wrap gap-2">
-            <Badge variant="secondary">
-              {professionalStatusLabels[profile.professional_status]}
-            </Badge>
-            <Badge variant="outline">Membro</Badge>
+            {/* Show professional status only for students (non-volunteers) */}
+            {!isVolunteer && (
+              <Badge variant="secondary">
+                {professionalStatusLabels[profile.professional_status]}
+              </Badge>
+            )}
             {isVolunteer && (
               <Badge className="bg-primary text-primary-foreground">
                 <Heart className="w-3 h-3 mr-1" />
