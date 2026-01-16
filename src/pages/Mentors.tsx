@@ -11,12 +11,18 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
+import BookingCalendar from "@/components/BookingCalendar";
 
 interface Availability {
   day: string;
   times: string[];
+}
+
+interface BlockedPeriod {
+  start_date: string;
+  end_date: string;
+  reason?: string;
 }
 
 interface Mentor {
@@ -45,8 +51,7 @@ const Mentors = () => {
   const [mentors, setMentors] = useState<Mentor[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedMentor, setSelectedMentor] = useState<Mentor | null>(null);
-  const [selectedDay, setSelectedDay] = useState("");
-  const [selectedTime, setSelectedTime] = useState("");
+  const [blockedPeriods, setBlockedPeriods] = useState<BlockedPeriod[]>([]);
   const [booking, setBooking] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -72,56 +77,52 @@ const Mentors = () => {
     fetchMentors();
   }, []);
 
-  const handleBookSession = async () => {
+  const fetchBlockedPeriods = async (mentorId: string) => {
+    const { data, error } = await supabase
+      .from("mentor_blocked_periods")
+      .select("start_date, end_date, reason")
+      .eq("mentor_id", mentorId);
+
+    if (data && !error) {
+      setBlockedPeriods(data);
+    }
+  };
+
+  const handleBookSession = async (date: Date, time: string) => {
     if (!user) {
       toast.error("Você precisa estar logado para agendar uma mentoria");
       navigate("/auth?cadastro=true");
       return;
     }
 
-    if (!selectedMentor || !selectedDay || !selectedTime) {
-      toast.error("Selecione um dia e horário");
+    if (!selectedMentor) {
+      toast.error("Selecione um mentor");
       return;
     }
 
     setBooking(true);
 
-    // Create a date for next occurrence of selected day
-    const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
-    const targetDay = days.indexOf(selectedDay);
-    const now = new Date();
-    const currentDay = now.getDay();
-    let daysUntilTarget = targetDay - currentDay;
-    if (daysUntilTarget <= 0) daysUntilTarget += 7;
-
-    const sessionDate = new Date(now);
-    sessionDate.setDate(now.getDate() + daysUntilTarget);
-    const [hours, minutes] = selectedTime.split(":").map(Number);
-    sessionDate.setHours(hours, minutes, 0, 0);
-
     const { error } = await supabase.from("mentor_sessions").insert({
       mentor_id: selectedMentor.id,
       user_id: user.id,
-      scheduled_at: sessionDate.toISOString(),
+      scheduled_at: date.toISOString(),
     });
 
     if (error) {
       toast.error("Erro ao agendar: " + error.message);
     } else {
-      toast.success("Mentoria agendada com sucesso!");
+      toast.success("Mentoria agendada com sucesso! O mentor entrará em contato para confirmar.");
       setDialogOpen(false);
-      setSelectedDay("");
-      setSelectedTime("");
     }
 
     setBooking(false);
   };
 
-  const openBookingDialog = (mentor: Mentor) => {
+  const openBookingDialog = async (mentor: Mentor) => {
     setSelectedMentor(mentor);
-    setSelectedDay("");
-    setSelectedTime("");
+    setBlockedPeriods([]);
     setDialogOpen(true);
+    await fetchBlockedPeriods(mentor.id);
   };
 
   return (
@@ -246,70 +247,23 @@ const Mentors = () => {
 
         {/* Booking Dialog */}
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Agendar mentoria</DialogTitle>
               <DialogDescription>
                 {selectedMentor && (
-                  <>Agende uma sessão com {selectedMentor.name}</>
+                  <>Escolha uma data e horário disponível com {selectedMentor.name}</>
                 )}
               </DialogDescription>
             </DialogHeader>
 
             {selectedMentor && selectedMentor.availability && (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    Dia
-                  </label>
-                  <select
-                    value={selectedDay}
-                    onChange={(e) => {
-                      setSelectedDay(e.target.value);
-                      setSelectedTime("");
-                    }}
-                    className="w-full px-4 py-3 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  >
-                    <option value="">Selecione um dia</option>
-                    {selectedMentor.availability.map((avail) => (
-                      <option key={avail.day} value={avail.day}>
-                        {dayLabels[avail.day]}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {selectedDay && (
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Horário
-                    </label>
-                    <select
-                      value={selectedTime}
-                      onChange={(e) => setSelectedTime(e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
-                    >
-                      <option value="">Selecione um horário</option>
-                      {selectedMentor.availability
-                        .find((a) => a.day === selectedDay)
-                        ?.times.map((time) => (
-                          <option key={time} value={time}>
-                            {time}
-                          </option>
-                        ))}
-                    </select>
-                  </div>
-                )}
-
-                <button
-                  onClick={handleBookSession}
-                  disabled={!selectedDay || !selectedTime || booking}
-                  className="w-full bg-gradient-hero text-primary-foreground py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity disabled:opacity-70 flex items-center justify-center gap-2"
-                >
-                  {booking && <Loader2 className="w-4 h-4 animate-spin" />}
-                  Confirmar agendamento
-                </button>
-              </div>
+              <BookingCalendar
+                availability={selectedMentor.availability}
+                blockedPeriods={blockedPeriods}
+                onConfirm={handleBookSession}
+                loading={booking}
+              />
             )}
           </DialogContent>
         </Dialog>
