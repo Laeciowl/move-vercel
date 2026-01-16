@@ -14,12 +14,6 @@ const passwordSchema = z.string().min(6, "Senha deve ter pelo menos 6 caracteres
 type ProfessionalStatus = Enums<"professional_status">;
 type IncomeRange = Enums<"income_range">;
 
-const brazilianStates = [
-  "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA",
-  "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN",
-  "RS", "RO", "RR", "SC", "SP", "SE", "TO"
-];
-
 const professionalStatusOptions = [
   { value: "desempregado", label: "Desempregado" },
   { value: "estudante", label: "Estudante" },
@@ -52,7 +46,6 @@ const Auth = () => {
     name: "",
     age: "",
     city: "",
-    state: "",
     professionalStatus: "",
     incomeRange: "",
     lgpdConsent: false,
@@ -109,7 +102,7 @@ const Auth = () => {
       }
     }
 
-    if (!signupData.name.trim() || !signupData.city.trim() || !signupData.state || 
+    if (!signupData.name.trim() || !signupData.city.trim() || 
         !signupData.professionalStatus || !signupData.incomeRange) {
       toast.error("Por favor, preencha todos os campos obrigatórios");
       return;
@@ -155,7 +148,7 @@ const Auth = () => {
         name: signupData.name.trim(),
         age: age,
         city: signupData.city.trim(),
-        state: signupData.state,
+        state: "N/A",
         professional_status: signupData.professionalStatus as ProfessionalStatus,
         income_range: signupData.incomeRange as IncomeRange,
         lgpd_consent: true,
@@ -335,39 +328,20 @@ const Auth = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    Idade *
-                  </label>
-                  <input
-                    type="number"
-                    value={signupData.age}
-                    onChange={(e) => setSignupData({ ...signupData, age: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
-                    placeholder="Ex: 25"
-                    min={18}
-                    max={100}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    Estado *
-                  </label>
-                  <select
-                    value={signupData.state}
-                    onChange={(e) => setSignupData({ ...signupData, state: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
-                    required
-                  >
-                    <option value="">Selecione</option>
-                    {brazilianStates.map((state) => (
-                      <option key={state} value={state}>{state}</option>
-                    ))}
-                  </select>
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Idade *
+                </label>
+                <input
+                  type="number"
+                  value={signupData.age}
+                  onChange={(e) => setSignupData({ ...signupData, age: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  placeholder="Ex: 25"
+                  min={18}
+                  max={100}
+                  required
+                />
               </div>
 
               <div>
