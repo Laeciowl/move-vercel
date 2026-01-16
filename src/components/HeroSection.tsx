@@ -178,12 +178,12 @@ const HeroSection = () => {
         </div>
       </div>
 
-      {/* Scroll indicator - centered */}
+      {/* Scroll indicator - centered, positioned above divider */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.5, duration: 0.5 }}
-        className="absolute bottom-12 left-0 right-0 flex justify-center"
+        className="absolute bottom-20 left-0 right-0 flex justify-center pointer-events-none"
       >
         <motion.div
           animate={{ y: [0, 8, 0] }}

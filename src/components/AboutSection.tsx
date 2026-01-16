@@ -12,7 +12,7 @@ const AboutSection = () => {
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            className="text-primary font-bold text-base md:text-lg mb-8 tracking-widest uppercase"
+            className="text-primary font-black text-lg md:text-xl mb-8 tracking-widest uppercase"
           >
             Quem somos
           </motion.p>
@@ -68,12 +68,12 @@ const AboutSection = () => {
         </div>
 
         {/* O que é o Movê - minimal structure */}
-        <div className="mb-16">
+        <div className="mb-10">
           <motion.p
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            className="text-primary font-bold text-base md:text-lg mb-16 tracking-widest uppercase"
+            className="text-primary font-black text-lg md:text-xl mb-16 tracking-widest uppercase"
           >
             O que oferecemos
           </motion.p>
