@@ -5,6 +5,7 @@ import { ArrowLeft, Heart, Loader2, CheckCircle, Upload, X, Clock, Plus } from "
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
+import MentorDisclaimerModal from "@/components/MentorDisclaimerModal";
 
 const emailSchema = z.string().email("E-mail inválido").max(255);
 const nameSchema = z.string().min(2, "Nome deve ter pelo menos 2 caracteres").max(100);
@@ -57,6 +58,8 @@ const Volunteer = () => {
   const [availability, setAvailability] = useState<Availability[]>([]);
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [showDisclaimerModal, setShowDisclaimerModal] = useState(false);
+  const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
 
   const isMentorApplication = formData.howToHelp.includes("mentoria");
 
@@ -118,46 +121,68 @@ const Volunteer = () => {
     setAvailability(newAvailability);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const validateForm = (): boolean => {
     try {
       nameSchema.parse(formData.name);
       emailSchema.parse(formData.email);
     } catch (error) {
       if (error instanceof z.ZodError) {
         toast.error(error.errors[0].message);
-        return;
+        return false;
       }
     }
 
     if (!formData.area.trim()) {
       toast.error("Por favor, informe sua área de atuação");
-      return;
+      return false;
     }
 
     if (formData.howToHelp.length === 0) {
       toast.error("Por favor, selecione como gostaria de ajudar");
-      return;
+      return false;
     }
 
     // Validation for mentors
     if (isMentorApplication) {
       if (!formData.description.trim()) {
         toast.error("Por favor, adicione uma descrição sobre você");
-        return;
+        return false;
       }
       if (availability.length === 0) {
         toast.error("Por favor, adicione pelo menos um dia de disponibilidade");
-        return;
+        return false;
       }
       const hasValidAvailability = availability.every((a) => a.times.length > 0);
       if (!hasValidAvailability) {
         toast.error("Por favor, selecione pelo menos um horário para cada dia");
-        return;
+        return false;
       }
     }
 
+    return true;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!validateForm()) return;
+
+    // If it's a mentor application and disclaimer not yet accepted, show modal
+    if (isMentorApplication && !disclaimerAccepted) {
+      setShowDisclaimerModal(true);
+      return;
+    }
+
+    await submitApplication();
+  };
+
+  const handleDisclaimerAccept = async () => {
+    setDisclaimerAccepted(true);
+    setShowDisclaimerModal(false);
+    await submitApplication();
+  };
+
+  const submitApplication = async () => {
     setLoading(true);
 
     try {
@@ -213,6 +238,8 @@ const Volunteer = () => {
           education: formData.education.trim() || null,
           photo_url: photoUrl,
           availability: JSON.parse(JSON.stringify(availability)),
+          disclaimer_accepted: true,
+          disclaimer_accepted_at: new Date().toISOString(),
         }]);
 
         if (mentorError) {
@@ -564,6 +591,13 @@ const Volunteer = () => {
           </form>
         </motion.div>
       </div>
+
+      {/* Mentor Disclaimer Modal */}
+      <MentorDisclaimerModal
+        isOpen={showDisclaimerModal}
+        onClose={() => setShowDisclaimerModal(false)}
+        onAccept={handleDisclaimerAccept}
+      />
     </div>
   );
 };
