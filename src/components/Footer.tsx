@@ -20,7 +20,7 @@ const Footer = () => {
                 rel="noopener noreferrer"
                 className="text-primary hover:underline"
               >
-                Laécio Oliveira
+                Laecio Oliveira
               </a>
             </p>
           </div>

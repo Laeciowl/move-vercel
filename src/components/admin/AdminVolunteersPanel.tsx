@@ -73,6 +73,21 @@ const AdminVolunteersPanel = () => {
 
       if (updateError) throw updateError;
 
+      // Check if this volunteer also applied as a mentor (has mentoria category)
+      const isMentorApplication = app.categories?.includes("mentoria") || app.how_to_help.toLowerCase().includes("mentoria");
+      
+      if (isMentorApplication) {
+        // Also approve the mentor record if it exists
+        const { error: mentorUpdateError } = await supabase
+          .from("mentors")
+          .update({ status: "approved" })
+          .eq("email", app.email);
+
+        if (mentorUpdateError) {
+          console.error("Error updating mentor status:", mentorUpdateError);
+        }
+      }
+
       // Find user by email and add volunteer role
       const { data: userData } = await supabase
         .from("profiles")
@@ -95,12 +110,14 @@ const AdminVolunteersPanel = () => {
         await supabase.from("notifications").insert({
           user_id: userData.user_id,
           title: "Parabéns! Você foi aprovado como voluntário! 🎉",
-          message: "Agora você tem acesso às funcionalidades de voluntário. Acesse seu dashboard para começar.",
+          message: isMentorApplication 
+            ? "Agora você tem acesso às funcionalidades de voluntário e mentor. Acesse seu dashboard para começar."
+            : "Agora você tem acesso às funcionalidades de voluntário. Acesse seu dashboard para começar.",
           type: "volunteer_approval",
         });
       }
 
-      toast.success(`${app.name} foi aprovado como voluntário!`);
+      toast.success(`${app.name} foi aprovado como voluntário${isMentorApplication ? ' e mentor' : ''}!`);
       fetchApplications();
     } catch (error: any) {
       toast.error("Erro ao aprovar: " + error.message);
