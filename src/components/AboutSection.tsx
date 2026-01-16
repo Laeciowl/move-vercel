@@ -12,7 +12,7 @@ const AboutSection = () => {
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            className="text-primary font-medium text-sm mb-8 tracking-widest uppercase"
+            className="text-primary font-bold text-base md:text-lg mb-8 tracking-widest uppercase"
           >
             Quem somos
           </motion.p>
@@ -25,8 +25,8 @@ const AboutSection = () => {
             className="text-3xl md:text-4xl lg:text-5xl font-bold leading-[1.2] mb-12 text-foreground"
           >
             Acreditamos que todo jovem merece{" "}
-            <span className="text-primary">clareza, apoio e acesso</span>{" "}
-            para construir sua carreira.
+            <span className="text-primary">clareza e apoio</span>{" "}
+            para construir sua trajetória profissional.
           </motion.h2>
 
           <motion.div
@@ -37,21 +37,18 @@ const AboutSection = () => {
             className="space-y-8"
           >
             <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed">
-              O Movê nasce da realidade de milhares de jovens que querem trabalhar, 
-              crescer e evoluir, mas não sabem por onde começar, que caminhos existem 
-              ou se estão fazendo as escolhas certas.
+              O Movê nasceu de uma inquietação real: muitos jovens não carecem de talento, 
+              mas de orientação, referências e segurança para tomar decisões sobre carreira.
+            </p>
+            
+            <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed">
+              Somos um hub que conecta conhecimento, experiência e pessoas. 
+              Reunimos profissionais voluntários dispostos a orientar jovens em diferentes 
+              fases da vida profissional — do início ao crescimento contínuo.
             </p>
             
             <p className="text-2xl md:text-3xl font-semibold text-foreground leading-snug">
-              Mais do que falta de oportunidades,<br />
-              <span className="text-primary">existe falta de orientação.</span>
-            </p>
-            
-            <p className="text-xl text-muted-foreground leading-relaxed max-w-2xl">
-              Por isso, o Movê é um hub de orientação profissional que 
-              conecta jovens a profissionais voluntários, conteúdos práticos e uma 
-              comunidade ativa — tudo para ajudar a transformar dúvidas em direção 
-              e intenção em ação.
+              De forma gratuita, acessível e transparente.
             </p>
           </motion.div>
 
@@ -65,28 +62,18 @@ const AboutSection = () => {
           >
             <span className="w-12 h-[3px] bg-primary rounded-full" />
             <p className="text-xl md:text-2xl font-bold text-foreground">
-              Aqui, ninguém caminha sozinho.
+              Pessoas ajudando pessoas a avançar com mais direção.
             </p>
           </motion.div>
-
-          <motion.p
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="mt-4 text-muted-foreground text-lg pl-16"
-          >
-            Pessoas ajudando pessoas a dar o próximo passo, com consciência e propósito.
-          </motion.p>
         </div>
 
         {/* O que é o Movê - minimal structure */}
-        <div className="mb-32">
+        <div className="mb-16">
           <motion.p
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            className="text-primary font-medium text-sm mb-16 tracking-widest uppercase"
+            className="text-primary font-bold text-base md:text-lg mb-16 tracking-widest uppercase"
           >
             O que oferecemos
           </motion.p>
@@ -96,17 +83,17 @@ const AboutSection = () => {
               {
                 number: "01",
                 title: "Orientação profissional",
-                description: "Conversas e mentorias com profissionais que já viveram desafios reais de carreira e podem ajudar a enxergar caminhos possíveis, decisões estratégicas e próximos passos concretos."
+                description: "Conversas e direcionamento com profissionais que já viveram desafios semelhantes aos seus e podem ajudar na tomada de decisões de carreira."
               },
               {
                 number: "02", 
                 title: "Conteúdos práticos",
-                description: "Materiais diretos sobre carreira, escolhas profissionais, currículo, LinkedIn, entrevistas, soft skills e vida profissional — sem romantização e sem discurso vazio."
+                description: "Materiais objetivos sobre carreira, currículo, LinkedIn, entrevistas, desenvolvimento profissional e soft skills."
               },
               {
                 number: "03",
                 title: "Comunidade de apoio",
-                description: "Um espaço seguro para trocar experiências, compartilhar dúvidas, aprender com histórias reais e construir rede desde o início da jornada profissional."
+                description: "Um ambiente seguro para trocar experiências, aprender com outros jovens e seguir evoluindo com apoio coletivo."
               }
             ].map((item, index) => (
               <motion.div
@@ -115,9 +102,9 @@ const AboutSection = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="group grid md:grid-cols-[100px_1fr] gap-6 py-12 border-t border-border hover:bg-muted/30 -mx-6 px-6 transition-colors rounded-lg"
+                className="group grid md:grid-cols-[120px_1fr] gap-6 py-12 border-t border-border hover:bg-muted/30 -mx-6 px-6 transition-colors rounded-lg"
               >
-                <span className="text-5xl md:text-6xl font-bold text-primary/30 group-hover:text-primary transition-colors leading-none">
+                <span className="text-6xl md:text-7xl font-black text-primary group-hover:text-primary/80 transition-colors leading-none">
                   {item.number}
                 </span>
                 <div>
@@ -148,7 +135,7 @@ const AboutSection = () => {
             <div>
               <p className="font-semibold text-foreground">ODS 4 — Educação de Qualidade</p>
               <p className="text-muted-foreground text-sm">
-                Orientação e acesso ao conhecimento para inclusão e mobilidade social.
+                Orientação e acesso ao conhecimento como base para desenvolvimento profissional, inclusão e mobilidade social.
               </p>
             </div>
           </div>

@@ -111,7 +111,7 @@ const HeroSection = () => {
           >
             Conhecimento e orientação
             <br />
-            <span className="text-muted-foreground font-medium">para jovens entrarem no mercado de trabalho.</span>
+            <span className="text-muted-foreground font-medium">para jovens evoluírem em suas carreiras.</span>
           </motion.h2>
 
           {/* Purpose statement - the WHY */}
@@ -122,7 +122,7 @@ const HeroSection = () => {
             className="text-lg md:text-xl text-muted-foreground mb-6 max-w-xl leading-relaxed"
           >
             Nem todo mundo tem acesso às mesmas oportunidades. 
-            O Movê nasce para apoiar jovens que buscam entrar ou se recolocar no mercado, 
+            O Movê existe para apoiar jovens em diferentes momentos da sua jornada profissional — 
             oferecendo orientação prática, acesso a conhecimento e conexão com mentores voluntários.
           </motion.p>
 
