@@ -287,15 +287,14 @@ const VolunteerPanel = () => {
               </div>
             </div>
           ) : (
-            /* Volunteer without mentor role - show info card */
+            /* Volunteer - show contribution stats */
             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 space-y-3 border border-blue-100">
               <div className="flex items-center gap-2">
                 <Users className="w-5 h-5 text-blue-600" />
                 <h4 className="text-sm font-semibold text-foreground">Contribuição como Voluntário</h4>
               </div>
               <p className="text-sm text-muted-foreground">
-                Você está contribuindo com conteúdos para a comunidade! Para também oferecer mentorias,
-                cadastre-se como mentor na página de <a href="/voluntario" className="text-primary hover:underline font-medium">Seja Voluntário</a>.
+                Você está contribuindo com conteúdos para a comunidade! Seu perfil de mentor está aguardando aprovação.
               </p>
               <div className="bg-white/60 rounded-lg p-3 mt-2">
                 <div className="flex items-center justify-between">
