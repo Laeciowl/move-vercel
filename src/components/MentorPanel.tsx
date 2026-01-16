@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { User, Calendar, Clock, Settings, Shield, Loader2, Mail, Phone, CheckCircle } from "lucide-react";
+import { User, Calendar, Clock, Settings, Shield, Loader2, Phone, CheckCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import MentorBlockedPeriodsManager from "./MentorBlockedPeriodsManager";
 import MentorDisclaimerModal from "./MentorDisclaimerModal";
+import MentorSessionConfirmation from "./MentorSessionConfirmation";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -32,6 +33,8 @@ interface MentorSession {
   status: string;
   notes: string | null;
   user_id: string;
+  confirmed_by_mentor: boolean;
+  mentor_notes: string | null;
   mentee_profile?: {
     name: string;
     phone: string | null;
@@ -236,8 +239,11 @@ const MentorPanel = () => {
         )}
       </div>
 
+      {/* Session Confirmation */}
+      <MentorSessionConfirmation sessions={sessions} onUpdate={fetchMentorData} />
+
       {/* Upcoming sessions */}
-      {upcomingSessions.length > 0 && (
+      {upcomingSessions.filter(s => s.confirmed_by_mentor).length > 0 && (
         <div>
           <h4 className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
             <Calendar className="w-4 h-4 text-primary" />

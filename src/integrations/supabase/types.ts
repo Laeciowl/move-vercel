@@ -112,27 +112,36 @@ export type Database = {
       }
       mentor_sessions: {
         Row: {
+          confirmed_at: string | null
+          confirmed_by_mentor: boolean | null
           created_at: string
           id: string
           mentor_id: string
+          mentor_notes: string | null
           notes: string | null
           scheduled_at: string
           status: Database["public"]["Enums"]["session_status"]
           user_id: string
         }
         Insert: {
+          confirmed_at?: string | null
+          confirmed_by_mentor?: boolean | null
           created_at?: string
           id?: string
           mentor_id: string
+          mentor_notes?: string | null
           notes?: string | null
           scheduled_at: string
           status?: Database["public"]["Enums"]["session_status"]
           user_id: string
         }
         Update: {
+          confirmed_at?: string | null
+          confirmed_by_mentor?: boolean | null
           created_at?: string
           id?: string
           mentor_id?: string
+          mentor_notes?: string | null
           notes?: string | null
           scheduled_at?: string
           status?: Database["public"]["Enums"]["session_status"]
@@ -311,6 +320,7 @@ export type Database = {
       volunteer_applications: {
         Row: {
           area: string
+          categories: string[] | null
           email: string
           how_to_help: string
           id: string
@@ -319,6 +329,7 @@ export type Database = {
         }
         Insert: {
           area: string
+          categories?: string[] | null
           email: string
           how_to_help: string
           id?: string
@@ -327,6 +338,7 @@ export type Database = {
         }
         Update: {
           area?: string
+          categories?: string[] | null
           email?: string
           how_to_help?: string
           id?: string
@@ -334,6 +346,65 @@ export type Database = {
           submitted_at?: string
         }
         Relationships: []
+      }
+      volunteer_submissions: {
+        Row: {
+          admin_notes: string | null
+          category: Database["public"]["Enums"]["volunteer_category"]
+          content_type: string
+          content_url: string
+          created_at: string
+          description: string
+          id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          title: string
+          volunteer_email: string
+          volunteer_id: string | null
+          volunteer_name: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          category: Database["public"]["Enums"]["volunteer_category"]
+          content_type: string
+          content_url: string
+          created_at?: string
+          description: string
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          title: string
+          volunteer_email: string
+          volunteer_id?: string | null
+          volunteer_name: string
+        }
+        Update: {
+          admin_notes?: string | null
+          category?: Database["public"]["Enums"]["volunteer_category"]
+          content_type?: string
+          content_url?: string
+          created_at?: string
+          description?: string
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          title?: string
+          volunteer_email?: string
+          volunteer_id?: string | null
+          volunteer_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "volunteer_submissions_volunteer_id_fkey"
+            columns: ["volunteer_id"]
+            isOneToOne: false
+            referencedRelation: "volunteer_applications"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
@@ -402,6 +473,7 @@ export type Database = {
         | "empregado"
         | "freelancer_pj"
       session_status: "scheduled" | "completed" | "cancelled"
+      volunteer_category: "aulas_lives" | "templates_arquivos" | "mentoria"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -540,6 +612,7 @@ export const Constants = {
         "freelancer_pj",
       ],
       session_status: ["scheduled", "completed", "cancelled"],
+      volunteer_category: ["aulas_lives", "templates_arquivos", "mentoria"],
     },
   },
 } as const

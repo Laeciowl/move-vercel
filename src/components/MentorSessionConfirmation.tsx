@@ -1,0 +1,199 @@
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Check, X, Loader2, Calendar, User, MessageSquare } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+
+interface MentorSession {
+  id: string;
+  scheduled_at: string;
+  status: string;
+  confirmed_by_mentor: boolean;
+  mentor_notes: string | null;
+  mentee_profile?: {
+    name: string;
+    phone: string | null;
+  };
+}
+
+interface MentorSessionConfirmationProps {
+  sessions: MentorSession[];
+  onUpdate: () => void;
+}
+
+const MentorSessionConfirmation = ({ sessions, onUpdate }: MentorSessionConfirmationProps) => {
+  const [updating, setUpdating] = useState<string | null>(null);
+  const [notesModal, setNotesModal] = useState<{ sessionId: string; notes: string } | null>(null);
+
+  const pendingSessions = sessions.filter(
+    s => s.status === "scheduled" && 
+    !s.confirmed_by_mentor && 
+    new Date(s.scheduled_at) > new Date()
+  );
+
+  const confirmSession = async (sessionId: string, confirmed: boolean, notes?: string) => {
+    setUpdating(sessionId);
+    
+    const updateData: any = {
+      confirmed_by_mentor: confirmed,
+      confirmed_at: new Date().toISOString(),
+    };
+    
+    if (!confirmed) {
+      updateData.status = "cancelled";
+    }
+    
+    if (notes) {
+      updateData.mentor_notes = notes;
+    }
+
+    const { error } = await supabase
+      .from("mentor_sessions")
+      .update(updateData)
+      .eq("id", sessionId);
+
+    if (error) {
+      toast.error("Erro ao atualizar sessão: " + error.message);
+    } else {
+      toast.success(confirmed ? "Sessão confirmada!" : "Sessão cancelada");
+      onUpdate();
+    }
+    
+    setUpdating(null);
+    setNotesModal(null);
+  };
+
+  const formatSessionDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return format(date, "EEEE, d 'de' MMMM 'às' HH:mm", { locale: ptBR });
+  };
+
+  if (pendingSessions.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="space-y-4">
+      <h4 className="text-sm font-medium text-foreground flex items-center gap-2">
+        <Calendar className="w-4 h-4 text-primary" />
+        Sessões aguardando confirmação ({pendingSessions.length})
+      </h4>
+      
+      <div className="space-y-3">
+        {pendingSessions.map((session) => (
+          <motion.div
+            key={session.id}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 space-y-3"
+          >
+            <div className="flex items-center gap-2">
+              <User className="w-4 h-4 text-muted-foreground" />
+              <span className="font-medium text-foreground">
+                {session.mentee_profile?.name || "Mentorado"}
+              </span>
+            </div>
+            
+            <p className="text-sm text-muted-foreground">
+              📅 {formatSessionDate(session.scheduled_at)}
+            </p>
+            
+            {session.mentee_profile?.phone && (
+              <p className="text-sm text-muted-foreground">
+                📱 {session.mentee_profile.phone}
+              </p>
+            )}
+
+            <div className="flex flex-wrap gap-2 pt-2">
+              <button
+                onClick={() => confirmSession(session.id, true)}
+                disabled={updating === session.id}
+                className="flex-1 flex items-center justify-center gap-2 bg-green-600 text-white py-2 px-4 rounded-lg font-medium text-sm hover:bg-green-700 transition-colors disabled:opacity-50"
+              >
+                {updating === session.id ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <>
+                    <Check className="w-4 h-4" />
+                    Confirmar
+                  </>
+                )}
+              </button>
+              
+              <button
+                onClick={() => setNotesModal({ sessionId: session.id, notes: "" })}
+                disabled={updating === session.id}
+                className="flex items-center justify-center gap-2 border border-red-300 text-red-600 py-2 px-4 rounded-lg font-medium text-sm hover:bg-red-50 transition-colors disabled:opacity-50"
+              >
+                <X className="w-4 h-4" />
+                Cancelar
+              </button>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Cancel Modal with Notes */}
+      <AnimatePresence>
+        {notesModal && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setNotesModal(null)}
+              className="fixed inset-0 bg-black/50 z-50"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="fixed left-4 right-4 top-1/4 md:left-1/2 md:right-auto md:-translate-x-1/2 md:max-w-md md:w-full bg-card rounded-2xl shadow-xl z-50 p-6"
+            >
+              <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
+                <MessageSquare className="w-5 h-5 text-primary" />
+                Cancelar sessão
+              </h3>
+              
+              <p className="text-sm text-muted-foreground mb-4">
+                Se desejar, deixe uma mensagem explicando o motivo do cancelamento (opcional).
+              </p>
+              
+              <textarea
+                value={notesModal.notes}
+                onChange={(e) => setNotesModal({ ...notesModal, notes: e.target.value })}
+                className="w-full px-4 py-3 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 min-h-[100px] mb-4"
+                placeholder="Ex: Tive um imprevisto no trabalho..."
+                maxLength={500}
+              />
+              
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setNotesModal(null)}
+                  className="flex-1 py-3 rounded-xl border border-border text-foreground hover:bg-muted transition-colors font-medium"
+                >
+                  Voltar
+                </button>
+                <button
+                  onClick={() => confirmSession(notesModal.sessionId, false, notesModal.notes)}
+                  disabled={updating === notesModal.sessionId}
+                  className="flex-1 bg-red-600 text-white py-3 rounded-xl font-semibold hover:bg-red-700 transition-colors flex items-center justify-center gap-2"
+                >
+                  {updating === notesModal.sessionId ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    "Confirmar cancelamento"
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+export default MentorSessionConfirmation;
