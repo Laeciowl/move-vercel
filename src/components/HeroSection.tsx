@@ -107,9 +107,9 @@ const HeroSection = () => {
             transition={{ duration: 0.6, delay: 0.4 }}
             className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-6 leading-snug"
           >
-            Conhecimento e oportunidades
+            Conhecimento e orientação
             <br />
-            <span className="text-muted-foreground font-medium">para quem mais precisa.</span>
+            <span className="text-muted-foreground font-medium">para jovens entrarem no mercado de trabalho.</span>
           </motion.h2>
 
           {/* Purpose statement - the WHY */}
@@ -120,8 +120,8 @@ const HeroSection = () => {
             className="text-lg md:text-xl text-muted-foreground mb-6 max-w-xl leading-relaxed"
           >
             Nem todo mundo tem acesso às mesmas oportunidades. 
-            O Movê existe pra mudar isso — conectando pessoas que querem 
-            crescer com mentores dispostos a compartilhar conhecimento.
+            O Movê nasce para apoiar jovens que buscam entrar ou se recolocar no mercado, 
+            oferecendo orientação prática, acesso a conhecimento e conexão com mentores voluntários.
           </motion.p>
 
           {/* The emotional hook */}
@@ -132,7 +132,7 @@ const HeroSection = () => {
             className="text-foreground font-semibold text-lg md:text-xl mb-10 flex items-center gap-3"
           >
             <span className="w-8 h-[2px] bg-primary rounded-full" />
-            Porque ninguém deveria caminhar sozinho.
+            Porque ninguém constrói uma carreira sozinho.
           </motion.p>
 
           {/* CTA buttons */}
@@ -146,38 +146,32 @@ const HeroSection = () => {
               onClick={goToSignup}
               className="group inline-flex items-center justify-center gap-2 bg-gradient-hero text-primary-foreground px-8 py-4 rounded-full font-bold text-lg shadow-button hover:scale-105 transition-transform"
             >
-              Quero fazer parte
+              Inscreva-se gratuitamente
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </button>
             <button
               onClick={scrollToAbout}
-              className="inline-flex items-center justify-center text-foreground px-8 py-4 font-semibold text-lg hover:text-primary transition-colors"
+              className="inline-flex items-center justify-center text-foreground px-8 py-4 font-semibold text-lg hover:text-primary transition-colors underline underline-offset-4"
             >
-              Como funciona?
+              Como o MOVÊ funciona?
             </button>
           </motion.div>
 
-          {/* Mission statement - small, impactful */}
+          {/* Tags - mission highlights */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 1 }}
-            className="mt-20 flex items-center gap-4"
+            className="mt-16 flex flex-wrap items-center gap-3"
           >
-            <div className="flex -space-x-2">
-              {[...Array(4)].map((_, i) => (
-                <div 
-                  key={i}
-                  className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/80 to-primary border-2 border-background flex items-center justify-center text-primary-foreground text-xs font-bold"
-                  style={{ zIndex: 4 - i }}
-                >
-                  {['M', 'O', 'V', 'Ê'][i]}
-                </div>
-              ))}
-            </div>
-            <p className="text-muted-foreground text-sm">
-              Educação gratuita • Mentorias voluntárias • Comunidade de apoio
-            </p>
+            {['Educação gratuita', 'Orientação de carreira', 'Mentorias voluntárias', 'Comunidade de apoio'].map((tag, i) => (
+              <span 
+                key={i}
+                className="px-4 py-2 bg-muted/50 text-muted-foreground text-sm rounded-full border border-border"
+              >
+                {tag}
+              </span>
+            ))}
           </motion.div>
         </div>
       </div>
