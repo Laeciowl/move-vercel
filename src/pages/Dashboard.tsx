@@ -494,7 +494,7 @@ const Dashboard = () => {
                 <p className="text-xs text-muted-foreground">
                   Projeto fundado por{" "}
                   <a 
-                    href="https://www.linkedin.com/in/laécio-oliveira" 
+                    href="https://www.linkedin.com/in/laecio-rodrigues" 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="text-primary hover:underline font-medium"

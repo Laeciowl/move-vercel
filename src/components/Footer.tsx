@@ -15,7 +15,7 @@ const Footer = () => {
             <p className="text-background/40 text-sm mt-4">
               Projeto fundado por{" "}
               <a 
-                href="https://www.linkedin.com/in/laécio-oliveira" 
+                href="https://www.linkedin.com/in/laecio-rodrigues" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-primary hover:underline"

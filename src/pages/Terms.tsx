@@ -277,7 +277,7 @@ const Terms = () => {
             <p className="text-muted-foreground text-xs">
               Projeto fundado e mantido por{" "}
               <a 
-                href="https://www.linkedin.com/in/laécio-oliveira" 
+                href="https://www.linkedin.com/in/laecio-rodrigues" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-primary hover:underline font-medium"
