@@ -10,7 +10,7 @@ import {
 
 const SignupSection = () => {
   return (
-    <section id="inscreva-se" className="py-24 md:py-32 bg-background">
+    <section id="inscreva-se" className="py-16 md:py-20 bg-background">
       <div className="container mx-auto px-4">
         {/* CTA Section - More impactful */}
         <motion.div
