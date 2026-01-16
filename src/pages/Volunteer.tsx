@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Heart, Loader2, CheckCircle, Upload, X, Clock, Plus } from "lucide-react";
+import { ArrowLeft, Heart, Loader2, CheckCircle, Upload, X, Plus, Video, FileText, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -10,13 +10,25 @@ import MentorDisclaimerModal from "@/components/MentorDisclaimerModal";
 const emailSchema = z.string().email("E-mail inválido").max(255);
 const nameSchema = z.string().min(2, "Nome deve ter pelo menos 2 caracteres").max(100);
 
-const helpOptions = [
-  { value: "conteudo", label: "Criar conteúdo (vídeos, artigos, PDFs)" },
-  { value: "mentoria", label: "Mentoria individual" },
-  { value: "aulas_ao_vivo", label: "Aulas ao vivo / Workshops" },
-  { value: "revisao_curriculo", label: "Revisão de currículo" },
-  { value: "revisao_linkedin", label: "Revisão de LinkedIn" },
-  { value: "outro", label: "Outro" },
+const volunteerCategories = [
+  { 
+    value: "aulas_lives", 
+    label: "Aulas ao vivo / Lives", 
+    icon: Video,
+    description: "Compartilhe conhecimento através de aulas e transmissões ao vivo"
+  },
+  { 
+    value: "templates_arquivos", 
+    label: "Templates / Arquivos", 
+    icon: FileText,
+    description: "Crie guias, modelos de currículo, planilhas e materiais úteis"
+  },
+  { 
+    value: "mentoria", 
+    label: "Mentoria individual", 
+    icon: Users,
+    description: "Ofereça orientação personalizada 1:1 para jovens em busca de crescimento"
+  },
 ];
 
 const dayOptions = [
@@ -40,19 +52,30 @@ interface Availability {
   times: string[];
 }
 
+interface ContentSubmission {
+  category: "aulas_lives" | "templates_arquivos";
+  title: string;
+  description: string;
+  contentType: "link" | "file";
+  url: string;
+  file: File | null;
+}
+
 const Volunteer = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const contentFileInputRef = useRef<HTMLInputElement>(null);
+  
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     area: "",
-    howToHelp: [] as string[],
-    otherHelp: "",
+    categories: [] as string[],
     // Mentor-specific fields
     description: "",
     education: "",
   });
+  
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [availability, setAvailability] = useState<Availability[]>([]);
@@ -60,15 +83,20 @@ const Volunteer = () => {
   const [submitted, setSubmitted] = useState(false);
   const [showDisclaimerModal, setShowDisclaimerModal] = useState(false);
   const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
+  
+  // Content submissions state
+  const [contentSubmissions, setContentSubmissions] = useState<ContentSubmission[]>([]);
+  const [activeContentIndex, setActiveContentIndex] = useState<number | null>(null);
 
-  const isMentorApplication = formData.howToHelp.includes("mentoria");
+  const isMentorApplication = formData.categories.includes("mentoria");
+  const isContentCreator = formData.categories.includes("aulas_lives") || formData.categories.includes("templates_arquivos");
 
-  const handleHelpToggle = (value: string) => {
+  const handleCategoryToggle = (value: string) => {
     setFormData((prev) => ({
       ...prev,
-      howToHelp: prev.howToHelp.includes(value)
-        ? prev.howToHelp.filter((v) => v !== value)
-        : [...prev.howToHelp, value],
+      categories: prev.categories.includes(value)
+        ? prev.categories.filter((v) => v !== value)
+        : [...prev.categories, value],
     }));
   };
 
@@ -121,6 +149,47 @@ const Volunteer = () => {
     setAvailability(newAvailability);
   };
 
+  // Content submission handlers
+  const addContentSubmission = (category: "aulas_lives" | "templates_arquivos") => {
+    setContentSubmissions([
+      ...contentSubmissions,
+      {
+        category,
+        title: "",
+        description: "",
+        contentType: category === "aulas_lives" ? "link" : "file",
+        url: "",
+        file: null,
+      },
+    ]);
+    setActiveContentIndex(contentSubmissions.length);
+  };
+
+  const removeContentSubmission = (index: number) => {
+    setContentSubmissions(contentSubmissions.filter((_, i) => i !== index));
+    if (activeContentIndex === index) {
+      setActiveContentIndex(null);
+    }
+  };
+
+  const updateContentSubmission = (index: number, field: keyof ContentSubmission, value: any) => {
+    const newSubmissions = [...contentSubmissions];
+    newSubmissions[index] = { ...newSubmissions[index], [field]: value };
+    setContentSubmissions(newSubmissions);
+  };
+
+  const handleContentFileChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error("O arquivo deve ter no máximo 10MB");
+        return;
+      }
+      updateContentSubmission(index, "file", file);
+      updateContentSubmission(index, "url", file.name);
+    }
+  };
+
   const validateForm = (): boolean => {
     try {
       nameSchema.parse(formData.name);
@@ -137,8 +206,8 @@ const Volunteer = () => {
       return false;
     }
 
-    if (formData.howToHelp.length === 0) {
-      toast.error("Por favor, selecione como gostaria de ajudar");
+    if (formData.categories.length === 0) {
+      toast.error("Por favor, selecione pelo menos uma categoria");
       return false;
     }
 
@@ -156,6 +225,28 @@ const Volunteer = () => {
       if (!hasValidAvailability) {
         toast.error("Por favor, selecione pelo menos um horário para cada dia");
         return false;
+      }
+    }
+
+    // Validation for content creators
+    if (isContentCreator && contentSubmissions.length > 0) {
+      for (const submission of contentSubmissions) {
+        if (!submission.title.trim()) {
+          toast.error("Por favor, adicione um título para cada conteúdo");
+          return false;
+        }
+        if (!submission.description.trim()) {
+          toast.error("Por favor, adicione uma descrição para cada conteúdo");
+          return false;
+        }
+        if (submission.contentType === "link" && !submission.url.trim()) {
+          toast.error("Por favor, adicione o link para cada conteúdo");
+          return false;
+        }
+        if (submission.contentType === "file" && !submission.file) {
+          toast.error("Por favor, faça upload do arquivo para cada conteúdo");
+          return false;
+        }
       }
     }
 
@@ -186,22 +277,18 @@ const Volunteer = () => {
     setLoading(true);
 
     try {
-      const howToHelpText = formData.howToHelp
-        .map((value) => {
-          if (value === "outro") {
-            return formData.otherHelp || "Outro";
-          }
-          return helpOptions.find((o) => o.value === value)?.label || value;
+      // Insert into volunteer_applications
+      const { data: volunteerData, error: volunteerError } = await supabase
+        .from("volunteer_applications")
+        .insert({
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          area: formData.area.trim(),
+          how_to_help: formData.categories.join(", "),
+          categories: formData.categories,
         })
-        .join(", ");
-
-      // Always insert into volunteer_applications
-      const { error: volunteerError } = await supabase.from("volunteer_applications").insert({
-        name: formData.name.trim(),
-        email: formData.email.trim(),
-        area: formData.area.trim(),
-        how_to_help: howToHelpText,
-      });
+        .select()
+        .single();
 
       if (volunteerError) {
         throw volunteerError;
@@ -216,7 +303,7 @@ const Volunteer = () => {
           const fileExt = photoFile.name.split(".").pop();
           const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
 
-          const { error: uploadError, data: uploadData } = await supabase.storage
+          const { error: uploadError } = await supabase.storage
             .from("mentor-photos")
             .upload(fileName, photoFile);
 
@@ -248,6 +335,50 @@ const Volunteer = () => {
         }
       }
 
+      // Upload content submissions if any
+      if (contentSubmissions.length > 0) {
+        for (const submission of contentSubmissions) {
+          let contentUrl = submission.url;
+
+          // Upload file if it's a file submission
+          if (submission.contentType === "file" && submission.file) {
+            const fileExt = submission.file.name.split(".").pop();
+            const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+            const { error: uploadError } = await supabase.storage
+              .from("volunteer-content")
+              .upload(fileName, submission.file);
+
+            if (uploadError) {
+              console.error("Content file upload error:", uploadError);
+              continue;
+            }
+
+            const { data: urlData } = supabase.storage
+              .from("volunteer-content")
+              .getPublicUrl(fileName);
+            contentUrl = urlData.publicUrl;
+          }
+
+          const { error: submissionError } = await supabase
+            .from("volunteer_submissions")
+            .insert({
+              volunteer_id: volunteerData.id,
+              volunteer_email: formData.email.trim(),
+              volunteer_name: formData.name.trim(),
+              category: submission.category,
+              title: submission.title.trim(),
+              description: submission.description.trim(),
+              content_type: submission.contentType,
+              content_url: contentUrl,
+            });
+
+          if (submissionError) {
+            console.error("Content submission error:", submissionError);
+          }
+        }
+      }
+
       setSubmitted(true);
       toast.success("Aplicação enviada com sucesso!");
     } catch (error: any) {
@@ -274,6 +405,8 @@ const Volunteer = () => {
           <p className="text-muted-foreground mb-8">
             {isMentorApplication 
               ? "Recebemos sua inscrição como mentor. Após aprovação, seu perfil ficará visível para os participantes agendarem mentorias."
+              : isContentCreator
+              ? "Recebemos sua inscrição e seus conteúdos. Após aprovação pela equipe, eles ficarão disponíveis para todos os participantes."
               : "Recebemos sua inscrição como voluntário. Em breve entraremos em contato para alinhar como você pode contribuir com o projeto Movê."}
           </p>
           <button
@@ -367,51 +500,241 @@ const Volunteer = () => {
 
             <div>
               <label className="block text-sm font-medium text-foreground mb-3">
-                Como você gostaria de ajudar? *
+                Como você gostaria de ajudar? * <span className="text-muted-foreground font-normal">(múltipla escolha)</span>
               </label>
-              <div className="space-y-2">
-                {helpOptions.map((option) => (
-                  <label
-                    key={option.value}
-                    className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
-                      formData.howToHelp.includes(option.value)
-                        ? "border-primary bg-accent"
-                        : "border-input hover:border-primary/50"
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={formData.howToHelp.includes(option.value)}
-                      onChange={() => handleHelpToggle(option.value)}
-                      className="sr-only"
-                    />
-                    <div
-                      className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
-                        formData.howToHelp.includes(option.value)
-                          ? "border-primary bg-primary"
-                          : "border-muted-foreground"
+              <div className="space-y-3">
+                {volunteerCategories.map((category) => {
+                  const Icon = category.icon;
+                  return (
+                    <label
+                      key={category.value}
+                      className={`flex items-start gap-4 p-4 rounded-xl border cursor-pointer transition-all ${
+                        formData.categories.includes(category.value)
+                          ? "border-primary bg-accent"
+                          : "border-input hover:border-primary/50"
                       }`}
                     >
-                      {formData.howToHelp.includes(option.value) && (
-                        <CheckCircle className="w-3 h-3 text-primary-foreground" />
-                      )}
-                    </div>
-                    <span className="text-foreground">{option.label}</span>
-                  </label>
-                ))}
+                      <input
+                        type="checkbox"
+                        checked={formData.categories.includes(category.value)}
+                        onChange={() => handleCategoryToggle(category.value)}
+                        className="sr-only"
+                      />
+                      <div
+                        className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
+                          formData.categories.includes(category.value)
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted text-muted-foreground"
+                        }`}
+                      >
+                        <Icon className="w-5 h-5" />
+                      </div>
+                      <div className="flex-1">
+                        <span className="font-medium text-foreground">{category.label}</span>
+                        <p className="text-sm text-muted-foreground mt-1">{category.description}</p>
+                      </div>
+                      <div
+                        className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 mt-1 ${
+                          formData.categories.includes(category.value)
+                            ? "border-primary bg-primary"
+                            : "border-muted-foreground"
+                        }`}
+                      >
+                        {formData.categories.includes(category.value) && (
+                          <CheckCircle className="w-3 h-3 text-primary-foreground" />
+                        )}
+                      </div>
+                    </label>
+                  );
+                })}
               </div>
-
-              {formData.howToHelp.includes("outro") && (
-                <input
-                  type="text"
-                  value={formData.otherHelp}
-                  onChange={(e) => setFormData({ ...formData, otherHelp: e.target.value })}
-                  className="mt-3 w-full px-4 py-3 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  placeholder="Descreva como gostaria de ajudar..."
-                  maxLength={200}
-                />
-              )}
             </div>
+
+            {/* Content Submissions Section */}
+            {isContentCreator && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                className="space-y-6 pt-6 border-t border-border"
+              >
+                <div className="bg-accent/50 rounded-xl p-4">
+                  <h3 className="font-semibold text-foreground mb-2">
+                    📚 Submeta seus conteúdos
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Envie links de aulas/lives ou faça upload de templates e materiais. 
+                    Todos os conteúdos passam por aprovação antes de serem publicados.
+                  </p>
+                </div>
+
+                {/* Existing submissions */}
+                {contentSubmissions.map((submission, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="border border-input rounded-xl p-4 space-y-4"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium text-foreground flex items-center gap-2">
+                        {submission.category === "aulas_lives" ? (
+                          <><Video className="w-4 h-4 text-primary" /> Aula/Live</>
+                        ) : (
+                          <><FileText className="w-4 h-4 text-primary" /> Template/Arquivo</>
+                        )}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => removeContentSubmission(index)}
+                        className="text-destructive hover:text-destructive/80"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-1">
+                        Título *
+                      </label>
+                      <input
+                        type="text"
+                        value={submission.title}
+                        onChange={(e) => updateContentSubmission(index, "title", e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
+                        placeholder="Ex: Como montar um currículo profissional"
+                        maxLength={200}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-1">
+                        Descrição *
+                      </label>
+                      <textarea
+                        value={submission.description}
+                        onChange={(e) => updateContentSubmission(index, "description", e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 min-h-[80px]"
+                        placeholder="Descreva o que o participante vai aprender com este conteúdo..."
+                        maxLength={500}
+                      />
+                    </div>
+
+                    {submission.category === "aulas_lives" ? (
+                      <div>
+                        <label className="block text-sm font-medium text-foreground mb-1">
+                          Link do vídeo *
+                        </label>
+                        <input
+                          type="url"
+                          value={submission.url}
+                          onChange={(e) => updateContentSubmission(index, "url", e.target.value)}
+                          className="w-full px-3 py-2 rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
+                          placeholder="https://youtube.com/watch?v=..."
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Cole o link do YouTube, Vimeo ou outra plataforma
+                        </p>
+                      </div>
+                    ) : (
+                      <div>
+                        <label className="block text-sm font-medium text-foreground mb-1">
+                          Tipo de conteúdo
+                        </label>
+                        <div className="flex gap-2 mb-3">
+                          <button
+                            type="button"
+                            onClick={() => updateContentSubmission(index, "contentType", "file")}
+                            className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
+                              submission.contentType === "file"
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-muted text-muted-foreground"
+                            }`}
+                          >
+                            Upload de arquivo
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => updateContentSubmission(index, "contentType", "link")}
+                            className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
+                              submission.contentType === "link"
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-muted text-muted-foreground"
+                            }`}
+                          >
+                            Link externo
+                          </button>
+                        </div>
+
+                        {submission.contentType === "file" ? (
+                          <div>
+                            {submission.file ? (
+                              <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
+                                <FileText className="w-5 h-5 text-primary" />
+                                <span className="flex-1 text-sm truncate">{submission.file.name}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    updateContentSubmission(index, "file", null);
+                                    updateContentSubmission(index, "url", "");
+                                  }}
+                                  className="text-destructive"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </div>
+                            ) : (
+                              <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-input rounded-lg cursor-pointer hover:border-primary/50 transition-colors">
+                                <Upload className="w-8 h-8 text-muted-foreground mb-2" />
+                                <span className="text-sm text-muted-foreground">Clique para fazer upload</span>
+                                <span className="text-xs text-muted-foreground mt-1">PDF, DOC, XLS, PPT (máx. 10MB)</span>
+                                <input
+                                  type="file"
+                                  accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+                                  onChange={(e) => handleContentFileChange(e, index)}
+                                  className="hidden"
+                                />
+                              </label>
+                            )}
+                          </div>
+                        ) : (
+                          <input
+                            type="url"
+                            value={submission.url}
+                            onChange={(e) => updateContentSubmission(index, "url", e.target.value)}
+                            className="w-full px-3 py-2 rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
+                            placeholder="https://drive.google.com/..."
+                          />
+                        )}
+                      </div>
+                    )}
+                  </motion.div>
+                ))}
+
+                {/* Add content buttons */}
+                <div className="flex flex-wrap gap-3">
+                  {formData.categories.includes("aulas_lives") && (
+                    <button
+                      type="button"
+                      onClick={() => addContentSubmission("aulas_lives")}
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg border border-input hover:border-primary/50 text-sm font-medium text-foreground transition-colors"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Adicionar aula/live
+                    </button>
+                  )}
+                  {formData.categories.includes("templates_arquivos") && (
+                    <button
+                      type="button"
+                      onClick={() => addContentSubmission("templates_arquivos")}
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg border border-input hover:border-primary/50 text-sm font-medium text-foreground transition-colors"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Adicionar template/arquivo
+                    </button>
+                  )}
+                </div>
+              </motion.div>
+            )}
 
             {/* Mentor-specific fields */}
             {isMentorApplication && (

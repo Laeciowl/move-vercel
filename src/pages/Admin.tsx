@@ -1,13 +1,14 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Shield, Users, BookOpen, Heart, Loader2 } from "lucide-react";
+import { ArrowLeft, Shield, Users, BookOpen, Heart, Loader2, FileCheck } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AdminMentorsPanel from "@/components/admin/AdminMentorsPanel";
 import AdminContentPanel from "@/components/admin/AdminContentPanel";
 import AdminVolunteersPanel from "@/components/admin/AdminVolunteersPanel";
+import AdminSubmissionsPanel from "@/components/admin/AdminSubmissionsPanel";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -69,10 +70,14 @@ const Admin = () => {
           transition={{ delay: 0.1 }}
         >
           <Tabs defaultValue="mentors" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-6">
+            <TabsList className="grid w-full grid-cols-4 mb-6">
               <TabsTrigger value="mentors" className="gap-2">
                 <Users className="w-4 h-4" />
                 <span className="hidden sm:inline">Mentores</span>
+              </TabsTrigger>
+              <TabsTrigger value="submissions" className="gap-2">
+                <FileCheck className="w-4 h-4" />
+                <span className="hidden sm:inline">Submissões</span>
               </TabsTrigger>
               <TabsTrigger value="content" className="gap-2">
                 <BookOpen className="w-4 h-4" />
@@ -87,6 +92,9 @@ const Admin = () => {
             <div className="bg-card rounded-2xl shadow-card p-6">
               <TabsContent value="mentors" className="mt-0">
                 <AdminMentorsPanel />
+              </TabsContent>
+              <TabsContent value="submissions" className="mt-0">
+                <AdminSubmissionsPanel />
               </TabsContent>
               <TabsContent value="content" className="mt-0">
                 <AdminContentPanel />
