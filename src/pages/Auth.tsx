@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, Loader2, ArrowLeft, UserPlus, LogIn } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,15 +22,10 @@ const professionalStatusOptions = [
   { value: "freelancer_pj", label: "Freelancer / PJ" },
 ];
 
-const incomeRangeOptions = [
-  { value: "sem_renda", label: "Sem renda" },
-  { value: "ate_1500", label: "Até R$ 1.500" },
-  { value: "1500_3000", label: "R$ 1.500 – R$ 3.000" },
-  { value: "acima_3000", label: "Acima de R$ 3.000" },
-];
-
 const Auth = () => {
-  const [isLogin, setIsLogin] = useState(true);
+  const [searchParams] = useSearchParams();
+  const shouldShowSignup = searchParams.get("cadastro") === "true";
+  const [isLogin, setIsLogin] = useState(!shouldShowSignup);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -45,9 +40,7 @@ const Auth = () => {
     password: "",
     name: "",
     age: "",
-    city: "",
     professionalStatus: "",
-    incomeRange: "",
     lgpdConsent: false,
   });
 
@@ -102,8 +95,7 @@ const Auth = () => {
       }
     }
 
-    if (!signupData.name.trim() || !signupData.city.trim() || 
-        !signupData.professionalStatus || !signupData.incomeRange) {
+    if (!signupData.name.trim() || !signupData.professionalStatus) {
       toast.error("Por favor, preencha todos os campos obrigatórios");
       return;
     }
@@ -147,10 +139,10 @@ const Auth = () => {
         user_id: authData.user.id,
         name: signupData.name.trim(),
         age: age,
-        city: signupData.city.trim(),
+        city: "N/A",
         state: "N/A",
         professional_status: signupData.professionalStatus as ProfessionalStatus,
-        income_range: signupData.incomeRange as IncomeRange,
+        income_range: "sem_renda" as IncomeRange,
         lgpd_consent: true,
         lgpd_consent_at: new Date().toISOString(),
       });
@@ -346,21 +338,6 @@ const Auth = () => {
 
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
-                  Cidade *
-                </label>
-                <input
-                  type="text"
-                  value={signupData.city}
-                  onChange={(e) => setSignupData({ ...signupData, city: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  placeholder="Sua cidade"
-                  required
-                  maxLength={100}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
                   Situação profissional atual *
                 </label>
                 <select
@@ -371,23 +348,6 @@ const Auth = () => {
                 >
                   <option value="">Selecione</option>
                   {professionalStatusOptions.map((option) => (
-                    <option key={option.value} value={option.value}>{option.label}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Faixa de renda mensal *
-                </label>
-                <select
-                  value={signupData.incomeRange}
-                  onChange={(e) => setSignupData({ ...signupData, incomeRange: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  required
-                >
-                  <option value="">Selecione</option>
-                  {incomeRangeOptions.map((option) => (
                     <option key={option.value} value={option.value}>{option.label}</option>
                   ))}
                 </select>
