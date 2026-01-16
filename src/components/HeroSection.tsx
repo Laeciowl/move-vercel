@@ -122,7 +122,7 @@ const HeroSection = () => {
             className="text-lg md:text-xl text-muted-foreground mb-6 max-w-xl leading-relaxed"
           >
             Nem todo mundo tem acesso às mesmas oportunidades. 
-            O Movê existe para apoiar jovens em diferentes momentos da sua jornada profissional — 
+            Movê existe para apoiar jovens em diferentes momentos da sua jornada profissional — 
             oferecendo orientação prática, acesso a conhecimento e conexão com mentores voluntários.
           </motion.p>
 
@@ -155,7 +155,7 @@ const HeroSection = () => {
               onClick={scrollToAbout}
               className="inline-flex items-center justify-center text-foreground px-8 py-4 font-semibold text-lg hover:text-primary transition-colors underline underline-offset-4"
             >
-              Como o MOVÊ funciona?
+              Entenda como funciona
             </button>
           </motion.div>
 
@@ -178,12 +178,12 @@ const HeroSection = () => {
         </div>
       </div>
 
-      {/* Scroll indicator - centered, positioned above divider */}
+      {/* Scroll indicator - positioned to the left side */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.5, duration: 0.5 }}
-        className="absolute bottom-20 left-0 right-0 flex justify-center pointer-events-none"
+        className="absolute bottom-32 left-8 md:left-16 pointer-events-none"
       >
         <motion.div
           animate={{ y: [0, 8, 0] }}
