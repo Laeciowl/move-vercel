@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Heart, Loader2, CheckCircle, Upload, X, Plus, Video, FileText } from "lucide-react";
+import { ArrowLeft, Heart, Loader2, CheckCircle, Upload, X, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -34,20 +34,11 @@ interface Availability {
   times: string[];
 }
 
-interface ContentSubmission {
-  category: "aulas_lives" | "templates_arquivos";
-  title: string;
-  description: string;
-  contentType: "link" | "file";
-  url: string;
-  file: File | null;
-}
 
 const Volunteer = () => {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const contentFileInputRef = useRef<HTMLInputElement>(null);
 
   // Pre-fill form with user data if logged in
   useEffect(() => {
@@ -77,13 +68,8 @@ const Volunteer = () => {
   const [showDisclaimerModal, setShowDisclaimerModal] = useState(false);
   const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
   
-  // Content submissions state
-  const [contentSubmissions, setContentSubmissions] = useState<ContentSubmission[]>([]);
-  const [activeContentIndex, setActiveContentIndex] = useState<number | null>(null);
-
   // Todos os voluntários são automaticamente mentores
   const isMentorApplication = true;
-  const isContentCreator = true;
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -134,46 +120,6 @@ const Volunteer = () => {
     setAvailability(newAvailability);
   };
 
-  // Content submission handlers
-  const addContentSubmission = (category: "aulas_lives" | "templates_arquivos") => {
-    setContentSubmissions([
-      ...contentSubmissions,
-      {
-        category,
-        title: "",
-        description: "",
-        contentType: category === "aulas_lives" ? "link" : "file",
-        url: "",
-        file: null,
-      },
-    ]);
-    setActiveContentIndex(contentSubmissions.length);
-  };
-
-  const removeContentSubmission = (index: number) => {
-    setContentSubmissions(contentSubmissions.filter((_, i) => i !== index));
-    if (activeContentIndex === index) {
-      setActiveContentIndex(null);
-    }
-  };
-
-  const updateContentSubmission = (index: number, field: keyof ContentSubmission, value: any) => {
-    const newSubmissions = [...contentSubmissions];
-    newSubmissions[index] = { ...newSubmissions[index], [field]: value };
-    setContentSubmissions(newSubmissions);
-  };
-
-  const handleContentFileChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 10 * 1024 * 1024) {
-        toast.error("O arquivo deve ter no máximo 10MB");
-        return;
-      }
-      updateContentSubmission(index, "file", file);
-      updateContentSubmission(index, "url", file.name);
-    }
-  };
 
   const validateForm = (): boolean => {
     try {
@@ -206,28 +152,6 @@ const Volunteer = () => {
     if (!hasValidAvailability) {
       toast.error("Por favor, selecione pelo menos um horário para cada dia");
       return false;
-    }
-
-    // Validation for content creators
-    if (isContentCreator && contentSubmissions.length > 0) {
-      for (const submission of contentSubmissions) {
-        if (!submission.title.trim()) {
-          toast.error("Por favor, adicione um título para cada conteúdo");
-          return false;
-        }
-        if (!submission.description.trim()) {
-          toast.error("Por favor, adicione uma descrição para cada conteúdo");
-          return false;
-        }
-        if (submission.contentType === "link" && !submission.url.trim()) {
-          toast.error("Por favor, adicione o link para cada conteúdo");
-          return false;
-        }
-        if (submission.contentType === "file" && !submission.file) {
-          toast.error("Por favor, faça upload do arquivo para cada conteúdo");
-          return false;
-        }
-      }
     }
 
     return true;
@@ -342,50 +266,6 @@ const Volunteer = () => {
         }
       }
 
-      // Upload content submissions if any
-      if (contentSubmissions.length > 0) {
-        for (const submission of contentSubmissions) {
-          let contentUrl = submission.url;
-
-          // Upload file if it's a file submission
-          if (submission.contentType === "file" && submission.file) {
-            const fileExt = submission.file.name.split(".").pop();
-            const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-
-            const { error: uploadError } = await supabase.storage
-              .from("volunteer-content")
-              .upload(fileName, submission.file);
-
-            if (uploadError) {
-              console.error("Content file upload error:", uploadError);
-              continue;
-            }
-
-            const { data: urlData } = supabase.storage
-              .from("volunteer-content")
-              .getPublicUrl(fileName);
-            contentUrl = urlData.publicUrl;
-          }
-
-          const { error: submissionError } = await supabase
-            .from("volunteer_submissions")
-            .insert({
-              volunteer_id: volunteerDataId,
-              volunteer_email: formData.email.trim(),
-              volunteer_name: formData.name.trim(),
-              category: submission.category,
-              title: submission.title.trim(),
-              description: submission.description.trim(),
-              content_type: submission.contentType,
-              content_url: contentUrl,
-            });
-
-          if (submissionError) {
-            console.error("Content submission error:", submissionError);
-          }
-        }
-      }
-
       setSubmitted(true);
       toast.success(isMentorApplication ? "Cadastro de mentor enviado com sucesso!" : "Aplicação enviada com sucesso!");
     } catch (error: any) {
@@ -423,11 +303,7 @@ const Volunteer = () => {
             Obrigado por querer ajudar! 💙
           </h2>
           <p className="text-muted-foreground mb-8">
-            {isMentorApplication 
-              ? "Recebemos sua inscrição como mentor. Após aprovação, seu perfil ficará visível para os participantes agendarem mentorias."
-              : isContentCreator
-              ? "Recebemos sua inscrição e seus conteúdos. Após aprovação pela equipe, eles ficarão disponíveis para todos os participantes."
-              : "Recebemos sua inscrição como voluntário. Em breve entraremos em contato para alinhar como você pode contribuir com o projeto Movê."}
+            Recebemos sua inscrição como mentor. Após aprovação, seu perfil ficará visível para os participantes agendarem mentorias.
           </p>
           <button
             onClick={() => navigate("/")}
@@ -525,192 +401,14 @@ const Volunteer = () => {
               </p>
               <ul className="text-sm text-muted-foreground mt-2 space-y-1 list-disc list-inside">
                 <li>Oferecer mentorias individuais para jovens</li>
-                <li>Compartilhar aulas ao vivo e gravadas</li>
-                <li>Criar templates e materiais de apoio</li>
+                <li>Compartilhar materiais e referências</li>
+                <li>Enviar aulas gravadas e conteúdos</li>
               </ul>
+              <p className="text-xs text-muted-foreground mt-3 italic">
+                Após aprovação, você poderá enviar conteúdos diretamente pelo seu painel de voluntário.
+              </p>
             </div>
 
-            {/* Content Submissions Section */}
-            {isContentCreator && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                className="space-y-6 pt-6 border-t border-border"
-              >
-                <div className="bg-accent/50 rounded-xl p-4">
-                  <h3 className="font-semibold text-foreground mb-2">
-                    📚 Submeta seus conteúdos
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    Envie links de aulas/lives ou faça upload de templates e materiais. 
-                    Todos os conteúdos passam por aprovação antes de serem publicados.
-                  </p>
-                </div>
-
-                {/* Existing submissions */}
-                {contentSubmissions.map((submission, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="border border-input rounded-xl p-4 space-y-4"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium text-foreground flex items-center gap-2">
-                        {submission.category === "aulas_lives" ? (
-                          <><Video className="w-4 h-4 text-primary" /> Aula/Live</>
-                        ) : (
-                          <><FileText className="w-4 h-4 text-primary" /> Template/Arquivo</>
-                        )}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => removeContentSubmission(index)}
-                        className="text-destructive hover:text-destructive/80"
-                      >
-                        <X className="w-5 h-5" />
-                      </button>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-1">
-                        Título *
-                      </label>
-                      <input
-                        type="text"
-                        value={submission.title}
-                        onChange={(e) => updateContentSubmission(index, "title", e.target.value)}
-                        className="w-full px-3 py-2 rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
-                        placeholder="Ex: Como montar um currículo profissional"
-                        maxLength={200}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-foreground mb-1">
-                        Descrição *
-                      </label>
-                      <textarea
-                        value={submission.description}
-                        onChange={(e) => updateContentSubmission(index, "description", e.target.value)}
-                        className="w-full px-3 py-2 rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 min-h-[80px]"
-                        placeholder="Descreva o que o participante vai aprender com este conteúdo..."
-                        maxLength={500}
-                      />
-                    </div>
-
-                    {submission.category === "aulas_lives" ? (
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-1">
-                          Link do vídeo *
-                        </label>
-                        <input
-                          type="url"
-                          value={submission.url}
-                          onChange={(e) => updateContentSubmission(index, "url", e.target.value)}
-                          className="w-full px-3 py-2 rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
-                          placeholder="https://youtube.com/watch?v=..."
-                        />
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Cole o link do YouTube, Vimeo ou outra plataforma
-                        </p>
-                      </div>
-                    ) : (
-                      <div>
-                        <label className="block text-sm font-medium text-foreground mb-1">
-                          Tipo de conteúdo
-                        </label>
-                        <div className="flex gap-2 mb-3">
-                          <button
-                            type="button"
-                            onClick={() => updateContentSubmission(index, "contentType", "file")}
-                            className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
-                              submission.contentType === "file"
-                                ? "bg-primary text-primary-foreground"
-                                : "bg-muted text-muted-foreground"
-                            }`}
-                          >
-                            Upload de arquivo
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => updateContentSubmission(index, "contentType", "link")}
-                            className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
-                              submission.contentType === "link"
-                                ? "bg-primary text-primary-foreground"
-                                : "bg-muted text-muted-foreground"
-                            }`}
-                          >
-                            Link externo
-                          </button>
-                        </div>
-
-                        {submission.contentType === "file" ? (
-                          <div>
-                            {submission.file ? (
-                              <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
-                                <FileText className="w-5 h-5 text-primary" />
-                                <span className="flex-1 text-sm truncate">{submission.file.name}</span>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    updateContentSubmission(index, "file", null);
-                                    updateContentSubmission(index, "url", "");
-                                  }}
-                                  className="text-destructive"
-                                >
-                                  <X className="w-4 h-4" />
-                                </button>
-                              </div>
-                            ) : (
-                              <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-input rounded-lg cursor-pointer hover:border-primary/50 transition-colors">
-                                <Upload className="w-8 h-8 text-muted-foreground mb-2" />
-                                <span className="text-sm text-muted-foreground">Clique para fazer upload</span>
-                                <span className="text-xs text-muted-foreground mt-1">PDF, DOC, XLS, PPT (máx. 10MB)</span>
-                                <input
-                                  type="file"
-                                  accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
-                                  onChange={(e) => handleContentFileChange(e, index)}
-                                  className="hidden"
-                                />
-                              </label>
-                            )}
-                          </div>
-                        ) : (
-                          <input
-                            type="url"
-                            value={submission.url}
-                            onChange={(e) => updateContentSubmission(index, "url", e.target.value)}
-                            className="w-full px-3 py-2 rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
-                            placeholder="https://drive.google.com/..."
-                          />
-                        )}
-                      </div>
-                    )}
-                  </motion.div>
-                ))}
-
-                {/* Add content buttons */}
-                <div className="flex flex-wrap gap-3">
-                  <button
-                    type="button"
-                    onClick={() => addContentSubmission("aulas_lives")}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg border border-input hover:border-primary/50 text-sm font-medium text-foreground transition-colors"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Adicionar aula/live
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => addContentSubmission("templates_arquivos")}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg border border-input hover:border-primary/50 text-sm font-medium text-foreground transition-colors"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Adicionar template/arquivo
-                  </button>
-                </div>
-              </motion.div>
-            )}
 
             {/* Mentor-specific fields */}
             {isMentorApplication && (
