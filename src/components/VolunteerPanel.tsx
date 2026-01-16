@@ -242,42 +242,63 @@ const VolunteerPanel = () => {
 
       {/* Overview Tab */}
       {activeTab === "overview" && (
-        <div className="space-y-6">
-          {/* Mentor Stats */}
+        <div className="space-y-5">
+          {/* Mentor Progress Bar */}
           {mentorData && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-xl p-4 text-center">
-                <div className="text-2xl font-bold text-primary">{stats.completedSessions}</div>
-                <div className="text-xs text-muted-foreground">Mentorias realizadas</div>
+            <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-accent/10 rounded-xl p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <Award className="w-4 h-4 text-primary" />
+                  Seu impacto como Mentor
+                </h4>
+                <span className="text-xs text-muted-foreground">
+                  {stats.completedSessions} {stats.completedSessions === 1 ? "mentoria" : "mentorias"} realizadas
+                </span>
               </div>
-              <div className="bg-gradient-to-br from-green-100 to-green-50 rounded-xl p-4 text-center">
-                <div className="text-2xl font-bold text-green-700">{stats.uniqueMentees}</div>
-                <div className="text-xs text-muted-foreground">Pessoas impactadas</div>
+              
+              {/* Progress bar */}
+              <div className="relative">
+                <div className="h-3 bg-muted rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-gradient-to-r from-primary to-primary/70 rounded-full transition-all duration-500"
+                    style={{ width: `${Math.min((stats.completedSessions / 10) * 100, 100)}%` }}
+                  />
+                </div>
+                <div className="flex justify-between mt-1 text-xs text-muted-foreground">
+                  <span>0</span>
+                  <span>Meta: 10 mentorias</span>
+                </div>
               </div>
-              <div className="bg-gradient-to-br from-blue-100 to-blue-50 rounded-xl p-4 text-center">
-                <div className="text-2xl font-bold text-blue-700">{stats.upcomingSessions}</div>
-                <div className="text-xs text-muted-foreground">Sessões agendadas</div>
-              </div>
-              <div className="bg-gradient-to-br from-amber-100 to-amber-50 rounded-xl p-4 text-center">
-                <div className="text-2xl font-bold text-amber-700">{approvedSubmissions.length}</div>
-                <div className="text-xs text-muted-foreground">Conteúdos aprovados</div>
+
+              {/* Quick stats */}
+              <div className="grid grid-cols-3 gap-2 pt-2">
+                <div className="text-center">
+                  <div className="text-xl font-bold text-primary">{stats.completedSessions}</div>
+                  <div className="text-[10px] text-muted-foreground">Realizadas</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xl font-bold text-green-600">{stats.uniqueMentees}</div>
+                  <div className="text-[10px] text-muted-foreground">Pessoas</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xl font-bold text-blue-600">{stats.upcomingSessions}</div>
+                  <div className="text-[10px] text-muted-foreground">Agendadas</div>
+                </div>
               </div>
             </div>
           )}
 
-          {/* No mentor stats fallback */}
-          {!mentorData && (
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-accent/50 rounded-xl p-4 text-center">
-                <div className="text-2xl font-bold text-foreground">{approvedSubmissions.length}</div>
-                <div className="text-xs text-muted-foreground">Conteúdos aprovados</div>
-              </div>
-              <div className="bg-amber-50 rounded-xl p-4 text-center">
-                <div className="text-2xl font-bold text-amber-700">{pendingSubmissions.length}</div>
-                <div className="text-xs text-muted-foreground">Pendentes</div>
-              </div>
+          {/* Content Stats */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-green-50 rounded-xl p-4 text-center border border-green-100">
+              <div className="text-2xl font-bold text-green-700">{approvedSubmissions.length}</div>
+              <div className="text-xs text-muted-foreground">Conteúdos aprovados</div>
             </div>
-          )}
+            <div className="bg-amber-50 rounded-xl p-4 text-center border border-amber-100">
+              <div className="text-2xl font-bold text-amber-700">{pendingSubmissions.length}</div>
+              <div className="text-xs text-muted-foreground">Em análise</div>
+            </div>
+          </div>
 
           {/* Session confirmations */}
           {mentorData && sessions.length > 0 && (
