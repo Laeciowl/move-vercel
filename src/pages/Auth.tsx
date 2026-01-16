@@ -100,8 +100,8 @@ const Auth = () => {
       return;
     }
 
-    const age = parseInt(signupData.age);
-    if (isNaN(age) || age < 18 || age > 100) {
+    const userAge = parseInt(signupData.age);
+    if (isNaN(userAge) || userAge < 18 || userAge > 100) {
       toast.error("Idade deve estar entre 18 e 100 anos");
       return;
     }
@@ -115,11 +115,20 @@ const Auth = () => {
     
     const redirectUrl = `${window.location.origin}/dashboard`;
     
+    // Sign up with user metadata - profile will be created by database trigger
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: signupData.email,
       password: signupData.password,
       options: {
         emailRedirectTo: redirectUrl,
+        data: {
+          name: signupData.name.trim(),
+          age: userAge,
+          city: "N/A",
+          state: "N/A",
+          professional_status: signupData.professionalStatus,
+          income_range: "sem_renda",
+        },
       },
     });
 
@@ -134,25 +143,9 @@ const Auth = () => {
     }
 
     if (authData.user) {
-      // Create profile
-      const { error: profileError } = await supabase.from("profiles").insert({
-        user_id: authData.user.id,
-        name: signupData.name.trim(),
-        age: age,
-        city: "N/A",
-        state: "N/A",
-        professional_status: signupData.professionalStatus as ProfessionalStatus,
-        income_range: "sem_renda" as IncomeRange,
-        lgpd_consent: true,
-        lgpd_consent_at: new Date().toISOString(),
-      });
-
-      if (profileError) {
-        toast.error("Erro ao criar perfil: " + profileError.message);
-        setLoading(false);
-        return;
-      }
-
+      // Wait a moment for the trigger to create the profile
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       toast.success("Cadastro realizado com sucesso!");
       navigate("/dashboard");
     }
