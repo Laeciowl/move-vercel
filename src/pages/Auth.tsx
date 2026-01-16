@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, Loader2, ArrowLeft, UserPlus, LogIn } from "lucide-react";
+import { Eye, EyeOff, Loader2, ArrowLeft, UserPlus, LogIn, KeyRound } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
@@ -22,10 +22,16 @@ const professionalStatusOptions = [
   { value: "freelancer_pj", label: "Freelancer / PJ" },
 ];
 
+type AuthView = "login" | "signup" | "forgot-password" | "reset-password";
+
 const Auth = () => {
   const [searchParams] = useSearchParams();
   const shouldShowSignup = searchParams.get("cadastro") === "true";
-  const [isLogin, setIsLogin] = useState(!shouldShowSignup);
+  const isPasswordReset = searchParams.get("type") === "recovery";
+  
+  const [view, setView] = useState<AuthView>(
+    isPasswordReset ? "reset-password" : shouldShowSignup ? "signup" : "login"
+  );
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -44,11 +50,18 @@ const Auth = () => {
     lgpdConsent: false,
   });
 
+  // Forgot password
+  const [forgotEmail, setForgotEmail] = useState("");
+  
+  // Reset password
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
   useEffect(() => {
-    if (!authLoading && user) {
+    if (!authLoading && user && view !== "reset-password") {
       navigate("/dashboard");
     }
-  }, [user, authLoading, navigate]);
+  }, [user, authLoading, navigate, view]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -153,6 +166,67 @@ const Auth = () => {
     setLoading(false);
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      emailSchema.parse(forgotEmail);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast.error(error.errors[0].message);
+        return;
+      }
+    }
+
+    setLoading(true);
+    
+    const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
+      redirectTo: `${window.location.origin}/auth?type=recovery`,
+    });
+
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success("E-mail de recuperação enviado! Verifique sua caixa de entrada.");
+      setView("login");
+    }
+    
+    setLoading(false);
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      passwordSchema.parse(newPassword);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast.error(error.errors[0].message);
+        return;
+      }
+    }
+
+    if (newPassword !== confirmPassword) {
+      toast.error("As senhas não coincidem");
+      return;
+    }
+
+    setLoading(true);
+    
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
+
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success("Senha alterada com sucesso!");
+      navigate("/dashboard");
+    }
+    
+    setLoading(false);
+  };
+
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -160,6 +234,19 @@ const Auth = () => {
       </div>
     );
   }
+
+  const getTitle = () => {
+    switch (view) {
+      case "login":
+        return "Entre na sua conta";
+      case "signup":
+        return "Crie sua conta";
+      case "forgot-password":
+        return "Recuperar senha";
+      case "reset-password":
+        return "Definir nova senha";
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-warm flex items-center justify-center p-4">
@@ -179,34 +266,34 @@ const Auth = () => {
         <div className="bg-card rounded-3xl shadow-card p-8">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gradient mb-2">Movê</h1>
-            <p className="text-muted-foreground">
-              {isLogin ? "Entre na sua conta" : "Crie sua conta"}
-            </p>
+            <p className="text-muted-foreground">{getTitle()}</p>
           </div>
 
-          {/* Tab Toggle */}
-          <div className="flex bg-muted rounded-xl p-1 mb-6">
-            <button
-              onClick={() => setIsLogin(true)}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg font-medium transition-all ${
-                isLogin ? "bg-card shadow-sm text-foreground" : "text-muted-foreground"
-              }`}
-            >
-              <LogIn className="w-4 h-4" />
-              Entrar
-            </button>
-            <button
-              onClick={() => setIsLogin(false)}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg font-medium transition-all ${
-                !isLogin ? "bg-card shadow-sm text-foreground" : "text-muted-foreground"
-              }`}
-            >
-              <UserPlus className="w-4 h-4" />
-              Cadastrar
-            </button>
-          </div>
+          {/* Tab Toggle - only show for login/signup */}
+          {(view === "login" || view === "signup") && (
+            <div className="flex bg-muted rounded-xl p-1 mb-6">
+              <button
+                onClick={() => setView("login")}
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg font-medium transition-all ${
+                  view === "login" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground"
+                }`}
+              >
+                <LogIn className="w-4 h-4" />
+                Entrar
+              </button>
+              <button
+                onClick={() => setView("signup")}
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg font-medium transition-all ${
+                  view === "signup" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground"
+                }`}
+              >
+                <UserPlus className="w-4 h-4" />
+                Cadastrar
+              </button>
+            </div>
+          )}
 
-          {isLogin ? (
+          {view === "login" && (
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
@@ -248,6 +335,14 @@ const Auth = () => {
               </div>
 
               <button
+                type="button"
+                onClick={() => setView("forgot-password")}
+                className="text-sm text-primary hover:underline"
+              >
+                Esqueceu sua senha?
+              </button>
+
+              <button
                 type="submit"
                 disabled={loading}
                 className="w-full bg-gradient-hero text-primary-foreground py-3 rounded-xl font-bold shadow-button hover:opacity-90 transition-opacity disabled:opacity-70 flex items-center justify-center gap-2"
@@ -256,7 +351,9 @@ const Auth = () => {
                 {loading ? "Entrando..." : "Entrar"}
               </button>
             </form>
-          ) : (
+          )}
+
+          {view === "signup" && (
             <form onSubmit={handleSignup} className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
@@ -368,6 +465,114 @@ const Auth = () => {
               >
                 {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
                 {loading ? "Cadastrando..." : "Criar conta"}
+              </button>
+            </form>
+          )}
+
+          {view === "forgot-password" && (
+            <form onSubmit={handleForgotPassword} className="space-y-4">
+              <div className="text-center mb-4">
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <KeyRound className="w-8 h-8 text-primary" />
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Digite seu e-mail e enviaremos um link para você redefinir sua senha.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  E-mail
+                </label>
+                <input
+                  type="email"
+                  value={forgotEmail}
+                  onChange={(e) => setForgotEmail(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  placeholder="seu@email.com"
+                  required
+                  maxLength={255}
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-gradient-hero text-primary-foreground py-3 rounded-xl font-bold shadow-button hover:opacity-90 transition-opacity disabled:opacity-70 flex items-center justify-center gap-2"
+              >
+                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
+                {loading ? "Enviando..." : "Enviar link de recuperação"}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setView("login")}
+                className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Voltar ao login
+              </button>
+            </form>
+          )}
+
+          {view === "reset-password" && (
+            <form onSubmit={handleResetPassword} className="space-y-4">
+              <div className="text-center mb-4">
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <KeyRound className="w-8 h-8 text-primary" />
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Digite sua nova senha abaixo.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Nova senha
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 pr-12"
+                    placeholder="Mínimo 6 caracteres"
+                    required
+                    minLength={6}
+                    maxLength={72}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Confirmar nova senha
+                </label>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  placeholder="Digite novamente"
+                  required
+                  minLength={6}
+                  maxLength={72}
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-gradient-hero text-primary-foreground py-3 rounded-xl font-bold shadow-button hover:opacity-90 transition-opacity disabled:opacity-70 flex items-center justify-center gap-2"
+              >
+                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
+                {loading ? "Salvando..." : "Salvar nova senha"}
               </button>
             </form>
           )}
