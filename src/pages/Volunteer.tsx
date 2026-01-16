@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Heart, Loader2, CheckCircle, Upload, X, Plus, Video, FileText, Users } from "lucide-react";
+import { ArrowLeft, Heart, Loader2, CheckCircle, Upload, X, Plus, Video, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -11,26 +11,7 @@ import MentorDisclaimerModal from "@/components/MentorDisclaimerModal";
 const emailSchema = z.string().email("E-mail inválido").max(255);
 const nameSchema = z.string().min(2, "Nome deve ter pelo menos 2 caracteres").max(100);
 
-const volunteerCategories = [
-  { 
-    value: "aulas_lives", 
-    label: "Aulas ao vivo / Lives", 
-    icon: Video,
-    description: "Compartilhe conhecimento através de aulas e transmissões ao vivo"
-  },
-  { 
-    value: "templates_arquivos", 
-    label: "Templates / Arquivos", 
-    icon: FileText,
-    description: "Crie guias, modelos de currículo, planilhas e materiais úteis"
-  },
-  { 
-    value: "mentoria", 
-    label: "Mentoria individual", 
-    icon: Users,
-    description: "Ofereça orientação personalizada 1:1 para jovens em busca de crescimento"
-  },
-];
+// Voluntários agora são automaticamente mentores e podem contribuir com todo tipo de conteúdo
 
 const dayOptions = [
   { value: "monday", label: "Segunda-feira" },
@@ -83,8 +64,7 @@ const Volunteer = () => {
     name: "",
     email: "",
     area: "",
-    categories: [] as string[],
-    // Mentor-specific fields
+    // Mentor fields - todos voluntários são mentores
     description: "",
     education: "",
   });
@@ -101,17 +81,9 @@ const Volunteer = () => {
   const [contentSubmissions, setContentSubmissions] = useState<ContentSubmission[]>([]);
   const [activeContentIndex, setActiveContentIndex] = useState<number | null>(null);
 
-  const isMentorApplication = formData.categories.includes("mentoria");
-  const isContentCreator = formData.categories.includes("aulas_lives") || formData.categories.includes("templates_arquivos");
-
-  const handleCategoryToggle = (value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      categories: prev.categories.includes(value)
-        ? prev.categories.filter((v) => v !== value)
-        : [...prev.categories, value],
-    }));
-  };
+  // Todos os voluntários são automaticamente mentores
+  const isMentorApplication = true;
+  const isContentCreator = true;
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -219,26 +191,21 @@ const Volunteer = () => {
       return false;
     }
 
-    if (formData.categories.length === 0) {
-      toast.error("Por favor, selecione pelo menos uma categoria");
+    // Validação de descrição (todos são mentores agora)
+    if (!formData.description.trim()) {
+      toast.error("Por favor, adicione uma descrição sobre você");
       return false;
     }
 
-    // Validation for mentors
-    if (isMentorApplication) {
-      if (!formData.description.trim()) {
-        toast.error("Por favor, adicione uma descrição sobre você");
-        return false;
-      }
-      if (availability.length === 0) {
-        toast.error("Por favor, adicione pelo menos um dia de disponibilidade");
-        return false;
-      }
-      const hasValidAvailability = availability.every((a) => a.times.length > 0);
-      if (!hasValidAvailability) {
-        toast.error("Por favor, selecione pelo menos um horário para cada dia");
-        return false;
-      }
+    // Validação de disponibilidade (todos são mentores)
+    if (availability.length === 0) {
+      toast.error("Por favor, adicione pelo menos um dia de disponibilidade");
+      return false;
+    }
+    const hasValidAvailability = availability.every((a) => a.times.length > 0);
+    if (!hasValidAvailability) {
+      toast.error("Por favor, selecione pelo menos um horário para cada dia");
+      return false;
     }
 
     // Validation for content creators
@@ -308,8 +275,8 @@ const Volunteer = () => {
             name: formData.name.trim(),
             email: formData.email.trim(),
             area: formData.area.trim(),
-            how_to_help: formData.categories.join(", "),
-            categories: formData.categories,
+            how_to_help: "Mentoria, Aulas/Lives, Templates",
+            categories: ["mentoria", "aulas_lives", "templates_arquivos"],
             user_id: user?.id || null,
           })
           .select()
@@ -551,56 +518,16 @@ const Volunteer = () => {
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-3">
-                Como você gostaria de ajudar? * <span className="text-muted-foreground font-normal">(múltipla escolha)</span>
-              </label>
-              <div className="space-y-3">
-                {volunteerCategories.map((category) => {
-                  const Icon = category.icon;
-                  return (
-                    <label
-                      key={category.value}
-                      className={`flex items-start gap-4 p-4 rounded-xl border cursor-pointer transition-all ${
-                        formData.categories.includes(category.value)
-                          ? "border-primary bg-accent"
-                          : "border-input hover:border-primary/50"
-                      }`}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={formData.categories.includes(category.value)}
-                        onChange={() => handleCategoryToggle(category.value)}
-                        className="sr-only"
-                      />
-                      <div
-                        className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
-                          formData.categories.includes(category.value)
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted text-muted-foreground"
-                        }`}
-                      >
-                        <Icon className="w-5 h-5" />
-                      </div>
-                      <div className="flex-1">
-                        <span className="font-medium text-foreground">{category.label}</span>
-                        <p className="text-sm text-muted-foreground mt-1">{category.description}</p>
-                      </div>
-                      <div
-                        className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 mt-1 ${
-                          formData.categories.includes(category.value)
-                            ? "border-primary bg-primary"
-                            : "border-muted-foreground"
-                        }`}
-                      >
-                        {formData.categories.includes(category.value) && (
-                          <CheckCircle className="w-3 h-3 text-primary-foreground" />
-                        )}
-                      </div>
-                    </label>
-                  );
-                })}
-              </div>
+            {/* Info box - todos podem fazer tudo */}
+            <div className="bg-accent/50 rounded-xl p-4 border border-primary/20">
+              <p className="text-sm text-foreground">
+                <strong>Como voluntário da Movê, você poderá:</strong>
+              </p>
+              <ul className="text-sm text-muted-foreground mt-2 space-y-1 list-disc list-inside">
+                <li>Oferecer mentorias individuais para jovens</li>
+                <li>Compartilhar aulas ao vivo e gravadas</li>
+                <li>Criar templates e materiais de apoio</li>
+              </ul>
             </div>
 
             {/* Content Submissions Section */}
@@ -765,26 +692,22 @@ const Volunteer = () => {
 
                 {/* Add content buttons */}
                 <div className="flex flex-wrap gap-3">
-                  {formData.categories.includes("aulas_lives") && (
-                    <button
-                      type="button"
-                      onClick={() => addContentSubmission("aulas_lives")}
-                      className="flex items-center gap-2 px-4 py-2 rounded-lg border border-input hover:border-primary/50 text-sm font-medium text-foreground transition-colors"
-                    >
-                      <Plus className="w-4 h-4" />
-                      Adicionar aula/live
-                    </button>
-                  )}
-                  {formData.categories.includes("templates_arquivos") && (
-                    <button
-                      type="button"
-                      onClick={() => addContentSubmission("templates_arquivos")}
-                      className="flex items-center gap-2 px-4 py-2 rounded-lg border border-input hover:border-primary/50 text-sm font-medium text-foreground transition-colors"
-                    >
-                      <Plus className="w-4 h-4" />
-                      Adicionar template/arquivo
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => addContentSubmission("aulas_lives")}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg border border-input hover:border-primary/50 text-sm font-medium text-foreground transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Adicionar aula/live
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => addContentSubmission("templates_arquivos")}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg border border-input hover:border-primary/50 text-sm font-medium text-foreground transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Adicionar template/arquivo
+                  </button>
                 </div>
               </motion.div>
             )}
