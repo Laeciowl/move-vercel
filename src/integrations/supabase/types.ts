@@ -65,6 +65,86 @@ export type Database = {
         }
         Relationships: []
       }
+      mentor_sessions: {
+        Row: {
+          created_at: string
+          id: string
+          mentor_id: string
+          notes: string | null
+          scheduled_at: string
+          status: Database["public"]["Enums"]["session_status"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          mentor_id: string
+          notes?: string | null
+          scheduled_at: string
+          status?: Database["public"]["Enums"]["session_status"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          mentor_id?: string
+          notes?: string | null
+          scheduled_at?: string
+          status?: Database["public"]["Enums"]["session_status"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mentor_sessions_mentor_id_fkey"
+            columns: ["mentor_id"]
+            isOneToOne: false
+            referencedRelation: "mentors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mentors: {
+        Row: {
+          area: string
+          availability: Json
+          created_at: string
+          description: string
+          education: string | null
+          email: string
+          id: string
+          name: string
+          photo_url: string | null
+          status: Database["public"]["Enums"]["mentor_status"]
+          updated_at: string
+        }
+        Insert: {
+          area: string
+          availability?: Json
+          created_at?: string
+          description: string
+          education?: string | null
+          email: string
+          id?: string
+          name: string
+          photo_url?: string | null
+          status?: Database["public"]["Enums"]["mentor_status"]
+          updated_at?: string
+        }
+        Update: {
+          area?: string
+          availability?: Json
+          created_at?: string
+          description?: string
+          education?: string | null
+          email?: string
+          id?: string
+          name?: string
+          photo_url?: string | null
+          status?: Database["public"]["Enums"]["mentor_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           age: number
@@ -146,12 +226,14 @@ export type Database = {
     }
     Enums: {
       income_range: "sem_renda" | "ate_1500" | "1500_3000" | "acima_3000"
+      mentor_status: "pending" | "approved" | "rejected"
       professional_status:
         | "desempregado"
         | "estudante"
         | "estagiario"
         | "empregado"
         | "freelancer_pj"
+      session_status: "scheduled" | "completed" | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -280,6 +362,7 @@ export const Constants = {
   public: {
     Enums: {
       income_range: ["sem_renda", "ate_1500", "1500_3000", "acima_3000"],
+      mentor_status: ["pending", "approved", "rejected"],
       professional_status: [
         "desempregado",
         "estudante",
@@ -287,6 +370,7 @@ export const Constants = {
         "empregado",
         "freelancer_pj",
       ],
+      session_status: ["scheduled", "completed", "cancelled"],
     },
   },
 } as const

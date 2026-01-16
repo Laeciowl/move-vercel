@@ -1,0 +1,209 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { Calendar, Clock, User, Loader2, CheckCircle, XCircle, Users } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+
+interface MentorSession {
+  id: string;
+  mentor_id: string;
+  scheduled_at: string;
+  status: string;
+  notes: string | null;
+  created_at: string;
+  mentor?: {
+    name: string;
+    area: string;
+    photo_url: string | null;
+  };
+}
+
+const statusLabels: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
+  scheduled: { 
+    label: "Agendada", 
+    color: "bg-blue-100 text-blue-800",
+    icon: <Calendar className="w-3 h-3" />
+  },
+  completed: { 
+    label: "Concluída", 
+    color: "bg-green-100 text-green-800",
+    icon: <CheckCircle className="w-3 h-3" />
+  },
+  cancelled: { 
+    label: "Cancelada", 
+    color: "bg-red-100 text-red-800",
+    icon: <XCircle className="w-3 h-3" />
+  },
+};
+
+const MentorshipSection = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [sessions, setSessions] = useState<MentorSession[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchSessions = async () => {
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from("mentor_sessions")
+        .select(`
+          *,
+          mentor:mentors(name, area, photo_url)
+        `)
+        .eq("user_id", user.id)
+        .order("scheduled_at", { ascending: false });
+
+      if (error) {
+        console.error("Error fetching sessions:", error);
+      } else if (data) {
+        setSessions(data as unknown as MentorSession[]);
+      }
+      setLoading(false);
+    };
+
+    fetchSessions();
+  }, [user]);
+
+  const upcomingSessions = sessions.filter(
+    (s) => s.status === "scheduled" && new Date(s.scheduled_at) > new Date()
+  );
+  const pastSessions = sessions.filter(
+    (s) => s.status !== "scheduled" || new Date(s.scheduled_at) <= new Date()
+  );
+
+  const formatDate = (date: string) => {
+    return new Date(date).toLocaleDateString("pt-BR", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.15 }}
+      className="space-y-4"
+    >
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Users className="w-5 h-5 text-primary" />
+          <h3 className="text-xl font-bold text-foreground">Mentorias</h3>
+        </div>
+        <button
+          onClick={() => navigate("/mentores")}
+          className="text-sm text-primary hover:underline"
+        >
+          Ver mentores
+        </button>
+      </div>
+
+      {loading ? (
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="w-6 h-6 animate-spin text-primary" />
+        </div>
+      ) : (
+        <>
+          {/* Upcoming Sessions */}
+          {upcomingSessions.length > 0 && (
+            <div className="bg-card rounded-2xl shadow-card p-5">
+              <h4 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-primary" />
+                Próximas mentorias
+              </h4>
+              <div className="space-y-3">
+                {upcomingSessions.map((session) => (
+                  <div
+                    key={session.id}
+                    className="flex items-center gap-4 p-3 bg-accent/50 rounded-xl"
+                  >
+                    <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center shrink-0 overflow-hidden">
+                      {session.mentor?.photo_url ? (
+                        <img
+                          src={session.mentor.photo_url}
+                          alt={session.mentor.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <User className="w-6 h-6 text-muted-foreground" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-foreground truncate">
+                        {session.mentor?.name || "Mentor"}
+                      </p>
+                      <p className="text-sm text-muted-foreground truncate">
+                        {session.mentor?.area}
+                      </p>
+                      <p className="text-xs text-primary flex items-center gap-1 mt-1">
+                        <Clock className="w-3 h-3" />
+                        {formatDate(session.scheduled_at)}
+                      </p>
+                    </div>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${statusLabels[session.status]?.color || "bg-gray-100"}`}>
+                      {statusLabels[session.status]?.icon}
+                      {statusLabels[session.status]?.label || session.status}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Past Sessions / History */}
+          <div className="bg-card rounded-2xl shadow-card p-5">
+            <h4 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+              <Clock className="w-4 h-4 text-primary" />
+              Histórico de mentorias
+            </h4>
+
+            {pastSessions.length > 0 ? (
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {pastSessions.map((session) => (
+                  <div
+                    key={session.id}
+                    className="flex items-center justify-between py-2 border-b border-border last:border-0"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">
+                        {session.mentor?.name || "Mentor"}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(session.scheduled_at).toLocaleDateString("pt-BR")}
+                      </p>
+                    </div>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${statusLabels[session.status]?.color || "bg-gray-100"}`}>
+                      {statusLabels[session.status]?.icon}
+                      {statusLabels[session.status]?.label || session.status}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-6">
+                <Users className="w-10 h-10 text-muted-foreground mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">
+                  Você ainda não agendou nenhuma mentoria.
+                </p>
+                <button
+                  onClick={() => navigate("/mentores")}
+                  className="mt-3 text-sm text-primary hover:underline"
+                >
+                  Agendar agora
+                </button>
+              </div>
+            )}
+          </div>
+        </>
+      )}
+    </motion.section>
+  );
+};
+
+export default MentorshipSection;

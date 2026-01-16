@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Volunteer from "./pages/Volunteer";
+import Mentors from "./pages/Mentors";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +25,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/voluntario" element={<Volunteer />} />
+            <Route path="/mentores" element={<Mentors />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
