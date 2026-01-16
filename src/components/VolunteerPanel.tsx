@@ -243,8 +243,8 @@ const VolunteerPanel = () => {
       {/* Overview Tab */}
       {activeTab === "overview" && (
         <div className="space-y-5">
-          {/* Mentor Progress Bar - Shows for mentors */}
-          {mentorData ? (
+          {/* Mentor Progress Bar - Shows for mentors with approved status */}
+          {mentorData && mentorData.status === "approved" && (
             <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-accent/10 rounded-xl p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
@@ -283,23 +283,6 @@ const VolunteerPanel = () => {
                 <div className="text-center">
                   <div className="text-xl font-bold text-blue-600">{stats.upcomingSessions}</div>
                   <div className="text-[10px] text-muted-foreground">Agendadas</div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            /* Volunteer - show contribution stats */
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 space-y-3 border border-blue-100">
-              <div className="flex items-center gap-2">
-                <Users className="w-5 h-5 text-blue-600" />
-                <h4 className="text-sm font-semibold text-foreground">Contribuição como Voluntário</h4>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Você está contribuindo com conteúdos para a comunidade! Seu perfil de mentor está aguardando aprovação.
-              </p>
-              <div className="bg-white/60 rounded-lg p-3 mt-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-foreground font-medium">Total de conteúdos enviados:</span>
-                  <span className="text-xl font-bold text-primary">{submissions.length}</span>
                 </div>
               </div>
             </div>
