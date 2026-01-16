@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Heart, FileText, Video, Users, Loader2, ExternalLink, Clock, CheckCircle, XCircle, Calendar, Settings } from "lucide-react";
+import { Heart, FileText, Video, Users, Loader2, ExternalLink, Clock, CheckCircle, XCircle, Calendar, Settings, Award } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useVolunteerCheck } from "@/hooks/useVolunteerCheck";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
 import MentorBlockedPeriodsManager from "./MentorBlockedPeriodsManager";
 import MentorSessionConfirmation from "./MentorSessionConfirmation";
+import ContentSubmissionModal from "./ContentSubmissionModal";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -77,7 +77,6 @@ const dayLabels: Record<string, string> = {
 const VolunteerPanel = () => {
   const { user } = useAuth();
   const { isVolunteer, loading: checkingVolunteer } = useVolunteerCheck();
-  const navigate = useNavigate();
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [mentorData, setMentorData] = useState<MentorData | null>(null);
   const [sessions, setSessions] = useState<MentorSession[]>([]);
@@ -85,6 +84,10 @@ const VolunteerPanel = () => {
   const [loading, setLoading] = useState(true);
   const [showBlockedPeriods, setShowBlockedPeriods] = useState(false);
   const [activeTab, setActiveTab] = useState<"overview" | "agenda" | "content">("overview");
+  const [submissionModal, setSubmissionModal] = useState<{ isOpen: boolean; category: "aulas_lives" | "templates_arquivos" }>({
+    isOpen: false,
+    category: "aulas_lives",
+  });
 
   useEffect(() => {
     if (!user?.email || !isVolunteer) {
@@ -288,7 +291,7 @@ const VolunteerPanel = () => {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => navigate("/voluntario")}
+                onClick={() => setSubmissionModal({ isOpen: true, category: "aulas_lives" })}
                 className="flex items-center gap-2"
               >
                 <Video className="w-4 h-4" />
@@ -297,7 +300,7 @@ const VolunteerPanel = () => {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => navigate("/voluntario")}
+                onClick={() => setSubmissionModal({ isOpen: true, category: "templates_arquivos" })}
                 className="flex items-center gap-2"
               >
                 <FileText className="w-4 h-4" />
@@ -307,6 +310,17 @@ const VolunteerPanel = () => {
           </div>
         </div>
       )}
+
+      {/* Content Submission Modal */}
+      <ContentSubmissionModal
+        isOpen={submissionModal.isOpen}
+        onClose={() => setSubmissionModal({ ...submissionModal, isOpen: false })}
+        onSuccess={() => {
+          setSubmissionModal({ ...submissionModal, isOpen: false });
+          fetchData();
+        }}
+        category={submissionModal.category}
+      />
 
       {/* Agenda Tab */}
       {activeTab === "agenda" && mentorData && (
@@ -441,7 +455,7 @@ const VolunteerPanel = () => {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => navigate("/voluntario")}
+                onClick={() => setSubmissionModal({ isOpen: true, category: "templates_arquivos" })}
                 className="mt-3"
               >
                 Enviar primeiro conteúdo
