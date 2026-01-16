@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import MentorshipSection from "@/components/MentorshipSection";
+import NotificationBell from "@/components/NotificationBell";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Enums } from "@/integrations/supabase/types";
@@ -200,7 +201,8 @@ const Dashboard = () => {
       <header className="bg-card shadow-sm border-b border-border">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="text-2xl font-bold text-gradient">Movê</h1>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            <NotificationBell />
             <div className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground">
               <User className="w-4 h-4" />
               <span>{profile.name}</span>
