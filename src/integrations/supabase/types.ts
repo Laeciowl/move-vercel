@@ -68,6 +68,41 @@ export type Database = {
         }
         Relationships: []
       }
+      mentor_blocked_periods: {
+        Row: {
+          created_at: string
+          end_date: string
+          id: string
+          mentor_id: string
+          reason: string | null
+          start_date: string
+        }
+        Insert: {
+          created_at?: string
+          end_date: string
+          id?: string
+          mentor_id: string
+          reason?: string | null
+          start_date: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string
+          id?: string
+          mentor_id?: string
+          reason?: string | null
+          start_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mentor_blocked_periods_mentor_id_fkey"
+            columns: ["mentor_id"]
+            isOneToOne: false
+            referencedRelation: "mentors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mentor_sessions: {
         Row: {
           created_at: string
@@ -112,6 +147,8 @@ export type Database = {
           availability: Json
           created_at: string
           description: string
+          disclaimer_accepted: boolean
+          disclaimer_accepted_at: string | null
           education: string | null
           email: string
           id: string
@@ -125,6 +162,8 @@ export type Database = {
           availability?: Json
           created_at?: string
           description: string
+          disclaimer_accepted?: boolean
+          disclaimer_accepted_at?: string | null
           education?: string | null
           email: string
           id?: string
@@ -138,6 +177,8 @@ export type Database = {
           availability?: Json
           created_at?: string
           description?: string
+          disclaimer_accepted?: boolean
+          disclaimer_accepted_at?: string | null
           education?: string | null
           email?: string
           id?: string

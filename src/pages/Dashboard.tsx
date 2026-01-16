@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import MentorshipSection from "@/components/MentorshipSection";
 import NotificationBell from "@/components/NotificationBell";
 import ProfileEditModal from "@/components/ProfileEditModal";
+import MentorPanel from "@/components/MentorPanel";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Enums } from "@/integrations/supabase/types";
@@ -273,6 +274,9 @@ const Dashboard = () => {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Content Section */}
           <div className="lg:col-span-2 space-y-8">
+            {/* Mentor Panel (if user is a mentor) */}
+            <MentorPanel />
+
             {/* Mentorship Section */}
             <MentorshipSection />
 

@@ -135,10 +135,10 @@ const ProfileEditModal = ({ isOpen, onClose, profile, onProfileUpdated }: Profil
           
           {/* Modal */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            initial={{ opacity: 0, scale: 0.95, y: -20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="fixed inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:max-w-lg md:w-full bg-card rounded-2xl shadow-xl z-50 overflow-hidden flex flex-col max-h-[90vh]"
+            exit={{ opacity: 0, scale: 0.95, y: -20 }}
+            className="fixed left-4 right-4 top-[10vh] md:left-1/2 md:right-auto md:top-[10vh] md:-translate-x-1/2 md:max-w-lg md:w-full bg-card rounded-2xl shadow-xl z-50 overflow-hidden flex flex-col max-h-[80vh]"
           >
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-border shrink-0">
