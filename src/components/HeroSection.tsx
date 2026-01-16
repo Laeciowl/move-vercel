@@ -1,16 +1,18 @@
 import { motion } from "framer-motion";
 import { ArrowDown, Sparkles } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import heroBg from "@/assets/hero-bg.jpg";
 
 const HeroSection = () => {
+  const navigate = useNavigate();
+
   const scrollToAbout = () => {
     const element = document.getElementById("sobre");
     element?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const scrollToSignup = () => {
-    const element = document.getElementById("inscreva-se");
-    element?.scrollIntoView({ behavior: "smooth" });
+  const goToSignup = () => {
+    navigate("/auth?cadastro=true");
   };
 
   return (
@@ -84,7 +86,7 @@ const HeroSection = () => {
               className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
             >
               <button
-                onClick={scrollToSignup}
+                onClick={goToSignup}
                 className="group bg-gradient-hero text-primary-foreground px-8 py-4 rounded-2xl font-bold text-lg shadow-button hover:scale-105 transition-transform"
               >
                 Quero participar
