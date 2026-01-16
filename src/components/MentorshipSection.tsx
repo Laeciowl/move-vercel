@@ -94,13 +94,13 @@ const MentorshipSection = () => {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Users className="w-5 h-5 text-primary" />
-          <h3 className="text-xl font-bold text-foreground">Mentorias</h3>
+          <h3 className="text-xl font-bold text-foreground">Suas Mentorias</h3>
         </div>
         <button
           onClick={() => navigate("/mentores")}
-          className="text-sm text-primary hover:underline"
+          className="text-sm text-primary font-medium hover:underline"
         >
-          Ver mentores
+          Encontrar mentor →
         </button>
       </div>
 
@@ -160,7 +160,7 @@ const MentorshipSection = () => {
           <div className="bg-card rounded-2xl shadow-card p-5">
             <h4 className="font-semibold text-foreground mb-4 flex items-center gap-2">
               <Clock className="w-4 h-4 text-primary" />
-              Histórico de mentorias
+              Mentorias realizadas
             </h4>
 
             {pastSessions.length > 0 ? (
@@ -188,14 +188,17 @@ const MentorshipSection = () => {
             ) : (
               <div className="text-center py-6">
                 <Users className="w-10 h-10 text-muted-foreground mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">
-                  Você ainda não agendou nenhuma mentoria.
+                <p className="text-sm text-muted-foreground mb-1">
+                  Conecte-se com profissionais voluntários
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Agende uma conversa gratuita e receba orientação para sua carreira
                 </p>
                 <button
                   onClick={() => navigate("/mentores")}
-                  className="mt-3 text-sm text-primary hover:underline"
+                  className="mt-4 bg-gradient-hero text-primary-foreground px-6 py-2 rounded-xl font-semibold hover:opacity-90 transition-opacity text-sm"
                 >
-                  Agendar agora
+                  Agendar mentoria
                 </button>
               </div>
             )}

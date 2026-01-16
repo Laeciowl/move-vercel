@@ -256,10 +256,10 @@ const Dashboard = () => {
               </div>
               <div>
                 <h2 className="text-2xl md:text-3xl font-bold text-foreground">
-                  Olá, {profile.name.split(" ")[0]}! 👋
+                  E aí, {profile.name.split(" ")[0]}! 🚀
                 </h2>
                 <p className="text-muted-foreground">
-                  Bem-vindo(a) ao Movê. Aqui você encontra conteúdos para impulsionar sua jornada profissional.
+                  Esse é o seu espaço. Aqui você acessa mentorias, conteúdos e acompanha sua evolução profissional.
                 </p>
               </div>
             </div>
@@ -301,7 +301,7 @@ const Dashboard = () => {
             >
               <div className="flex items-center gap-2 mb-3">
                 <Filter className="w-5 h-5 text-primary" />
-                <h3 className="text-lg font-semibold text-foreground">Filtrar por área</h3>
+                <h3 className="text-lg font-semibold text-foreground">Explore por tema</h3>
               </div>
               <div className="flex flex-wrap gap-2">
                 {categoryOptions.map((cat) => (
@@ -328,7 +328,7 @@ const Dashboard = () => {
             >
               <div className="flex items-center gap-2 mb-4">
                 <Video className="w-5 h-5 text-primary" />
-                <h3 className="text-xl font-bold text-foreground">Vídeos</h3>
+                <h3 className="text-xl font-bold text-foreground">Aulas e Lives</h3>
               </div>
               
               {loadingContent ? (
@@ -360,8 +360,8 @@ const Dashboard = () => {
               ) : (
                 <div className="bg-card rounded-2xl shadow-card p-8 text-center">
                   <Video className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-                  <p className="text-muted-foreground">Nenhum vídeo disponível ainda.</p>
-                  <p className="text-sm text-muted-foreground mt-1">Em breve teremos conteúdos incríveis para você!</p>
+                  <p className="text-muted-foreground font-medium">Estamos preparando conteúdos incríveis!</p>
+                  <p className="text-sm text-muted-foreground mt-1">Em breve você terá aulas e lives para turbinar sua carreira.</p>
                 </div>
               )}
             </motion.section>
@@ -374,7 +374,7 @@ const Dashboard = () => {
             >
               <div className="flex items-center gap-2 mb-4">
                 <FileText className="w-5 h-5 text-primary" />
-                <h3 className="text-xl font-bold text-foreground">Materiais</h3>
+                <h3 className="text-xl font-bold text-foreground">Guias e Templates</h3>
               </div>
               
               {loadingContent ? (
@@ -413,8 +413,8 @@ const Dashboard = () => {
               ) : (
                 <div className="bg-card rounded-2xl shadow-card p-8 text-center">
                   <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-                  <p className="text-muted-foreground">Nenhum material disponível ainda.</p>
-                  <p className="text-sm text-muted-foreground mt-1">Em breve teremos PDFs e guias para você!</p>
+                  <p className="text-muted-foreground font-medium">Biblioteca em construção!</p>
+                  <p className="text-sm text-muted-foreground mt-1">Logo teremos PDFs, templates de currículo e guias práticos.</p>
                 </div>
               )}
             </motion.section>
@@ -431,7 +431,7 @@ const Dashboard = () => {
             >
               <div className="flex items-center gap-2 mb-4">
                 <RefreshCw className="w-5 h-5 text-primary" />
-                <h3 className="text-lg font-bold text-foreground">Atualize sua jornada</h3>
+                <h3 className="text-lg font-bold text-foreground">Sua evolução</h3>
               </div>
 
               {showUpdateForm ? (
@@ -503,7 +503,7 @@ const Dashboard = () => {
             >
               <div className="flex items-center gap-2 mb-4">
                 <History className="w-5 h-5 text-primary" />
-                <h3 className="text-lg font-bold text-foreground">Histórico</h3>
+                <h3 className="text-lg font-bold text-foreground">Sua trajetória</h3>
               </div>
 
               {impactHistory.length > 0 ? (
@@ -524,7 +524,7 @@ const Dashboard = () => {
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground">
-                  Seu histórico aparecerá aqui conforme você atualizar sua jornada.
+                  Atualize seu status e acompanhe sua evolução ao longo do tempo. Cada passo conta! 💪
                 </p>
               )}
             </motion.section>
