@@ -306,11 +306,11 @@ const Dashboard = () => {
             {/* Volunteer Panel (if user is a volunteer) */}
             <VolunteerPanel />
 
-            {/* Mentor Panel (if user is a mentor) */}
-            <MentorPanel />
+            {/* Mentor Panel - only show if NOT a volunteer (volunteers see it in VolunteerPanel) */}
+            {!isVolunteer && <MentorPanel />}
 
-            {/* Mentorship Section */}
-            <MentorshipSection />
+            {/* Mentorship Section - only for non-volunteers (students) */}
+            {!isVolunteer && <MentorshipSection />}
 
             {/* Category Filter */}
             <motion.div
@@ -442,112 +442,98 @@ const Dashboard = () => {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Update Journey */}
-            <motion.section
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="bg-card rounded-2xl shadow-card p-6"
-            >
-              <div className="flex items-center gap-2 mb-4">
-                <RefreshCw className="w-5 h-5 text-primary" />
-                <h3 className="text-lg font-bold text-foreground">Sua evolução</h3>
-              </div>
-
-              {showUpdateForm ? (
-                <form onSubmit={handleUpdateJourney} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Situação profissional
-                    </label>
-                    <select
-                      value={updateData.professionalStatus}
-                      onChange={(e) => setUpdateData({ ...updateData, professionalStatus: e.target.value })}
-                      className="w-full px-4 py-3 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
-                    >
-                      {professionalStatusOptions.map((option) => (
-                        <option key={option.value} value={option.value}>{option.label}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Faixa de renda
-                    </label>
-                    <select
-                      value={updateData.incomeRange}
-                      onChange={(e) => setUpdateData({ ...updateData, incomeRange: e.target.value })}
-                      className="w-full px-4 py-3 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
-                    >
-                      {incomeRangeOptions.map((option) => (
-                        <option key={option.value} value={option.value}>{option.label}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setShowUpdateForm(false)}
-                      className="flex-1 py-2 rounded-xl border border-border text-foreground hover:bg-muted transition-colors"
-                    >
-                      Cancelar
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={updating}
-                      className="flex-1 bg-gradient-hero text-primary-foreground py-2 rounded-xl font-semibold hover:opacity-90 transition-opacity disabled:opacity-70 flex items-center justify-center gap-2"
-                    >
-                      {updating && <Loader2 className="w-4 h-4 animate-spin" />}
-                      Salvar
-                    </button>
-                  </div>
-                </form>
-              ) : (
-                <button
-                  onClick={() => setShowUpdateForm(true)}
-                  className="w-full bg-accent text-accent-foreground py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity"
-                >
-                  Atualizar status
-                </button>
-              )}
-            </motion.section>
-
-            {/* Impact History */}
-            <motion.section
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="bg-card rounded-2xl shadow-card p-6"
-            >
-              <div className="flex items-center gap-2 mb-4">
-                <History className="w-5 h-5 text-primary" />
-                <h3 className="text-lg font-bold text-foreground">Sua trajetória</h3>
-              </div>
-
-              {impactHistory.length > 0 ? (
-                <div className="space-y-3 max-h-64 overflow-y-auto">
-                  {impactHistory.map((entry) => (
-                    <div key={entry.id} className="border-l-2 border-primary/30 pl-3 py-1">
-                      <p className="text-sm font-medium text-foreground">
-                        {professionalStatusLabels[entry.professional_status]}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {incomeRangeLabels[entry.income_range]}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {new Date(entry.recorded_at).toLocaleDateString("pt-BR")}
-                      </p>
-                    </div>
-                  ))}
+            {/* Update Journey - Only show for non-volunteers (students) */}
+            {!isVolunteer && (
+              <motion.section
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="bg-card rounded-2xl shadow-card p-6"
+              >
+                <div className="flex items-center gap-2 mb-4">
+                  <RefreshCw className="w-5 h-5 text-primary" />
+                  <h3 className="text-lg font-bold text-foreground">Sua evolução</h3>
                 </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  Atualize seu status e acompanhe sua evolução ao longo do tempo. Cada passo conta! 💪
-                </p>
-              )}
-            </motion.section>
+
+                {showUpdateForm ? (
+                  <form onSubmit={handleUpdateJourney} className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">
+                        Situação profissional
+                      </label>
+                      <select
+                        value={updateData.professionalStatus}
+                        onChange={(e) => setUpdateData({ ...updateData, professionalStatus: e.target.value })}
+                        className="w-full px-4 py-3 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      >
+                        {professionalStatusOptions.map((option) => (
+                          <option key={option.value} value={option.value}>{option.label}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowUpdateForm(false)}
+                        className="flex-1 py-2 rounded-xl border border-border text-foreground hover:bg-muted transition-colors"
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={updating}
+                        className="flex-1 bg-gradient-hero text-primary-foreground py-2 rounded-xl font-semibold hover:opacity-90 transition-opacity disabled:opacity-70 flex items-center justify-center gap-2"
+                      >
+                        {updating && <Loader2 className="w-4 h-4 animate-spin" />}
+                        Salvar
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <button
+                    onClick={() => setShowUpdateForm(true)}
+                    className="w-full bg-accent text-accent-foreground py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity"
+                  >
+                    Atualizar status
+                  </button>
+                )}
+              </motion.section>
+            )}
+
+            {/* Impact History - Only show for non-volunteers (students) */}
+            {!isVolunteer && (
+              <motion.section
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="bg-card rounded-2xl shadow-card p-6"
+              >
+                <div className="flex items-center gap-2 mb-4">
+                  <History className="w-5 h-5 text-primary" />
+                  <h3 className="text-lg font-bold text-foreground">Sua trajetória</h3>
+                </div>
+
+                {impactHistory.length > 0 ? (
+                  <div className="space-y-3 max-h-64 overflow-y-auto">
+                    {impactHistory.map((entry) => (
+                      <div key={entry.id} className="border-l-2 border-primary/30 pl-3 py-1">
+                        <p className="text-sm font-medium text-foreground">
+                          {professionalStatusLabels[entry.professional_status]}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {new Date(entry.recorded_at).toLocaleDateString("pt-BR")}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Atualize seu status e acompanhe sua evolução ao longo do tempo. Cada passo conta! 💪
+                  </p>
+                )}
+              </motion.section>
+            )}
           </div>
         </div>
       </main>
