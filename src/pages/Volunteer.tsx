@@ -290,25 +290,44 @@ const Volunteer = () => {
     setLoading(true);
 
     try {
-      // Insert into volunteer_applications
-      const { data: volunteerData, error: volunteerError } = await supabase
-        .from("volunteer_applications")
-        .insert({
-          name: formData.name.trim(),
-          email: formData.email.trim(),
-          area: formData.area.trim(),
-          how_to_help: formData.categories.join(", "),
-          categories: formData.categories,
-          user_id: user?.id || null,
-        })
-        .select()
-        .single();
+      let volunteerDataId: string | null = null;
 
-      if (volunteerError) {
-        throw volunteerError;
+      // Check if user already has a volunteer application (by email or user_id)
+      // We need to check via admin or the user might not have SELECT access
+      // Instead, we try to insert and handle the unique constraint error gracefully
+      
+      // For logged-in users who are already volunteers (have voluntario role), 
+      // skip volunteer_applications insert and go directly to mentor registration
+      const isExistingVolunteer = user ? await checkIfVolunteer() : false;
+
+      if (!isExistingVolunteer) {
+        // Insert into volunteer_applications for new volunteers
+        const { data: volunteerData, error: volunteerError } = await supabase
+          .from("volunteer_applications")
+          .insert({
+            name: formData.name.trim(),
+            email: formData.email.trim(),
+            area: formData.area.trim(),
+            how_to_help: formData.categories.join(", "),
+            categories: formData.categories,
+            user_id: user?.id || null,
+          })
+          .select()
+          .single();
+
+        if (volunteerError) {
+          // Check if error is due to duplicate entry (user already applied)
+          if (volunteerError.code === '23505' || volunteerError.message.includes('duplicate')) {
+            console.log("User already has a volunteer application, proceeding with mentor registration");
+          } else {
+            throw volunteerError;
+          }
+        } else {
+          volunteerDataId = volunteerData?.id || null;
+        }
       }
 
-      // If they want to be a mentor, also insert into mentors table
+      // If they want to be a mentor, insert into mentors table
       if (isMentorApplication) {
         let photoUrl: string | null = null;
 
@@ -345,7 +364,14 @@ const Volunteer = () => {
 
         if (mentorError) {
           console.error("Mentor insert error:", mentorError);
-          toast.warning("Aplicação de voluntário enviada, mas houve um erro ao criar perfil de mentor");
+          if (mentorError.code === '23505' || mentorError.message.includes('duplicate')) {
+            toast.error("Você já está cadastrado como mentor.");
+            setLoading(false);
+            return;
+          }
+          toast.warning("Houve um erro ao criar perfil de mentor: " + mentorError.message);
+          setLoading(false);
+          return;
         }
       }
 
@@ -377,7 +403,7 @@ const Volunteer = () => {
           const { error: submissionError } = await supabase
             .from("volunteer_submissions")
             .insert({
-              volunteer_id: volunteerData.id,
+              volunteer_id: volunteerDataId,
               volunteer_email: formData.email.trim(),
               volunteer_name: formData.name.trim(),
               category: submission.category,
@@ -394,12 +420,25 @@ const Volunteer = () => {
       }
 
       setSubmitted(true);
-      toast.success("Aplicação enviada com sucesso!");
+      toast.success(isMentorApplication ? "Cadastro de mentor enviado com sucesso!" : "Aplicação enviada com sucesso!");
     } catch (error: any) {
       toast.error("Erro ao enviar: " + error.message);
     }
 
     setLoading(false);
+  };
+
+  const checkIfVolunteer = async (): Promise<boolean> => {
+    if (!user) return false;
+    
+    const { data } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("role", "voluntario")
+      .maybeSingle();
+    
+    return !!data;
   };
 
   if (submitted) {
