@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 
 const Header = () => {
   const scrollToSection = (id: string) => {
@@ -21,13 +22,25 @@ const Header = () => {
           Movê
         </button>
 
-        <nav className="hidden md:flex items-center gap-8">
+        <nav className="hidden md:flex items-center gap-6">
           <button
             onClick={() => scrollToSection("sobre")}
             className="text-muted-foreground hover:text-foreground transition-colors font-medium"
           >
             Sobre
           </button>
+          <Link
+            to="/voluntario"
+            className="text-muted-foreground hover:text-foreground transition-colors font-medium"
+          >
+            Seja Voluntário
+          </Link>
+          <Link
+            to="/auth"
+            className="text-muted-foreground hover:text-foreground transition-colors font-medium"
+          >
+            Entrar
+          </Link>
           <button
             onClick={() => scrollToSection("inscreva-se")}
             className="bg-gradient-hero text-primary-foreground px-6 py-2.5 rounded-lg font-semibold shadow-button hover:opacity-90 transition-opacity"
@@ -36,12 +49,12 @@ const Header = () => {
           </button>
         </nav>
 
-        <button
-          onClick={() => scrollToSection("inscreva-se")}
+        <Link
+          to="/auth"
           className="md:hidden bg-gradient-hero text-primary-foreground px-4 py-2 rounded-lg font-semibold text-sm"
         >
-          Inscreva-se
-        </button>
+          Entrar
+        </Link>
       </div>
     </motion.header>
   );
