@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       content_items: {
         Row: {
+          category: string
           created_at: string
           description: string | null
           id: string
@@ -24,6 +25,7 @@ export type Database = {
           url: string
         }
         Insert: {
+          category?: string
           created_at?: string
           description?: string | null
           id?: string
@@ -32,6 +34,7 @@ export type Database = {
           url: string
         }
         Update: {
+          category?: string
           created_at?: string
           description?: string | null
           id?: string

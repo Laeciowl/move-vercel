@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
   LogOut, FileText, Video, RefreshCw, User, 
-  Loader2, BookOpen, History, ExternalLink
+  Loader2, BookOpen, History, ExternalLink, Filter
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import MentorshipSection from "@/components/MentorshipSection";
@@ -20,6 +20,7 @@ interface ContentItem {
   description: string | null;
   url: string;
   item_type: string;
+  category: string;
   created_at: string;
 }
 
@@ -60,6 +61,15 @@ const incomeRangeOptions = [
   { value: "acima_3000", label: "Acima de R$ 3.000" },
 ];
 
+const categoryOptions = [
+  { value: "all", label: "Todos" },
+  { value: "curriculo", label: "Currículo" },
+  { value: "marketing", label: "Marketing Pessoal" },
+  { value: "tecnologia", label: "Tecnologia" },
+  { value: "soft_skills", label: "Soft Skills" },
+  { value: "geral", label: "Geral" },
+];
+
 const Dashboard = () => {
   const { user, profile, loading: authLoading, signOut, refreshProfile } = useAuth();
   const navigate = useNavigate();
@@ -68,6 +78,7 @@ const Dashboard = () => {
   const [loadingContent, setLoadingContent] = useState(true);
   const [showUpdateForm, setShowUpdateForm] = useState(false);
   const [updating, setUpdating] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState("all");
   const [updateData, setUpdateData] = useState({
     professionalStatus: "",
     incomeRange: "",
@@ -176,8 +187,12 @@ const Dashboard = () => {
     );
   }
 
-  const videos = contents.filter((c) => c.item_type === "video");
-  const pdfs = contents.filter((c) => c.item_type === "pdf");
+  const filteredContents = selectedCategory === "all" 
+    ? contents 
+    : contents.filter((c) => c.category === selectedCategory);
+  
+  const videos = filteredContents.filter((c) => c.item_type === "video");
+  const pdfs = filteredContents.filter((c) => c.item_type === "pdf");
 
   return (
     <div className="min-h-screen bg-gradient-warm">
@@ -229,6 +244,34 @@ const Dashboard = () => {
           <div className="lg:col-span-2 space-y-8">
             {/* Mentorship Section */}
             <MentorshipSection />
+
+            {/* Category Filter */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.05 }}
+              className="bg-card rounded-2xl shadow-card p-4"
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <Filter className="w-5 h-5 text-primary" />
+                <h3 className="text-lg font-semibold text-foreground">Filtrar por área</h3>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {categoryOptions.map((cat) => (
+                  <button
+                    key={cat.value}
+                    onClick={() => setSelectedCategory(cat.value)}
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                      selectedCategory === cat.value
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    }`}
+                  >
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
+            </motion.div>
 
             {/* Videos */}
             <motion.section
