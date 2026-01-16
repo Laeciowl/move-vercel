@@ -10,6 +10,7 @@ import Dashboard from "./pages/Dashboard";
 import Volunteer from "./pages/Volunteer";
 import Mentors from "./pages/Mentors";
 import Admin from "./pages/Admin";
+import Terms from "./pages/Terms";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/voluntario" element={<Volunteer />} />
             <Route path="/mentores" element={<Mentors />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/termos" element={<Terms />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
