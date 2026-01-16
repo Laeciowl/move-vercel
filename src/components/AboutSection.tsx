@@ -115,9 +115,9 @@ const AboutSection = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="group grid md:grid-cols-[80px_1fr] gap-6 py-10 border-t border-border first:border-t-0 hover:bg-muted/30 -mx-6 px-6 transition-colors rounded-lg"
+                className="group grid md:grid-cols-[100px_1fr] gap-6 py-12 border-t border-border hover:bg-muted/30 -mx-6 px-6 transition-colors rounded-lg"
               >
-                <span className="text-primary/50 font-mono text-sm group-hover:text-primary transition-colors">
+                <span className="text-5xl md:text-6xl font-bold text-primary/30 group-hover:text-primary transition-colors leading-none">
                   {item.number}
                 </span>
                 <div>

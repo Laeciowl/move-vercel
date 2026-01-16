@@ -178,12 +178,12 @@ const HeroSection = () => {
         </div>
       </div>
 
-      {/* Scroll indicator - minimal */}
+      {/* Scroll indicator - centered */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.5, duration: 0.5 }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2"
+        className="absolute bottom-12 left-0 right-0 flex justify-center"
       >
         <motion.div
           animate={{ y: [0, 8, 0] }}
@@ -193,6 +193,9 @@ const HeroSection = () => {
           <motion.div className="w-1.5 h-1.5 bg-primary rounded-full" />
         </motion.div>
       </motion.div>
+
+      {/* Section divider */}
+      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
     </section>
   );
 };
