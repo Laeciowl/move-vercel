@@ -181,19 +181,16 @@ const Volunteer = () => {
     setLoading(true);
 
     try {
-      let volunteerDataId: string | null = null;
+      // Não fazemos SELECT após INSERT aqui porque isso exigiria permissão de leitura
+      // (e o cadastro de voluntário é revisado pelo admin).
 
-      // Check if user already has a volunteer application (by email or user_id)
-      // We need to check via admin or the user might not have SELECT access
-      // Instead, we try to insert and handle the unique constraint error gracefully
-      
-      // For logged-in users who are already volunteers (have voluntario role), 
+      // For logged-in users who are already volunteers (have voluntario role),
       // skip volunteer_applications insert and go directly to mentor registration
       const isExistingVolunteer = user ? await checkIfVolunteer() : false;
 
       if (!isExistingVolunteer) {
         // Insert into volunteer_applications for new volunteers
-        const { data: volunteerData, error: volunteerError } = await supabase
+        const { error: volunteerError } = await supabase
           .from("volunteer_applications")
           .insert({
             name: formData.name.trim(),
@@ -202,19 +199,15 @@ const Volunteer = () => {
             how_to_help: "Mentoria, Aulas/Lives, Templates",
             categories: ["mentoria", "aulas_lives", "templates_arquivos"],
             user_id: user?.id || null,
-          })
-          .select()
-          .single();
+          });
 
         if (volunteerError) {
           // Check if error is due to duplicate entry (user already applied)
-          if (volunteerError.code === '23505' || volunteerError.message.includes('duplicate')) {
+          if (volunteerError.code === "23505" || volunteerError.message.includes("duplicate")) {
             console.log("User already has a volunteer application, proceeding with mentor registration");
           } else {
             throw volunteerError;
           }
-        } else {
-          volunteerDataId = volunteerData?.id || null;
         }
       }
 
