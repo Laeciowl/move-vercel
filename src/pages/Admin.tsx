@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Shield, Users, BookOpen, Heart, Loader2, FileCheck } from "lucide-react";
+import { ArrowLeft, Shield, Users, BookOpen, Heart, Loader2, FileCheck, Bug } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,6 +9,7 @@ import AdminMentorsPanel from "@/components/admin/AdminMentorsPanel";
 import AdminContentPanel from "@/components/admin/AdminContentPanel";
 import AdminVolunteersPanel from "@/components/admin/AdminVolunteersPanel";
 import AdminSubmissionsPanel from "@/components/admin/AdminSubmissionsPanel";
+import AdminBugReportsPanel from "@/components/admin/AdminBugReportsPanel";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -70,7 +71,7 @@ const Admin = () => {
           transition={{ delay: 0.1 }}
         >
           <Tabs defaultValue="mentors" className="w-full">
-            <TabsList className="grid w-full grid-cols-4 mb-6">
+            <TabsList className="grid w-full grid-cols-5 mb-6">
               <TabsTrigger value="mentors" className="gap-2">
                 <Users className="w-4 h-4" />
                 <span className="hidden sm:inline">Mentores</span>
@@ -87,6 +88,10 @@ const Admin = () => {
                 <Heart className="w-4 h-4" />
                 <span className="hidden sm:inline">Voluntários</span>
               </TabsTrigger>
+              <TabsTrigger value="bugs" className="gap-2">
+                <Bug className="w-4 h-4" />
+                <span className="hidden sm:inline">Erros</span>
+              </TabsTrigger>
             </TabsList>
 
             <div className="bg-card rounded-2xl shadow-card p-6">
@@ -101,6 +106,9 @@ const Admin = () => {
               </TabsContent>
               <TabsContent value="volunteers" className="mt-0">
                 <AdminVolunteersPanel />
+              </TabsContent>
+              <TabsContent value="bugs" className="mt-0">
+                <AdminBugReportsPanel />
               </TabsContent>
             </div>
           </Tabs>
