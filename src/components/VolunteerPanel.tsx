@@ -131,26 +131,36 @@ const VolunteerPanel = () => {
         .eq("mentor_id", mentor.id)
         .order("scheduled_at", { ascending: true });
 
-      if (sessionsData) {
-        // Fetch mentee profiles
-        const userIds = sessionsData.map(s => s.user_id);
-        const { data: profiles } = await supabase
-          .from("profiles")
-          .select("user_id, name, phone")
-          .in("user_id", userIds);
+      if (sessionsData && sessionsData.length > 0) {
+        // Fetch mentee profiles (avoid `.in()` with empty array)
+        const userIds = sessionsData.map((s) => s.user_id);
+        let profiles: { user_id: string; name: string; phone: string | null }[] = [];
 
-        const sessionsWithProfiles = sessionsData.map(session => ({
+        if (userIds.length > 0) {
+          const { data: profilesData, error: profilesError } = await supabase
+            .from("profiles")
+            .select("user_id, name, phone")
+            .in("user_id", userIds);
+
+          if (!profilesError && profilesData) {
+            profiles = profilesData;
+          }
+        }
+
+        const sessionsWithProfiles = sessionsData.map((session) => ({
           ...session,
-          mentee_profile: profiles?.find(p => p.user_id === session.user_id),
+          mentee_profile: profiles.find((p) => p.user_id === session.user_id),
         }));
 
         setSessions(sessionsWithProfiles);
 
         // Calculate stats
         const now = new Date();
-        const completed = sessionsData.filter(s => s.status === "completed").length;
-        const upcoming = sessionsData.filter(s => s.status === "scheduled" && new Date(s.scheduled_at) > now).length;
-        const uniqueMentees = new Set(sessionsData.map(s => s.user_id)).size;
+        const completed = sessionsData.filter((s) => s.status === "completed").length;
+        const upcoming = sessionsData.filter(
+          (s) => s.status === "scheduled" && new Date(s.scheduled_at) > now
+        ).length;
+        const uniqueMentees = new Set(sessionsData.map((s) => s.user_id)).size;
 
         setStats({
           totalSessions: sessionsData.length,
