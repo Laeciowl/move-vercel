@@ -3,9 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
   LogOut, FileText, Video, RefreshCw, User, 
-  Loader2, BookOpen, History, ExternalLink 
+  Loader2, BookOpen, History, ExternalLink
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import MentorshipSection from "@/components/MentorshipSection";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Enums } from "@/integrations/supabase/types";
@@ -226,6 +227,9 @@ const Dashboard = () => {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Content Section */}
           <div className="lg:col-span-2 space-y-8">
+            {/* Mentorship Section */}
+            <MentorshipSection />
+
             {/* Videos */}
             <motion.section
               initial={{ opacity: 0, y: 20 }}
