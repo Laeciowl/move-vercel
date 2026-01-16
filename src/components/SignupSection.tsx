@@ -10,36 +10,34 @@ import {
 
 const SignupSection = () => {
   return (
-    <section id="inscreva-se" className="py-24 bg-background">
+    <section id="inscreva-se" className="py-24 md:py-32 bg-background">
       <div className="container mx-auto px-4">
-        {/* CTA Section */}
+        {/* CTA Section - More impactful */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="text-center max-w-2xl mx-auto mb-16"
+          className="text-center max-w-3xl mx-auto mb-24"
         >
-          <span className="text-primary font-semibold text-sm uppercase tracking-wider">
-            Comece agora
-          </span>
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground mt-3 mb-6">
-            Transforme seu futuro profissional
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-6 leading-tight">
+            Pronto pra dar o
+            <span className="text-gradient"> próximo passo</span>?
           </h2>
-          <p className="text-muted-foreground text-lg mb-8">
-            Cadastre-se gratuitamente e tenha acesso a mentorias, conteúdos exclusivos 
-            e uma comunidade que vai impulsionar sua carreira.
+          <p className="text-muted-foreground text-lg md:text-xl mb-10 max-w-xl mx-auto">
+            Cadastre-se gratuitamente e comece sua jornada. 
+            Estamos aqui pra te ajudar a conquistar seu espaço.
           </p>
           <Link
             to="/auth"
-            className="inline-flex items-center gap-2 bg-gradient-hero text-primary-foreground px-8 py-4 rounded-xl font-bold text-lg shadow-button hover:opacity-90 transition-opacity"
+            className="inline-flex items-center gap-3 bg-gradient-hero text-primary-foreground px-10 py-5 rounded-full font-bold text-lg shadow-button hover:scale-105 transition-transform"
           >
-            Inscreva-se gratuitamente
+            Criar minha conta grátis
             <ArrowRight className="w-5 h-5" />
           </Link>
         </motion.div>
 
-        {/* FAQ Section */}
+        {/* FAQ Section - Clean, minimal */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -47,37 +45,50 @@ const SignupSection = () => {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="max-w-2xl mx-auto"
         >
-          <h3 className="text-2xl font-bold text-foreground text-center mb-8">
-            Perguntas frequentes
+          <p className="text-primary font-medium text-sm mb-4 tracking-wide text-center">
+            ✦ Dúvidas frequentes
+          </p>
+          <h3 className="text-2xl md:text-3xl font-bold text-foreground text-center mb-10">
+            Respondemos pra você
           </h3>
-          <div className="bg-card rounded-2xl shadow-card p-6 md:p-8">
-            <Accordion type="single" collapsible className="w-full">
-              <AccordionItem value="item-1" className="border-border">
-                <AccordionTrigger className="text-left text-foreground font-semibold hover:no-underline">
-                  Eu preciso pagar para ter acesso?
-                </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground">
-                  Não, o Movê é um projeto social sem custos, desenhado para auxiliar você na sua jornada profissional.
-                </AccordionContent>
-              </AccordionItem>
-              <AccordionItem value="item-2" className="border-border">
-                <AccordionTrigger className="text-left text-foreground font-semibold hover:no-underline">
-                  Como funciona a mentoria?
-                </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground">
-                  Após se cadastrar, você terá acesso à nossa lista de mentores voluntários. Basta escolher um profissional da área que te interessa e agendar uma sessão online.
-                </AccordionContent>
-              </AccordionItem>
-              <AccordionItem value="item-3" className="border-border">
-                <AccordionTrigger className="text-left text-foreground font-semibold hover:no-underline">
-                  Quem pode participar?
-                </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground">
-                  O Movê é aberto a todos que buscam desenvolvimento profissional, especialmente jovens em início de carreira ou em transição profissional.
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </div>
+          
+          <Accordion type="single" collapsible className="w-full space-y-4">
+            <AccordionItem value="item-1" className="border border-border rounded-2xl px-6 data-[state=open]:bg-accent/30">
+              <AccordionTrigger className="text-left text-foreground font-semibold text-lg hover:no-underline py-6">
+                Eu preciso pagar para ter acesso?
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground text-base pb-6">
+                Não! O Movê é um projeto social 100% gratuito, criado para auxiliar você na sua jornada profissional. Sem custos escondidos, sem pegadinhas.
+              </AccordionContent>
+            </AccordionItem>
+            
+            <AccordionItem value="item-2" className="border border-border rounded-2xl px-6 data-[state=open]:bg-accent/30">
+              <AccordionTrigger className="text-left text-foreground font-semibold text-lg hover:no-underline py-6">
+                Como funcionam as mentorias?
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground text-base pb-6">
+                Após criar sua conta, você terá acesso à nossa lista de mentores voluntários. Escolha alguém da área que te interessa e agende uma conversa online. Simples assim!
+              </AccordionContent>
+            </AccordionItem>
+            
+            <AccordionItem value="item-3" className="border border-border rounded-2xl px-6 data-[state=open]:bg-accent/30">
+              <AccordionTrigger className="text-left text-foreground font-semibold text-lg hover:no-underline py-6">
+                Quem pode participar?
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground text-base pb-6">
+                Todo mundo! Se você está buscando emprego, quer fazer transição de carreira ou simplesmente quer se desenvolver profissionalmente, o Movê é pra você.
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-4" className="border border-border rounded-2xl px-6 data-[state=open]:bg-accent/30">
+              <AccordionTrigger className="text-left text-foreground font-semibold text-lg hover:no-underline py-6">
+                Posso ser mentor voluntário?
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground text-base pb-6">
+                Claro! Se você tem experiência profissional e quer compartilhar conhecimento, adoraríamos ter você no time. Acesse a página "Seja Voluntário" e se inscreva.
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </motion.div>
       </div>
     </section>

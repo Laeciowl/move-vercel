@@ -1,82 +1,112 @@
 import { motion } from "framer-motion";
-import { Linkedin, FileText, Users, Video } from "lucide-react";
-
-const features = [
-  {
-    icon: Linkedin,
-    title: "LinkedIn Estratégico",
-    description: "Aprenda a criar um perfil atrativo e fazer networking de forma eficiente.",
-  },
-  {
-    icon: FileText,
-    title: "Currículo que Destaca",
-    description: "Construa um currículo profissional que chame atenção dos recrutadores.",
-  },
-  {
-    icon: Users,
-    title: "Comunidade & Mentoria",
-    description: "Conecte-se com mentores voluntários que vão te guiar nessa jornada.",
-  },
-  {
-    icon: Video,
-    title: "Encontros ao Vivo",
-    description: "Lives sobre tópicos diversos: negócios, comunicação, marketing e tecnologia.",
-  },
-];
+import { Link } from "react-router-dom";
 
 const AboutSection = () => {
   return (
-    <section id="sobre" className="py-24 bg-gradient-warm">
+    <section id="sobre" className="py-24 md:py-32 bg-secondary text-secondary-foreground overflow-hidden">
       <div className="container mx-auto px-4">
+        <div className="grid lg:grid-cols-2 gap-16 items-center">
+          {/* Left - Story */}
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <p className="text-primary font-medium text-sm mb-4 tracking-wide">
+              ✦ Nossa história
+            </p>
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight mb-8">
+              Acreditamos que 
+              <span className="text-primary"> todo mundo </span>
+              merece uma chance.
+            </h2>
+            <div className="space-y-6 text-secondary-foreground/80 text-lg leading-relaxed">
+              <p>
+                O Movê nasceu de uma inquietação: por que tantas pessoas 
+                talentosas ficam de fora do mercado de trabalho simplesmente 
+                por não saberem como se apresentar?
+              </p>
+              <p>
+                Reunimos mentores voluntários — profissionais de diversas 
+                áreas — que dedicam seu tempo para orientar quem está 
+                começando ou recomeçando. Sem custos, sem pegadinhas.
+              </p>
+              <p className="text-secondary-foreground font-medium">
+                Apenas pessoas ajudando pessoas.
+              </p>
+            </div>
+          </motion.div>
+
+          {/* Right - What we offer */}
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="space-y-6"
+          >
+            {[
+              {
+                number: "01",
+                title: "Mentorias individuais",
+                description: "Conversas 1:1 com profissionais que já passaram por onde você quer chegar."
+              },
+              {
+                number: "02", 
+                title: "Conteúdos práticos",
+                description: "Vídeos e materiais sobre currículo, LinkedIn, entrevistas e soft skills."
+              },
+              {
+                number: "03",
+                title: "Comunidade de apoio",
+                description: "Um espaço seguro para tirar dúvidas, trocar experiências e se motivar."
+              }
+            ].map((item, index) => (
+              <motion.div
+                key={item.number}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: 0.3 + index * 0.1 }}
+                className="flex gap-6 p-6 rounded-2xl bg-secondary-foreground/5 hover:bg-secondary-foreground/10 transition-colors"
+              >
+                <span className="text-primary font-bold text-2xl">{item.number}</span>
+                <div>
+                  <h3 className="font-bold text-xl mb-2">{item.title}</h3>
+                  <p className="text-secondary-foreground/70">{item.description}</p>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+
+        {/* ODS Banner - minimal */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center max-w-3xl mx-auto mb-16"
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="mt-20 pt-12 border-t border-secondary-foreground/10"
         >
-          <span className="text-primary font-semibold text-sm uppercase tracking-wider">
-            Sobre o Projeto
-          </span>
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground mt-3 mb-6">
-            Combatendo o desemprego através da educação
-          </h2>
-          <p className="text-muted-foreground text-lg leading-relaxed mb-6">
-            O Movê nasceu com a missão de combater o desemprego no Brasil. 
-            Oferecemos capacitação gratuita e prática para quem precisa de apoio, 
-            além de uma comunidade de mentores voluntários prontos para te acolher.
-          </p>
-          <div className="inline-flex items-center gap-3 bg-accent px-5 py-3 rounded-xl">
-            <span className="text-2xl">🎯</span>
-            <p className="text-sm text-accent-foreground text-left">
-              <strong>ODS 4 - Educação de Qualidade:</strong> Alinhado aos Objetivos de Desenvolvimento 
-              Sustentável da ONU, promovemos oportunidades de aprendizagem ao longo da vida para todos.
-            </p>
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="flex items-center gap-4">
+              <span className="text-4xl">🎯</span>
+              <div>
+                <p className="font-bold text-lg">ODS 4 — Educação de Qualidade</p>
+                <p className="text-secondary-foreground/70 text-sm">
+                  Alinhado aos Objetivos de Desenvolvimento Sustentável da ONU
+                </p>
+              </div>
+            </div>
+            <Link
+              to="/voluntario"
+              className="text-primary font-semibold hover:underline underline-offset-4"
+            >
+              Quero ser voluntário →
+            </Link>
           </div>
         </motion.div>
-
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {features.map((feature, index) => (
-            <motion.div
-              key={feature.title}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="bg-card p-8 rounded-2xl shadow-card hover:shadow-lg transition-shadow group"
-            >
-              <div className="w-14 h-14 bg-accent rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
-                <feature.icon className="w-7 h-7 text-accent-foreground" />
-              </div>
-              <h3 className="text-xl font-bold text-foreground mb-3">
-                {feature.title}
-              </h3>
-              <p className="text-muted-foreground leading-relaxed">
-                {feature.description}
-              </p>
-            </motion.div>
-          ))}
-        </div>
       </div>
     </section>
   );
