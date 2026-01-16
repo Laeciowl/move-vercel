@@ -101,6 +101,13 @@ export type Database = {
             referencedRelation: "mentors"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "mentor_blocked_periods_mentor_id_fkey"
+            columns: ["mentor_id"]
+            isOneToOne: false
+            referencedRelation: "mentors_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       mentor_sessions: {
@@ -137,6 +144,13 @@ export type Database = {
             columns: ["mentor_id"]
             isOneToOne: false
             referencedRelation: "mentors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mentor_sessions_mentor_id_fkey"
+            columns: ["mentor_id"]
+            isOneToOne: false
+            referencedRelation: "mentors_public"
             referencedColumns: ["id"]
           },
         ]
@@ -273,6 +287,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       volunteer_applications: {
         Row: {
           area: string
@@ -302,12 +337,61 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      mentors_public: {
+        Row: {
+          area: string | null
+          availability: Json | null
+          created_at: string | null
+          description: string | null
+          disclaimer_accepted: boolean | null
+          disclaimer_accepted_at: string | null
+          education: string | null
+          id: string | null
+          name: string | null
+          photo_url: string | null
+          status: Database["public"]["Enums"]["mentor_status"] | null
+        }
+        Insert: {
+          area?: string | null
+          availability?: Json | null
+          created_at?: string | null
+          description?: string | null
+          disclaimer_accepted?: boolean | null
+          disclaimer_accepted_at?: string | null
+          education?: string | null
+          id?: string | null
+          name?: string | null
+          photo_url?: string | null
+          status?: Database["public"]["Enums"]["mentor_status"] | null
+        }
+        Update: {
+          area?: string | null
+          availability?: Json | null
+          created_at?: string | null
+          description?: string | null
+          disclaimer_accepted?: boolean | null
+          disclaimer_accepted_at?: string | null
+          education?: string | null
+          id?: string | null
+          name?: string | null
+          photo_url?: string | null
+          status?: Database["public"]["Enums"]["mentor_status"] | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       is_own_profile: { Args: { profile_user_id: string }; Returns: boolean }
     }
     Enums: {
+      app_role: "admin" | "moderator" | "user"
       income_range: "sem_renda" | "ate_1500" | "1500_3000" | "acima_3000"
       mentor_status: "pending" | "approved" | "rejected"
       professional_status:
@@ -444,6 +528,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "moderator", "user"],
       income_range: ["sem_renda", "ate_1500", "1500_3000", "acima_3000"],
       mentor_status: ["pending", "approved", "rejected"],
       professional_status: [
