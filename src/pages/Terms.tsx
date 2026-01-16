@@ -30,10 +30,11 @@ const Terms = () => {
             <Scale className="w-8 h-8 text-primary" />
           </div>
           <h2 className="text-3xl font-bold text-foreground mb-4">
-            Termos de Uso e Política de Privacidade
+            Nosso compromisso com você
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Transparência e respeito são a base do nosso projeto. Leia atentamente os termos abaixo para entender como funcionamos.
+            Aqui na Movê, acreditamos que transparência é a base de qualquer relação de confiança. 
+            Por isso, escrevemos esses termos de forma clara e direta, sem juridiquês desnecessário.
           </p>
         </motion.div>
 
@@ -53,76 +54,74 @@ const Terms = () => {
 
           <div className="space-y-6 text-foreground/80 leading-relaxed">
             <div>
-              <h4 className="font-semibold text-foreground mb-2">1. Aceitação dos Termos</h4>
+              <h4 className="font-semibold text-foreground mb-2">1. Bem-vindo à Movê!</h4>
               <p>
-                Ao acessar e usar a plataforma Movê, você concorda com estes Termos de Uso. 
-                Se você não concordar com qualquer parte destes termos, não deverá usar nossos serviços.
+                Ao usar nossa plataforma, você concorda com estas regras. Elas existem para garantir 
+                um ambiente seguro e respeitoso para todos. Se algo não fizer sentido, fale com a gente!
               </p>
             </div>
 
             <div>
-              <h4 className="font-semibold text-foreground mb-2">2. Descrição do Serviço</h4>
+              <h4 className="font-semibold text-foreground mb-2">2. O que fazemos</h4>
               <p>
-                O Movê é um projeto social que oferece educação, mentoria e recursos gratuitos para pessoas 
-                em busca de desenvolvimento profissional e pessoal. Todos os serviços são oferecidos 
-                voluntariamente e sem fins lucrativos.
+                Movê é um projeto social criado com amor e propósito. Oferecemos educação, mentoria e 
+                recursos gratuitos para ajudar você a dar os próximos passos na sua carreira. Tudo isso 
+                é feito por voluntários que acreditam no poder da educação para transformar vidas.
               </p>
             </div>
 
             <div>
-              <h4 className="font-semibold text-foreground mb-2">3. Cadastro e Conta</h4>
+              <h4 className="font-semibold text-foreground mb-2">3. Sua conta é sua responsabilidade</h4>
               <p>
-                Para acessar determinados recursos, você precisará criar uma conta. Você é responsável 
-                por manter a confidencialidade de suas credenciais e por todas as atividades que ocorram 
-                em sua conta. Você deve fornecer informações verdadeiras e atualizadas.
+                Quando você cria uma conta, a senha é só sua. Guarde ela bem! Também pedimos que você 
+                coloque informações verdadeiras – isso ajuda nossos mentores a te conhecerem melhor 
+                e oferecerem orientações mais personalizadas.
               </p>
             </div>
 
             <div>
-              <h4 className="font-semibold text-foreground mb-2">4. Uso Adequado</h4>
-              <p className="mb-2">Você concorda em:</p>
+              <h4 className="font-semibold text-foreground mb-2">4. Regras de convivência</h4>
+              <p className="mb-2">Para manter nossa comunidade saudável, pedimos que você:</p>
               <ul className="list-disc list-inside space-y-1 ml-4">
-                <li>Usar a plataforma apenas para fins legais e educacionais</li>
-                <li>Não compartilhar conteúdos ofensivos, discriminatórios ou ilegais</li>
-                <li>Respeitar outros usuários, mentores e voluntários</li>
-                <li>Não tentar acessar áreas restritas do sistema</li>
-                <li>Não usar a plataforma para spam ou atividades comerciais não autorizadas</li>
+                <li>Trate todos com respeito – somos uma comunidade diversa</li>
+                <li>Não compartilhe conteúdos ofensivos ou discriminatórios</li>
+                <li>Use a plataforma para aprender e crescer, não para spam</li>
+                <li>Respeite o tempo dos nossos mentores voluntários</li>
               </ul>
             </div>
 
             <div>
-              <h4 className="font-semibold text-foreground mb-2">5. Conteúdo dos Usuários</h4>
+              <h4 className="font-semibold text-foreground mb-2">5. Conteúdos que você compartilha</h4>
               <p>
-                Ao enviar conteúdo para a plataforma (como materiais de voluntários), você garante que 
-                possui os direitos necessários sobre esse conteúdo e concede ao Movê uma licença não 
-                exclusiva para usar, exibir e distribuir esse conteúdo para fins educacionais.
+                Se você enviar materiais para a plataforma (como aulas ou templates), você garante 
+                que tem direito sobre eles. Ao enviar, você nos autoriza a compartilhar com a 
+                comunidade para fins educacionais. Simples assim!
               </p>
             </div>
 
             <div>
-              <h4 className="font-semibold text-foreground mb-2">6. Mentorias</h4>
+              <h4 className="font-semibold text-foreground mb-2">6. Sobre as mentorias</h4>
               <p>
-                As mentorias são oferecidas por voluntários de forma gratuita e com base em sua 
-                disponibilidade. O Movê não garante resultados específicos das mentorias e não se 
-                responsabiliza por conselhos ou orientações fornecidas pelos mentores.
+                Nossos mentores são pessoas incríveis que doam seu tempo para ajudar você. As 
+                orientações são baseadas em suas experiências pessoais e profissionais. Cada 
+                jornada é única, então use as mentorias como inspiração para construir a sua!
               </p>
             </div>
 
             <div>
-              <h4 className="font-semibold text-foreground mb-2">7. Limitação de Responsabilidade</h4>
+              <h4 className="font-semibold text-foreground mb-2">7. Somos humanos</h4>
               <p>
-                O Movê é fornecido "como está" e não oferece garantias de disponibilidade contínua 
-                ou de que os serviços atenderão às suas expectativas. Não nos responsabilizamos por 
-                danos indiretos resultantes do uso da plataforma.
+                Movê é feita por pessoas reais, com muito amor, mas também com limitações. Fazemos 
+                o nosso melhor para manter tudo funcionando, mas imprevistos acontecem. Se algo 
+                der errado, conte com a gente para resolver juntos.
               </p>
             </div>
 
             <div>
-              <h4 className="font-semibold text-foreground mb-2">8. Modificações</h4>
+              <h4 className="font-semibold text-foreground mb-2">8. Podemos atualizar</h4>
               <p>
-                Reservamo-nos o direito de modificar estes termos a qualquer momento. Alterações 
-                significativas serão comunicadas através da plataforma. O uso continuado após 
-                alterações constitui aceitação dos novos termos.
+                Se precisarmos mudar alguma coisa aqui, vamos te avisar. Continuando a usar a 
+                plataforma, você concorda com as mudanças. Prometemos não inventar moda!
               </p>
             </div>
           </div>
@@ -144,94 +143,87 @@ const Terms = () => {
 
           <div className="space-y-6 text-foreground/80 leading-relaxed">
             <div>
-              <h4 className="font-semibold text-foreground mb-2">1. Dados Coletados</h4>
-              <p className="mb-2">Coletamos as seguintes informações:</p>
+              <h4 className="font-semibold text-foreground mb-2">1. O que guardamos sobre você</h4>
+              <p className="mb-2">Para te conhecer melhor e oferecer uma experiência personalizada, guardamos:</p>
               <ul className="list-disc list-inside space-y-1 ml-4">
-                <li><strong>Dados de cadastro:</strong> nome, e-mail, idade, cidade, estado e telefone (opcional)</li>
-                <li><strong>Dados de perfil:</strong> situação profissional e descrição pessoal</li>
-                <li><strong>Dados de uso:</strong> interações com a plataforma, mentorias agendadas e conteúdos acessados</li>
-                <li><strong>Dados técnicos:</strong> informações do navegador e dispositivo para melhorar a experiência</li>
+                <li><strong>Seus dados básicos:</strong> nome, e-mail, idade, cidade e estado</li>
+                <li><strong>Seu perfil:</strong> situação profissional e uma descrição sobre você</li>
+                <li><strong>Sua jornada:</strong> mentorias que você fez e conteúdos que acessou</li>
               </ul>
             </div>
 
             <div>
-              <h4 className="font-semibold text-foreground mb-2">2. Finalidade do Tratamento</h4>
-              <p className="mb-2">Utilizamos seus dados para:</p>
+              <h4 className="font-semibold text-foreground mb-2">2. Por que usamos seus dados</h4>
+              <p className="mb-2">Usamos essas informações para:</p>
               <ul className="list-disc list-inside space-y-1 ml-4">
-                <li>Permitir o acesso e uso da plataforma</li>
-                <li>Facilitar o agendamento de mentorias</li>
-                <li>Enviar notificações sobre suas atividades</li>
-                <li>Melhorar nossos serviços e conteúdos</li>
-                <li>Medir o impacto social do projeto</li>
+                <li>Conectar você aos mentores certos</li>
+                <li>Avisar sobre suas mentorias e novidades</li>
+                <li>Melhorar a plataforma baseado no seu feedback</li>
+                <li>Medir quantas vidas estamos impactando (isso nos motiva!)</li>
               </ul>
             </div>
 
             <div>
-              <h4 className="font-semibold text-foreground mb-2">3. Base Legal (LGPD)</h4>
+              <h4 className="font-semibold text-foreground mb-2">3. Você está no controle</h4>
               <p>
-                O tratamento de seus dados é baseado no seu consentimento explícito, fornecido no 
-                momento do cadastro. Você pode revogar esse consentimento a qualquer momento, 
-                solicitando a exclusão de sua conta.
+                Você escolheu se cadastrar e pode mudar de ideia quando quiser. Quer sair? 
+                Só pedir que a gente apaga tudo. Sem ressentimentos, prometemos!
               </p>
             </div>
 
             <div>
-              <h4 className="font-semibold text-foreground mb-2">4. Compartilhamento de Dados</h4>
-              <p className="mb-2">Seus dados podem ser compartilhados apenas:</p>
+              <h4 className="font-semibold text-foreground mb-2">4. Com quem compartilhamos</h4>
+              <p className="mb-2">Seus dados só são vistos por:</p>
               <ul className="list-disc list-inside space-y-1 ml-4">
-                <li>Com mentores, apenas as informações necessárias para a mentoria (nome, telefone)</li>
-                <li>Com a equipe administrativa do Movê para gestão da plataforma</li>
-                <li>Por exigência legal ou ordem judicial</li>
+                <li>Seu mentor, para poder te ajudar melhor</li>
+                <li>Nossa equipe, para manter tudo funcionando</li>
+                <li>Autoridades, se for obrigação legal (esperamos que nunca!)</li>
               </ul>
               <p className="mt-2">
-                <strong>Não vendemos, alugamos ou compartilhamos seus dados com terceiros para fins comerciais.</strong>
+                <strong>Nunca, jamais, em hipótese alguma venderemos seus dados. Isso é sagrado para nós.</strong>
               </p>
             </div>
 
             <div>
-              <h4 className="font-semibold text-foreground mb-2">5. Segurança dos Dados</h4>
+              <h4 className="font-semibold text-foreground mb-2">5. Segurança é prioridade</h4>
               <p>
-                Implementamos medidas técnicas e organizacionais para proteger seus dados, incluindo 
-                criptografia, controle de acesso e monitoramento. No entanto, nenhum sistema é 100% 
-                seguro, e você deve proteger suas credenciais de acesso.
+                Usamos criptografia e boas práticas para proteger seus dados. Mas lembre-se: 
+                sua senha é sua responsabilidade. Escolha uma boa e não compartilhe com ninguém!
               </p>
             </div>
 
             <div>
-              <h4 className="font-semibold text-foreground mb-2">6. Seus Direitos</h4>
-              <p className="mb-2">De acordo com a LGPD, você tem direito a:</p>
+              <h4 className="font-semibold text-foreground mb-2">6. Seus direitos</h4>
+              <p className="mb-2">Você pode a qualquer momento:</p>
               <ul className="list-disc list-inside space-y-1 ml-4">
-                <li>Acessar seus dados pessoais</li>
-                <li>Corrigir dados incompletos ou incorretos</li>
-                <li>Solicitar a exclusão de seus dados</li>
-                <li>Revogar o consentimento</li>
-                <li>Solicitar portabilidade dos dados</li>
-                <li>Obter informações sobre compartilhamento</li>
+                <li>Ver e corrigir seus dados</li>
+                <li>Pedir para apagar tudo</li>
+                <li>Mudar de ideia sobre participar</li>
+                <li>Perguntar qualquer coisa sobre seus dados</li>
               </ul>
             </div>
 
             <div>
-              <h4 className="font-semibold text-foreground mb-2">7. Retenção de Dados</h4>
+              <h4 className="font-semibold text-foreground mb-2">7. Por quanto tempo guardamos</h4>
               <p>
-                Mantemos seus dados enquanto sua conta estiver ativa ou conforme necessário para 
-                cumprir obrigações legais. Após a exclusão da conta, seus dados serão removidos 
-                em até 30 dias, exceto quando houver obrigação legal de retenção.
+                Seus dados ficam com a gente enquanto você tiver conta. Se você sair, apagamos 
+                tudo em até 30 dias. Só guardamos o que a lei obriga (chato, mas necessário).
               </p>
             </div>
 
             <div>
-              <h4 className="font-semibold text-foreground mb-2">8. Cookies</h4>
+              <h4 className="font-semibold text-foreground mb-2">8. Cookies? Só os essenciais</h4>
               <p>
-                Utilizamos cookies essenciais para o funcionamento da plataforma e para manter 
-                sua sessão ativa. Não utilizamos cookies de rastreamento de terceiros.
+                Usamos cookies só para manter você logado. Nada de rastreamento chato ou 
+                vender suas informações para anúncios. Prometemos!
               </p>
             </div>
 
             <div>
-              <h4 className="font-semibold text-foreground mb-2">9. Contato</h4>
+              <h4 className="font-semibold text-foreground mb-2">9. Fale com a gente</h4>
               <p>
-                Para exercer seus direitos ou esclarecer dúvidas sobre privacidade, entre em 
-                contato através do e-mail: <strong>privacidade@move.org.br</strong>
+                Dúvidas? Preocupações? Quer só bater um papo? Manda um e-mail para 
+                <strong> contato@moveplataforma.com.br</strong> que a gente responde!
               </p>
             </div>
           </div>
@@ -253,14 +245,12 @@ const Terms = () => {
 
           <div className="space-y-4 text-foreground/80 leading-relaxed">
             <p>
-              O Movê está comprometido com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018). 
-              Todos os dados pessoais são tratados com transparência, segurança e respeito aos 
-              direitos dos titulares.
+              Levamos a LGPD (Lei Geral de Proteção de Dados) muito a sério. Não é só porque 
+              é lei, mas porque acreditamos que seus dados são seus e ponto final.
             </p>
             <p>
-              <strong>Encarregado de Dados (DPO):</strong> Para questões relacionadas à proteção 
-              de dados, entre em contato com nosso encarregado através do e-mail 
-              <strong> dpo@move.org.br</strong>.
+              <strong>Responsável pelos dados:</strong> Qualquer dúvida sobre proteção de dados, 
+              manda um e-mail para <strong>contato@moveplataforma.com.br</strong>.
             </p>
           </div>
         </motion.section>
@@ -281,8 +271,24 @@ const Terms = () => {
         <div className="container mx-auto px-4 text-center">
           <Link to="/" className="text-2xl font-bold text-gradient">Movê</Link>
           <p className="text-muted-foreground text-sm mt-2">
-            Educação e acolhimento para transformar vidas.
+            Educação que move.
           </p>
+          <div className="mt-4 pt-4 border-t border-border">
+            <p className="text-muted-foreground text-xs">
+              Projeto fundado e mantido por{" "}
+              <a 
+                href="https://www.linkedin.com/in/laécio-oliveira" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-primary hover:underline font-medium"
+              >
+                Laécio Oliveira
+              </a>
+            </p>
+            <p className="text-muted-foreground text-xs mt-1">
+              Interessados podem entrar em contato pelo LinkedIn.
+            </p>
+          </div>
         </div>
       </footer>
     </div>

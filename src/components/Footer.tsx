@@ -10,7 +10,18 @@ const Footer = () => {
             <h3 className="text-3xl font-bold text-gradient mb-4">Movê</h3>
             <p className="text-background/60 leading-relaxed">
               Um projeto social que acredita no potencial de cada pessoa. 
-              Educação e acolhimento para transformar vidas.
+              Educação que move.
+            </p>
+            <p className="text-background/40 text-sm mt-4">
+              Projeto fundado por{" "}
+              <a 
+                href="https://www.linkedin.com/in/laécio-oliveira" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                Laécio Oliveira
+              </a>
             </p>
           </div>
 

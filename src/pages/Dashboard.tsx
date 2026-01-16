@@ -488,8 +488,27 @@ const Dashboard = () => {
             >
               <h3 className="font-bold text-foreground mb-2">Quem somos</h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                O <span className="font-semibold text-primary">Movê</span> é uma iniciativa social que conecta jovens a mentores e recursos para impulsionar suas carreiras. Acreditamos no poder da educação e da comunidade.
+                <span className="font-semibold text-primary">Movê</span> é uma iniciativa social que conecta jovens a mentores e recursos para impulsionar suas carreiras. Acreditamos no poder da educação e da comunidade.
               </p>
+              <div className="mt-3 pt-3 border-t border-primary/10">
+                <p className="text-xs text-muted-foreground">
+                  Projeto fundado por{" "}
+                  <a 
+                    href="https://www.linkedin.com/in/laécio-oliveira" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline font-medium"
+                  >
+                    Laécio Oliveira
+                  </a>
+                </p>
+                <a 
+                  href="/termos" 
+                  className="text-xs text-primary hover:underline mt-1 inline-block"
+                >
+                  Termos de Uso e Privacidade
+                </a>
+              </div>
             </motion.div>
           </div>
         </div>
