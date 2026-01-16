@@ -1,11 +1,10 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Shield, Users, BookOpen, Heart, Loader2, FileCheck, Bug } from "lucide-react";
+import { ArrowLeft, Shield, Users, BookOpen, Loader2, FileCheck, Bug } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import AdminMentorsPanel from "@/components/admin/AdminMentorsPanel";
 import AdminContentPanel from "@/components/admin/AdminContentPanel";
 import AdminVolunteersPanel from "@/components/admin/AdminVolunteersPanel";
 import AdminSubmissionsPanel from "@/components/admin/AdminSubmissionsPanel";
@@ -61,7 +60,7 @@ const Admin = () => {
             <h1 className="text-3xl font-bold text-gradient">Painel Admin</h1>
           </div>
           <p className="text-muted-foreground">
-            Gerencie mentores, conteúdos e voluntários da plataforma Movê
+            Gerencie voluntários, conteúdos e submissões da plataforma Movê
           </p>
         </motion.div>
 
@@ -70,11 +69,11 @@ const Admin = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
-          <Tabs defaultValue="mentors" className="w-full">
-            <TabsList className="grid w-full grid-cols-5 mb-6">
-              <TabsTrigger value="mentors" className="gap-2">
+          <Tabs defaultValue="volunteers" className="w-full">
+            <TabsList className="grid w-full grid-cols-4 mb-6">
+              <TabsTrigger value="volunteers" className="gap-2">
                 <Users className="w-4 h-4" />
-                <span className="hidden sm:inline">Mentores</span>
+                <span className="hidden sm:inline">Voluntários</span>
               </TabsTrigger>
               <TabsTrigger value="submissions" className="gap-2">
                 <FileCheck className="w-4 h-4" />
@@ -84,10 +83,6 @@ const Admin = () => {
                 <BookOpen className="w-4 h-4" />
                 <span className="hidden sm:inline">Materiais</span>
               </TabsTrigger>
-              <TabsTrigger value="volunteers" className="gap-2">
-                <Heart className="w-4 h-4" />
-                <span className="hidden sm:inline">Voluntários</span>
-              </TabsTrigger>
               <TabsTrigger value="bugs" className="gap-2">
                 <Bug className="w-4 h-4" />
                 <span className="hidden sm:inline">Erros</span>
@@ -95,17 +90,14 @@ const Admin = () => {
             </TabsList>
 
             <div className="bg-card rounded-2xl shadow-card p-6">
-              <TabsContent value="mentors" className="mt-0">
-                <AdminMentorsPanel />
+              <TabsContent value="volunteers" className="mt-0">
+                <AdminVolunteersPanel />
               </TabsContent>
               <TabsContent value="submissions" className="mt-0">
                 <AdminSubmissionsPanel />
               </TabsContent>
               <TabsContent value="content" className="mt-0">
                 <AdminContentPanel />
-              </TabsContent>
-              <TabsContent value="volunteers" className="mt-0">
-                <AdminVolunteersPanel />
               </TabsContent>
               <TabsContent value="bugs" className="mt-0">
                 <AdminBugReportsPanel />
