@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Mail, Briefcase, Check, X, Clock, User, Send, ExternalLink } from "lucide-react";
+import { Loader2, Mail, Briefcase, Check, X, Clock, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -35,7 +35,6 @@ const AdminVolunteersPanel = () => {
   const [mentorsByEmail, setMentorsByEmail] = useState<Record<string, MentorInfo>>({});
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
-  const [sendingInvite, setSendingInvite] = useState<string | null>(null);
 
   const fetchApplications = async () => {
     const { data, error } = await supabase
@@ -191,31 +190,6 @@ const AdminVolunteersPanel = () => {
     }
 
     setProcessingId(null);
-  };
-
-  const handleSendInvite = async (app: VolunteerApplication) => {
-    setSendingInvite(app.id);
-
-    try {
-      // Gerar magic link via Supabase Auth
-      const { error } = await supabase.auth.signInWithOtp({
-        email: app.email,
-        options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`,
-          data: {
-            name: app.name,
-          },
-        },
-      });
-
-      if (error) throw error;
-
-      toast.success(`Convite enviado para ${app.email}! O voluntário receberá um link para criar sua conta.`);
-    } catch (error: any) {
-      toast.error("Erro ao enviar convite: " + error.message);
-    }
-
-    setSendingInvite(null);
   };
 
   const getMentorStatusBadge = (email: string) => {
@@ -390,28 +364,6 @@ const AdminVolunteersPanel = () => {
                     <span>{app.area}</span>
                   </div>
 
-                  {/* Botão de enviar convite para voluntários sem conta */}
-                  {!app.user_id && (
-                    <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                      <p className="text-sm text-amber-800 mb-2">
-                        Este voluntário ainda não tem uma conta. Envie um convite para que possa acessar a área logada.
-                      </p>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleSendInvite(app)}
-                        disabled={sendingInvite === app.id}
-                        className="gap-2"
-                      >
-                        {sendingInvite === app.id ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <Send className="w-4 h-4" />
-                        )}
-                        Enviar Convite por E-mail
-                      </Button>
-                    </div>
-                  )}
                 </div>
               </div>
             ))}
