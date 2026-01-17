@@ -39,7 +39,7 @@ const categoryLabels: Record<string, string> = {
 };
 
 const typeLabels: Record<string, string> = {
-  video: "Aula / Live",
+  video: "Vídeo Educativo",
   pdf: "Guia / Template",
 };
 
@@ -123,6 +123,15 @@ const ContentLibrary = () => {
       transition={{ delay: 0.2 }}
       className="space-y-6"
     >
+      {/* Curated Content Disclaimer */}
+      <div className="bg-gradient-to-r from-primary/5 via-accent/5 to-primary/5 rounded-xl p-4 border border-primary/10">
+        <p className="text-sm text-muted-foreground">
+          <span className="font-medium text-foreground">📚 Curadoria de Conteúdo Educativo:</span>{" "}
+          Os vídeos exibidos nesta seção são recomendações de conteúdos educacionais de alta qualidade disponíveis no YouTube. 
+          A Movê não é autora desses materiais — nossa missão é selecionar e organizar os melhores recursos para apoiar seu desenvolvimento profissional.
+        </p>
+      </div>
+
       {/* Section Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -130,9 +139,9 @@ const ContentLibrary = () => {
             <BookOpen className="w-5 h-5 text-primary-foreground" />
           </div>
           <div>
-            <h3 className="text-2xl font-bold text-foreground">O que oferecemos</h3>
+            <h3 className="text-2xl font-bold text-foreground">Conteúdos Recomendados</h3>
             <p className="text-sm text-muted-foreground">
-              {filteredContents.length} {filteredContents.length === 1 ? 'conteúdo' : 'conteúdos'} disponíveis
+              {filteredContents.length} {filteredContents.length === 1 ? 'conteúdo curado' : 'conteúdos curados'} disponíveis
             </p>
           </div>
         </div>
@@ -154,7 +163,7 @@ const ContentLibrary = () => {
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => { setSelectedType("video"); setPage(1); }}>
                 <Video className="w-4 h-4 mr-2" />
-                Aulas / Lives
+                Vídeos Educativos
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => { setSelectedType("pdf"); setPage(1); }}>
                 <FileText className="w-4 h-4 mr-2" />
@@ -267,7 +276,7 @@ const ContentLibrary = () => {
                         {content.item_type === "video" ? (
                           <>
                             <Video className="w-3 h-3 mr-1" />
-                            Aula
+                            Vídeo
                           </>
                         ) : (
                           <>
@@ -345,10 +354,15 @@ const ContentLibrary = () => {
                   {selectedContent.description}
                 </p>
               )}
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary">
-                  {categoryLabels[selectedContent.category] || selectedContent.category}
-                </Badge>
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary">
+                    {categoryLabels[selectedContent.category] || selectedContent.category}
+                  </Badge>
+                </div>
+                <p className="text-xs text-muted-foreground italic">
+                  Este vídeo é uma recomendação de conteúdo educativo. A Movê não é autora deste material.
+                </p>
               </div>
             </div>
           )}
