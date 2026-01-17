@@ -160,8 +160,8 @@ const AdminVolunteersPanel = () => {
           body: {
             to: app.email,
             name: app.name,
-            type: "mentor_approved",
-            data: {},
+            type: "volunteer_approved",
+            skipPreferenceCheck: true, // Transactional email - always send
           },
         });
       } catch (emailError) {

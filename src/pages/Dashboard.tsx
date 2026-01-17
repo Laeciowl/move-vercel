@@ -23,16 +23,6 @@ import type { Enums } from "@/integrations/supabase/types";
 
 type ProfessionalStatus = Enums<"professional_status">;
 
-interface ContentItem {
-  id: string;
-  title: string;
-  description: string | null;
-  url: string;
-  item_type: string;
-  category: string;
-  created_at: string;
-}
-
 interface ImpactHistory {
   id: string;
   professional_status: string;
@@ -56,27 +46,15 @@ const professionalStatusOptions = [
   { value: "freelancer_pj", label: "Freelancer / PJ" },
 ];
 
-const categoryOptions = [
-  { value: "all", label: "Todos" },
-  { value: "curriculo", label: "Currículo" },
-  { value: "marketing", label: "Marketing Pessoal" },
-  { value: "tecnologia", label: "Tecnologia" },
-  { value: "soft_skills", label: "Soft Skills" },
-  { value: "geral", label: "Geral" },
-];
-
 const Dashboard = () => {
   const { user, profile, loading: authLoading, signOut, refreshProfile } = useAuth();
   const { isAdmin } = useAdminCheck();
   const { isVolunteer } = useVolunteerCheck();
   const navigate = useNavigate();
-  const [contents, setContents] = useState<ContentItem[]>([]);
   const [impactHistory, setImpactHistory] = useState<ImpactHistory[]>([]);
-  const [loadingContent, setLoadingContent] = useState(true);
   const [showUpdateForm, setShowUpdateForm] = useState(false);
   const [showProfileEdit, setShowProfileEdit] = useState(false);
   const [updating, setUpdating] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState("all");
   const [updateData, setUpdateData] = useState({
     professionalStatus: "",
   });
@@ -99,15 +77,6 @@ const Dashboard = () => {
     const fetchData = async () => {
       if (!user) return;
 
-      const { data: contentData } = await supabase
-        .from("content_items")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (contentData) {
-        setContents(contentData as ContentItem[]);
-      }
-
       const { data: historyData } = await supabase
         .from("impact_history")
         .select("*")
@@ -117,8 +86,6 @@ const Dashboard = () => {
       if (historyData) {
         setImpactHistory(historyData as ImpactHistory[]);
       }
-
-      setLoadingContent(false);
     };
 
     if (user) {
@@ -187,13 +154,6 @@ const Dashboard = () => {
       </div>
     );
   }
-
-  const filteredContents = selectedCategory === "all" 
-    ? contents 
-    : contents.filter((c) => c.category === selectedCategory);
-  
-  const videos = filteredContents.filter((c) => c.item_type === "video");
-  const pdfs = filteredContents.filter((c) => c.item_type === "pdf");
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
