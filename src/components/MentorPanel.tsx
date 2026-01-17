@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { User, Calendar, Clock, Settings, Shield, Loader2, Phone, CheckCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -9,7 +9,6 @@ import MentorDisclaimerModal from "./MentorDisclaimerModal";
 import MentorSessionConfirmation from "./MentorSessionConfirmation";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-
 interface Availability {
   day: string;
   times: string[];
@@ -159,101 +158,148 @@ const MentorPanel = () => {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-card rounded-2xl shadow-card p-6 space-y-6"
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      className="relative bg-card/80 backdrop-blur-sm rounded-3xl shadow-card border border-border/50 p-6 space-y-6 overflow-hidden group"
     >
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
-            <Shield className="w-5 h-5 text-primary" />
-          </div>
+      {/* Decorative gradient */}
+      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+      <div className="relative flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <motion.div 
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.1, duration: 0.3 }}
+            className="w-12 h-12 bg-gradient-to-br from-primary to-primary/80 rounded-2xl flex items-center justify-center shadow-button"
+          >
+            <Shield className="w-6 h-6 text-primary-foreground" />
+          </motion.div>
           <div>
-            <h3 className="font-bold text-foreground">Painel do Mentor</h3>
+            <h3 className="font-bold text-lg text-foreground">Painel do Mentor</h3>
             <p className="text-sm text-muted-foreground">{mentorData.area}</p>
           </div>
         </div>
-        <span
-          className={`px-3 py-1 rounded-full text-xs font-medium ${
+        <motion.span
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.2 }}
+          className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 ${
             mentorData.status === "approved"
-              ? "bg-green-100 text-green-700"
+              ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
               : mentorData.status === "pending"
-              ? "bg-yellow-100 text-yellow-700"
-              : "bg-red-100 text-red-700"
+              ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+              : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
           }`}
         >
           {statusLabels[mentorData.status]}
-        </span>
+        </motion.span>
       </div>
 
       {/* Disclaimer status */}
       {!mentorData.disclaimer_accepted ? (
-        <div className="bg-accent/50 rounded-xl p-4 space-y-3">
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="bg-gradient-to-br from-accent/50 to-accent/30 rounded-2xl p-4 space-y-3 border border-primary/20"
+        >
           <p className="text-sm text-foreground font-medium">
             ⚠️ Para ativar seu perfil de mentor, você precisa aceitar os termos de compromisso.
           </p>
           <button
             onClick={() => setShowDisclaimerModal(true)}
-            className="w-full bg-primary text-primary-foreground py-2 rounded-lg font-medium text-sm hover:opacity-90 transition-opacity"
+            className="w-full bg-gradient-to-r from-primary to-primary/90 text-primary-foreground py-3 rounded-xl font-medium text-sm hover:shadow-button transition-all duration-300 hover:-translate-y-0.5"
           >
             Aceitar termos e ativar perfil
           </button>
-        </div>
+        </motion.div>
       ) : (
-        <div className="flex items-center gap-2 text-sm text-green-600">
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-4 py-2 rounded-xl"
+        >
           <CheckCircle className="w-4 h-4" />
           <span>Termos aceitos em {format(new Date(mentorData.disclaimer_accepted_at!), "dd/MM/yyyy", { locale: ptBR })}</span>
-        </div>
+        </motion.div>
       )}
 
       {/* Availability summary */}
-      <div>
-        <h4 className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+      >
+        <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
           <Clock className="w-4 h-4 text-primary" />
           Sua disponibilidade
         </h4>
         <div className="flex flex-wrap gap-2">
-          {mentorData.availability.map((avail) => (
-            <div
+          {mentorData.availability.map((avail, index) => (
+            <motion.div
               key={avail.day}
-              className="bg-muted px-3 py-1 rounded-lg text-xs text-foreground"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.25 + index * 0.05 }}
+              className="bg-muted/50 px-3 py-2 rounded-xl text-xs text-foreground border border-border/50 hover:border-primary/30 transition-colors"
             >
-              {dayLabels[avail.day]}: {avail.times.join(", ")}
-            </div>
+              <span className="font-medium">{dayLabels[avail.day]}:</span> {avail.times.join(", ")}
+            </motion.div>
           ))}
         </div>
-      </div>
+      </motion.div>
 
       {/* Blocked periods toggle */}
-      <div>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.3 }}
+      >
         <button
           onClick={() => setShowBlockedPeriods(!showBlockedPeriods)}
-          className="flex items-center gap-2 text-sm text-primary hover:underline"
+          className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors group"
         >
-          <Settings className="w-4 h-4" />
+          <Settings className="w-4 h-4 transition-transform group-hover:rotate-90 duration-300" />
           {showBlockedPeriods ? "Ocultar" : "Gerenciar"} períodos bloqueados
         </button>
         
-        {showBlockedPeriods && (
-          <div className="mt-4">
-            <MentorBlockedPeriodsManager mentorId={mentorData.id} />
-          </div>
-        )}
-      </div>
+        <AnimatePresence>
+          {showBlockedPeriods && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3 }}
+              className="mt-4 overflow-hidden"
+            >
+              <MentorBlockedPeriodsManager mentorId={mentorData.id} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
 
       {/* Session Confirmation */}
       <MentorSessionConfirmation sessions={sessions} onUpdate={fetchMentorData} />
 
       {/* Upcoming sessions */}
       {upcomingSessions.filter(s => s.confirmed_by_mentor).length > 0 && (
-        <div>
-          <h4 className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35 }}
+        >
+          <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
             <Calendar className="w-4 h-4 text-primary" />
             Próximas sessões ({upcomingSessions.length})
           </h4>
           <div className="space-y-3">
-            {upcomingSessions.slice(0, 3).map((session) => (
-              <div
+            {upcomingSessions.slice(0, 3).map((session, index) => (
+              <motion.div
                 key={session.id}
-                className="bg-accent/50 rounded-xl p-4 space-y-2"
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.4 + index * 0.1 }}
+                className="bg-gradient-to-br from-accent/50 to-accent/30 rounded-2xl p-4 space-y-2 border border-border/50 hover:border-primary/30 transition-all duration-300 hover:shadow-soft"
               >
                 <div className="flex items-center gap-2">
                   <User className="w-4 h-4 text-muted-foreground" />
@@ -273,10 +319,10 @@ const MentorPanel = () => {
                 <p className="text-xs text-primary">
                   💡 Lembre-se de entrar em contato para confirmar a sessão!
                 </p>
-              </div>
+              </motion.div>
             ))}
           </div>
-        </div>
+        </motion.div>
       )}
 
       {/* Disclaimer Modal */}
