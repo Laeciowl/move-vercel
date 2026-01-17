@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
   LogOut, FileText, Video, RefreshCw, User, 
-  Loader2, BookOpen, History, ExternalLink, Filter, Edit, Shield, Heart, Play
+  Loader2, BookOpen, History, ExternalLink, Edit, Shield, Heart, Play, Sparkles
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
@@ -173,7 +173,16 @@ const Dashboard = () => {
   if (authLoading || !profile) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="flex flex-col items-center gap-4"
+        >
+          <div className="w-16 h-16 rounded-full bg-gradient-hero flex items-center justify-center shadow-button">
+            <Loader2 className="w-8 h-8 animate-spin text-primary-foreground" />
+          </div>
+          <p className="text-muted-foreground font-medium">Carregando...</p>
+        </motion.div>
       </div>
     );
   }
@@ -186,21 +195,80 @@ const Dashboard = () => {
   const pdfs = filteredContents.filter((c) => c.item_type === "pdf");
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      {/* Background decorative elements - matching hero style */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        {/* Curved movement paths */}
+        <svg className="absolute w-full h-full opacity-30" viewBox="0 0 1200 800" fill="none" preserveAspectRatio="xMidYMid slice">
+          <motion.path
+            d="M-100 400 Q 300 200 600 400 T 1300 400"
+            stroke="hsl(var(--primary))"
+            strokeWidth="2"
+            strokeOpacity="0.1"
+            fill="none"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 3, delay: 0.5 }}
+          />
+          <motion.path
+            d="M-100 500 Q 400 300 700 500 T 1400 450"
+            stroke="hsl(var(--primary))"
+            strokeWidth="1.5"
+            strokeOpacity="0.08"
+            fill="none"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 3.5, delay: 0.8 }}
+          />
+        </svg>
+
+        {/* Floating dots */}
+        <motion.div
+          animate={{ x: [0, 80, 0], y: [0, -20, 0] }}
+          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-1/4 right-1/4 w-3 h-3 rounded-full bg-primary/20"
+        />
+        <motion.div
+          animate={{ x: [0, -60, 0], y: [0, 30, 0] }}
+          transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-1/3 left-1/4 w-2 h-2 rounded-full bg-primary/15"
+        />
+        <motion.div
+          animate={{ x: [0, 40, 0], y: [0, -40, 0] }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute bottom-1/4 right-1/3 w-4 h-4 rounded-full bg-primary/10"
+        />
+
+        {/* Gradient accent */}
+        <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-gradient-to-bl from-accent/30 via-transparent to-transparent" />
+        <div className="absolute bottom-0 left-0 w-1/2 h-1/2 bg-gradient-to-tr from-accent/20 via-transparent to-transparent" />
+      </div>
+
       {/* Header */}
-      <header className="sticky top-0 z-30 bg-card/95 backdrop-blur-sm border-b border-border">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-          <h1 className="text-xl font-bold text-gradient">Movê</h1>
-          <div className="flex items-center gap-2">
+      <motion.header 
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border/50"
+      >
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <motion.h1 
+            className="text-2xl md:text-3xl font-extrabold text-gradient cursor-pointer"
+            whileHover={{ scale: 1.02 }}
+            onClick={() => navigate("/")}
+          >
+            Movê
+          </motion.h1>
+          <div className="flex items-center gap-2 md:gap-3">
             {isAdmin && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => navigate("/admin")}
-                className="text-primary"
+                className="text-primary hover:bg-primary/10"
               >
-                <Shield className="w-4 h-4 mr-1" />
-                <span className="hidden sm:inline">Admin</span>
+                <Shield className="w-4 h-4 md:mr-1.5" />
+                <span className="hidden md:inline">Admin</span>
               </Button>
             )}
             <NotificationBell />
@@ -208,74 +276,117 @@ const Dashboard = () => {
               variant="ghost"
               size="sm"
               onClick={handleLogout}
-              className="text-muted-foreground"
+              className="text-muted-foreground hover:text-foreground hover:bg-muted/50"
             >
-              <LogOut className="w-4 h-4" />
-              <span className="hidden sm:inline ml-1">Sair</span>
+              <LogOut className="w-4 h-4 md:mr-1.5" />
+              <span className="hidden md:inline">Sair</span>
             </Button>
           </div>
         </div>
-      </header>
+      </motion.header>
 
-      <main className="container mx-auto px-4 py-6 space-y-6">
-        {/* Welcome Card - Compact */}
+      <main className="container mx-auto px-4 py-8 space-y-8 relative z-10">
+        {/* Welcome Hero Card */}
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-gradient-to-br from-primary/5 via-card to-accent/10 rounded-2xl border border-border/50 p-5"
+          transition={{ duration: 0.6 }}
+          className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-card via-card to-accent/20 border border-border/50 shadow-card"
         >
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setShowProfileEdit(true)}
-                className="relative group"
-              >
-                <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center overflow-hidden border-2 border-primary/30 group-hover:border-primary transition-colors">
-                  {profile.photo_url ? (
-                    <img src={profile.photo_url} alt={profile.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <User className="w-6 h-6 text-muted-foreground" />
-                  )}
+          {/* Decorative elements inside card */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-primary/10 to-transparent rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-accent/20 to-transparent rounded-full blur-2xl" />
+          
+          <div className="relative p-6 md:p-8">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="flex items-center gap-4 md:gap-5">
+                <motion.button
+                  onClick={() => setShowProfileEdit(true)}
+                  className="relative group"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-gradient-hero flex items-center justify-center overflow-hidden shadow-button group-hover:shadow-lg transition-shadow">
+                    {profile.photo_url ? (
+                      <img src={profile.photo_url} alt={profile.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <User className="w-8 h-8 md:w-10 md:h-10 text-primary-foreground" />
+                    )}
+                  </div>
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    whileHover={{ opacity: 1, scale: 1 }}
+                    className="absolute -bottom-1 -right-1 w-7 h-7 bg-card rounded-full flex items-center justify-center shadow-md border border-border"
+                  >
+                    <Edit className="w-3.5 h-3.5 text-primary" />
+                  </motion.div>
+                </motion.button>
+                <div>
+                  <motion.h2 
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.2 }}
+                    className="text-2xl md:text-3xl font-bold text-foreground"
+                  >
+                    E aí, {profile.name.split(" ")[0]}! 
+                    <motion.span
+                      animate={{ rotate: [0, 14, -8, 14, -4, 10, 0] }}
+                      transition={{ duration: 2, delay: 0.5 }}
+                      className="inline-block ml-2"
+                    >
+                      🚀
+                    </motion.span>
+                  </motion.h2>
+                  <motion.p 
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.3 }}
+                    className="text-muted-foreground mt-1 flex items-center gap-2"
+                  >
+                    {isVolunteer ? (
+                      <>
+                        <Sparkles className="w-4 h-4 text-primary" />
+                        Obrigado por ajudar a transformar vidas
+                      </>
+                    ) : (
+                      "Bora crescer juntos!"
+                    )}
+                  </motion.p>
                 </div>
-                <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-primary rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Edit className="w-3 h-3 text-primary-foreground" />
-                </div>
-              </button>
-              <div>
-                <h2 className="text-lg font-bold text-foreground">
-                  E aí, {profile.name.split(" ")[0]}! 🚀
-                </h2>
-                <p className="text-sm text-muted-foreground">
-                  {isVolunteer ? "Obrigado por ajudar a transformar vidas" : "Bora crescer juntos!"}
-                </p>
               </div>
-            </div>
-            <div className="flex flex-wrap gap-1.5">
-              {!isVolunteer && (
-                <Badge variant="secondary" className="text-xs">
-                  {professionalStatusLabels[profile.professional_status]}
-                </Badge>
-              )}
-              {isVolunteer && (
-                <Badge className="bg-primary text-primary-foreground text-xs">
-                  <Heart className="w-3 h-3 mr-1" />
-                  Voluntário
-                </Badge>
-              )}
-              {isAdmin && (
-                <Badge className="bg-amber-500 text-white text-xs">
-                  <Shield className="w-3 h-3 mr-1" />
-                  Admin
-                </Badge>
-              )}
+              
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.4 }}
+                className="flex flex-wrap gap-2"
+              >
+                {!isVolunteer && (
+                  <Badge variant="secondary" className="text-sm px-4 py-1.5 rounded-full bg-muted/80 backdrop-blur-sm">
+                    {professionalStatusLabels[profile.professional_status]}
+                  </Badge>
+                )}
+                {isVolunteer && (
+                  <Badge className="bg-gradient-hero text-primary-foreground text-sm px-4 py-1.5 rounded-full shadow-soft">
+                    <Heart className="w-3.5 h-3.5 mr-1.5" />
+                    Voluntário
+                  </Badge>
+                )}
+                {isAdmin && (
+                  <Badge className="bg-secondary text-secondary-foreground text-sm px-4 py-1.5 rounded-full">
+                    <Shield className="w-3.5 h-3.5 mr-1.5" />
+                    Admin
+                  </Badge>
+                )}
+              </motion.div>
             </div>
           </div>
         </motion.div>
 
         {/* Main Grid */}
-        <div className="grid lg:grid-cols-3 gap-6">
+        <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-8">
             {/* Volunteer Panel */}
             <VolunteerPanel />
 
@@ -287,48 +398,60 @@ const Dashboard = () => {
 
             {/* Content Library */}
             <motion.section
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="space-y-4"
+              transition={{ delay: 0.2 }}
+              className="space-y-6"
             >
               {/* Section Header */}
-              <div className="flex items-center justify-between">
-                <h3 className="text-xl font-bold text-foreground">O que oferecemos</h3>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-hero flex items-center justify-center shadow-soft">
+                  <BookOpen className="w-5 h-5 text-primary-foreground" />
+                </div>
+                <h3 className="text-2xl font-bold text-foreground">O que oferecemos</h3>
               </div>
 
               {/* Category Filter */}
               <div className="flex flex-wrap gap-2">
-                {categoryOptions.map((cat) => (
-                  <button
+                {categoryOptions.map((cat, i) => (
+                  <motion.button
                     key={cat.value}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 * i }}
                     onClick={() => setSelectedCategory(cat.value)}
-                    className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
                       selectedCategory === cat.value
-                        ? "bg-primary text-primary-foreground shadow-sm"
-                        : "bg-muted text-muted-foreground hover:bg-accent"
+                        ? "bg-gradient-hero text-primary-foreground shadow-button"
+                        : "bg-card text-muted-foreground hover:bg-accent hover:text-accent-foreground border border-border/50"
                     }`}
                   >
                     {cat.label}
-                  </button>
+                  </motion.button>
                 ))}
               </div>
 
               {/* Videos */}
-              <div className="space-y-3">
-                <h4 className="text-base font-semibold text-foreground flex items-center gap-2">
-                  <Video className="w-4 h-4 text-primary" />
+              <div className="space-y-4">
+                <h4 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                  <Video className="w-5 h-5 text-primary" />
                   Aulas e Lives
                 </h4>
                 
                 {loadingContent ? (
-                  <div className="flex items-center justify-center py-8">
-                    <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
                   </div>
                 ) : videos.length > 0 ? (
-                  <div className="grid gap-4">
-                    {videos.map((video) => (
-                      <div key={video.id} className="bg-card rounded-xl border border-border overflow-hidden group">
+                  <div className="grid gap-6">
+                    {videos.map((video, i) => (
+                      <motion.div 
+                        key={video.id} 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 * i }}
+                        className="bg-card rounded-2xl border border-border/50 overflow-hidden group shadow-card hover:shadow-lg transition-all duration-300"
+                      >
                         <div className="aspect-video relative">
                           <iframe
                             src={getYouTubeEmbedUrl(video.url)}
@@ -338,107 +461,129 @@ const Dashboard = () => {
                             allowFullScreen
                           />
                         </div>
-                        <div className="p-4">
-                          <h5 className="font-semibold text-foreground">{video.title}</h5>
+                        <div className="p-5">
+                          <h5 className="font-bold text-foreground text-lg">{video.title}</h5>
                           {video.description && (
-                            <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{video.description}</p>
+                            <p className="text-muted-foreground mt-2 line-clamp-2">{video.description}</p>
                           )}
                         </div>
-                      </div>
+                      </motion.div>
                     ))}
                   </div>
                 ) : (
-                  <div className="bg-muted/30 rounded-xl p-6 text-center">
-                    <Play className="w-10 h-10 text-muted-foreground mx-auto mb-2" />
-                    <p className="text-sm text-muted-foreground">Em breve teremos aulas incríveis para você!</p>
-                  </div>
+                  <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="bg-gradient-to-br from-muted/30 to-accent/10 rounded-2xl p-8 text-center border border-border/30"
+                  >
+                    <div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto mb-4">
+                      <Play className="w-8 h-8 text-muted-foreground" />
+                    </div>
+                    <p className="text-muted-foreground font-medium">Em breve teremos aulas incríveis para você!</p>
+                  </motion.div>
                 )}
               </div>
 
               {/* PDFs / Templates */}
-              <div className="space-y-3">
-                <h4 className="text-base font-semibold text-foreground flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-primary" />
+              <div className="space-y-4">
+                <h4 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-primary" />
                   Guias e Templates
                 </h4>
                 
                 {loadingContent ? (
-                  <div className="flex items-center justify-center py-8">
-                    <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
                   </div>
                 ) : pdfs.length > 0 ? (
-                  <div className="grid sm:grid-cols-2 gap-3">
-                    {pdfs.map((pdf) => (
-                      <a
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    {pdfs.map((pdf, i) => (
+                      <motion.a
                         key={pdf.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 * i }}
                         href={pdf.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="bg-card rounded-xl border border-border p-4 hover:border-primary/50 hover:shadow-md transition-all group flex items-start gap-3"
+                        className="bg-card rounded-2xl border border-border/50 p-5 hover:border-primary/30 hover:shadow-lg transition-all duration-300 group flex items-start gap-4"
                       >
-                        <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
-                          <BookOpen className="w-5 h-5 text-primary" />
+                        <div className="w-12 h-12 bg-gradient-to-br from-primary/20 to-accent/30 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                          <BookOpen className="w-6 h-6 text-primary" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h5 className="font-semibold text-foreground text-sm group-hover:text-primary transition-colors line-clamp-1">
+                          <h5 className="font-bold text-foreground group-hover:text-primary transition-colors line-clamp-1">
                             {pdf.title}
                           </h5>
                           {pdf.description && (
-                            <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{pdf.description}</p>
+                            <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{pdf.description}</p>
                           )}
                         </div>
-                        <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-primary shrink-0" />
-                      </a>
+                        <ExternalLink className="w-5 h-5 text-muted-foreground group-hover:text-primary shrink-0 transition-colors" />
+                      </motion.a>
                     ))}
                   </div>
                 ) : (
-                  <div className="bg-muted/30 rounded-xl p-6 text-center">
-                    <FileText className="w-10 h-10 text-muted-foreground mx-auto mb-2" />
-                    <p className="text-sm text-muted-foreground">Templates e guias em breve!</p>
-                  </div>
+                  <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="bg-gradient-to-br from-muted/30 to-accent/10 rounded-2xl p-8 text-center border border-border/30"
+                  >
+                    <div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto mb-4">
+                      <FileText className="w-8 h-8 text-muted-foreground" />
+                    </div>
+                    <p className="text-muted-foreground font-medium">Templates e guias em breve!</p>
+                  </motion.div>
                 )}
               </div>
             </motion.section>
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-4">
+          <div className="space-y-6">
             {/* Evolution - Only for students */}
             {!isVolunteer && (
               <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="bg-card rounded-xl border border-border p-5 space-y-4"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3 }}
+                className="bg-card rounded-2xl border border-border/50 p-6 shadow-card"
               >
-                <div className="flex items-center gap-2">
-                  <RefreshCw className="w-4 h-4 text-primary" />
-                  <h3 className="font-semibold text-foreground">Sua evolução</h3>
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-accent/30 flex items-center justify-center">
+                    <RefreshCw className="w-5 h-5 text-primary" />
+                  </div>
+                  <h3 className="font-bold text-foreground text-lg">Sua evolução</h3>
                 </div>
 
                 {showUpdateForm ? (
-                  <form onSubmit={handleUpdateJourney} className="space-y-3">
+                  <form onSubmit={handleUpdateJourney} className="space-y-4">
                     <select
                       value={updateData.professionalStatus}
                       onChange={(e) => setUpdateData({ ...updateData, professionalStatus: e.target.value })}
-                      className="w-full px-3 py-2 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      className="w-full px-4 py-3 rounded-xl border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
                     >
                       {professionalStatusOptions.map((option) => (
                         <option key={option.value} value={option.value}>{option.label}</option>
                       ))}
                     </select>
-                    <div className="flex gap-2">
-                      <Button type="button" variant="outline" size="sm" onClick={() => setShowUpdateForm(false)} className="flex-1">
+                    <div className="flex gap-3">
+                      <Button type="button" variant="outline" onClick={() => setShowUpdateForm(false)} className="flex-1 rounded-xl">
                         Cancelar
                       </Button>
-                      <Button type="submit" size="sm" disabled={updating} className="flex-1">
-                        {updating && <Loader2 className="w-3 h-3 mr-1 animate-spin" />}
+                      <Button type="submit" disabled={updating} className="flex-1 rounded-xl bg-gradient-hero hover:opacity-90">
+                        {updating && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                         Salvar
                       </Button>
                     </div>
                   </form>
                 ) : (
-                  <Button variant="secondary" size="sm" onClick={() => setShowUpdateForm(true)} className="w-full">
+                  <Button 
+                    variant="secondary" 
+                    onClick={() => setShowUpdateForm(true)} 
+                    className="w-full rounded-xl hover:bg-accent transition-colors"
+                  >
+                    <RefreshCw className="w-4 h-4 mr-2" />
                     Atualizar status
                   </Button>
                 )}
@@ -448,66 +593,85 @@ const Dashboard = () => {
             {/* Impact History - Only for students */}
             {!isVolunteer && (
               <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className="bg-card rounded-xl border border-border p-5"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.4 }}
+                className="bg-card rounded-2xl border border-border/50 p-6 shadow-card"
               >
-                <div className="flex items-center gap-2 mb-3">
-                  <History className="w-4 h-4 text-primary" />
-                  <h3 className="font-semibold text-foreground">Sua trajetória</h3>
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-accent/30 flex items-center justify-center">
+                    <History className="w-5 h-5 text-primary" />
+                  </div>
+                  <h3 className="font-bold text-foreground text-lg">Sua trajetória</h3>
                 </div>
 
                 {impactHistory.length > 0 ? (
-                  <div className="space-y-2 max-h-48 overflow-y-auto">
-                    {impactHistory.map((entry) => (
-                      <div key={entry.id} className="border-l-2 border-primary/30 pl-3 py-1">
-                        <p className="text-sm font-medium text-foreground">
+                  <div className="space-y-3 max-h-56 overflow-y-auto pr-2">
+                    {impactHistory.map((entry, i) => (
+                      <motion.div 
+                        key={entry.id} 
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.1 * i }}
+                        className="border-l-3 border-primary/40 pl-4 py-2 bg-gradient-to-r from-muted/30 to-transparent rounded-r-lg"
+                      >
+                        <p className="font-semibold text-foreground">
                           {professionalStatusLabels[entry.professional_status]}
                         </p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-sm text-muted-foreground">
                           {new Date(entry.recorded_at).toLocaleDateString("pt-BR")}
                         </p>
-                      </div>
+                      </motion.div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-xs text-muted-foreground">
-                    Atualize seu status e acompanhe sua evolução! 💪
-                  </p>
+                  <div className="text-center py-4">
+                    <p className="text-muted-foreground text-sm">
+                      Atualize seu status e acompanhe sua evolução! 💪
+                    </p>
+                  </div>
                 )}
               </motion.div>
             )}
 
             {/* About Section */}
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="bg-gradient-to-br from-primary/10 to-accent/10 rounded-xl border border-primary/20 p-5"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.5 }}
+              className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-card to-accent/20 rounded-2xl border border-primary/20 p-6 shadow-card"
             >
-              <h3 className="font-bold text-foreground mb-2">Quem somos</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                <span className="font-semibold text-primary">Movê</span> é uma iniciativa social que conecta jovens a mentores e recursos para impulsionar suas carreiras. Acreditamos no poder da educação e da comunidade.
-              </p>
-              <div className="mt-3 pt-3 border-t border-primary/10">
-                <p className="text-xs text-muted-foreground">
-                  Projeto fundado por{" "}
-                  <a 
-                    href="https://www.linkedin.com/in/laecio-rodrigues" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-primary hover:underline font-medium"
-                  >
-                    Laecio Oliveira
-                  </a>
+              {/* Decorative blur */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-2xl" />
+              
+              <div className="relative">
+                <h3 className="font-bold text-foreground text-lg mb-3 flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-primary" />
+                  Quem somos
+                </h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  <span className="font-bold text-gradient">Movê</span> é uma iniciativa social que conecta jovens a mentores e recursos para impulsionar suas carreiras. Acreditamos no poder da educação e da comunidade.
                 </p>
-                <a 
-                  href="/termos" 
-                  className="text-xs text-primary hover:underline mt-1 inline-block"
-                >
-                  Termos de Uso e Privacidade
-                </a>
+                <div className="mt-4 pt-4 border-t border-primary/20">
+                  <p className="text-sm text-muted-foreground">
+                    Projeto fundado por{" "}
+                    <a 
+                      href="https://www.linkedin.com/in/laecio-rodrigues" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline font-semibold"
+                    >
+                      Laecio Oliveira
+                    </a>
+                  </p>
+                  <a 
+                    href="/termos" 
+                    className="text-sm text-primary hover:underline mt-2 inline-flex items-center gap-1"
+                  >
+                    Termos de Uso e Privacidade
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
               </div>
             </motion.div>
           </div>
