@@ -22,6 +22,7 @@ interface Profile {
   photo_url?: string | null;
   description?: string | null;
   phone?: string | null;
+  email_notifications?: boolean;
 }
 
 interface ProfileEditModalProps {
@@ -46,6 +47,7 @@ const ProfileEditModal = ({ isOpen, onClose, profile, onProfileUpdated }: Profil
     photo_url: profile.photo_url || "",
     description: profile.description || "",
     phone: profile.phone || "",
+    email_notifications: profile.email_notifications ?? true,
   });
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -105,6 +107,7 @@ const ProfileEditModal = ({ isOpen, onClose, profile, onProfileUpdated }: Profil
           photo_url: formData.photo_url || null,
           description: formData.description || null,
           phone: formData.phone || null,
+          email_notifications: formData.email_notifications,
         })
         .eq("user_id", profile.user_id);
 
@@ -248,6 +251,26 @@ const ProfileEditModal = ({ isOpen, onClose, profile, onProfileUpdated }: Profil
                   rows={4}
                   className="w-full px-4 py-3 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
                 />
+              </div>
+
+              {/* Email Notifications Preference */}
+              <div className="bg-muted/30 rounded-xl p-4 border border-border/50">
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.email_notifications}
+                    onChange={(e) => setFormData({ ...formData, email_notifications: e.target.checked })}
+                    className="mt-1 w-4 h-4 rounded border-input text-primary focus:ring-primary/50"
+                  />
+                  <div>
+                    <span className="block text-sm font-medium text-foreground">
+                      Desejo receber comunicações por e-mail do Movê
+                    </span>
+                    <span className="block text-xs text-muted-foreground mt-1">
+                      Você pode alterar essa preferência a qualquer momento. E-mails transacionais (confirmações, aprovações) serão sempre enviados.
+                    </span>
+                  </div>
+                </label>
               </div>
 
               {/* Actions */}

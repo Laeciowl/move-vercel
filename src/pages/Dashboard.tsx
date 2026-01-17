@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
-  LogOut, FileText, Video, RefreshCw, User, 
-  Loader2, BookOpen, History, ExternalLink, Edit, Shield, Heart, Play, Sparkles
+  LogOut, RefreshCw, User, 
+  Loader2, History, Edit, Shield, Heart, Sparkles, ExternalLink
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
@@ -14,6 +14,7 @@ import ProfileEditModal from "@/components/ProfileEditModal";
 import MentorPanel from "@/components/MentorPanel";
 import VolunteerPanel from "@/components/VolunteerPanel";
 import BugReportButton from "@/components/BugReportButton";
+import ContentLibrary from "@/components/ContentLibrary";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -397,146 +398,7 @@ const Dashboard = () => {
             {!isVolunteer && <MentorshipSection />}
 
             {/* Content Library */}
-            <motion.section
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="space-y-6"
-            >
-              {/* Section Header */}
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-hero flex items-center justify-center shadow-soft">
-                  <BookOpen className="w-5 h-5 text-primary-foreground" />
-                </div>
-                <h3 className="text-2xl font-bold text-foreground">O que oferecemos</h3>
-              </div>
-
-              {/* Category Filter */}
-              <div className="flex flex-wrap gap-2">
-                {categoryOptions.map((cat, i) => (
-                  <motion.button
-                    key={cat.value}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 * i }}
-                    onClick={() => setSelectedCategory(cat.value)}
-                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
-                      selectedCategory === cat.value
-                        ? "bg-gradient-hero text-primary-foreground shadow-button"
-                        : "bg-card text-muted-foreground hover:bg-accent hover:text-accent-foreground border border-border/50"
-                    }`}
-                  >
-                    {cat.label}
-                  </motion.button>
-                ))}
-              </div>
-
-              {/* Videos */}
-              <div className="space-y-4">
-                <h4 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                  <Video className="w-5 h-5 text-primary" />
-                  Aulas e Lives
-                </h4>
-                
-                {loadingContent ? (
-                  <div className="flex items-center justify-center py-12">
-                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                  </div>
-                ) : videos.length > 0 ? (
-                  <div className="grid gap-6">
-                    {videos.map((video, i) => (
-                      <motion.div 
-                        key={video.id} 
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.1 * i }}
-                        className="bg-card rounded-2xl border border-border/50 overflow-hidden group shadow-card hover:shadow-lg transition-all duration-300"
-                      >
-                        <div className="aspect-video relative">
-                          <iframe
-                            src={getYouTubeEmbedUrl(video.url)}
-                            title={video.title}
-                            className="w-full h-full"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowFullScreen
-                          />
-                        </div>
-                        <div className="p-5">
-                          <h5 className="font-bold text-foreground text-lg">{video.title}</h5>
-                          {video.description && (
-                            <p className="text-muted-foreground mt-2 line-clamp-2">{video.description}</p>
-                          )}
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                ) : (
-                  <motion.div 
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="bg-gradient-to-br from-muted/30 to-accent/10 rounded-2xl p-8 text-center border border-border/30"
-                  >
-                    <div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto mb-4">
-                      <Play className="w-8 h-8 text-muted-foreground" />
-                    </div>
-                    <p className="text-muted-foreground font-medium">Em breve teremos aulas incríveis para você!</p>
-                  </motion.div>
-                )}
-              </div>
-
-              {/* PDFs / Templates */}
-              <div className="space-y-4">
-                <h4 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-primary" />
-                  Guias e Templates
-                </h4>
-                
-                {loadingContent ? (
-                  <div className="flex items-center justify-center py-12">
-                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                  </div>
-                ) : pdfs.length > 0 ? (
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    {pdfs.map((pdf, i) => (
-                      <motion.a
-                        key={pdf.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.1 * i }}
-                        href={pdf.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="bg-card rounded-2xl border border-border/50 p-5 hover:border-primary/30 hover:shadow-lg transition-all duration-300 group flex items-start gap-4"
-                      >
-                        <div className="w-12 h-12 bg-gradient-to-br from-primary/20 to-accent/30 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                          <BookOpen className="w-6 h-6 text-primary" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h5 className="font-bold text-foreground group-hover:text-primary transition-colors line-clamp-1">
-                            {pdf.title}
-                          </h5>
-                          {pdf.description && (
-                            <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{pdf.description}</p>
-                          )}
-                        </div>
-                        <ExternalLink className="w-5 h-5 text-muted-foreground group-hover:text-primary shrink-0 transition-colors" />
-                      </motion.a>
-                    ))}
-                  </div>
-                ) : (
-                  <motion.div 
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="bg-gradient-to-br from-muted/30 to-accent/10 rounded-2xl p-8 text-center border border-border/30"
-                  >
-                    <div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto mb-4">
-                      <FileText className="w-8 h-8 text-muted-foreground" />
-                    </div>
-                    <p className="text-muted-foreground font-medium">Templates e guias em breve!</p>
-                  </motion.div>
-                )}
-              </div>
-            </motion.section>
+            <ContentLibrary />
           </div>
 
           {/* Sidebar */}
