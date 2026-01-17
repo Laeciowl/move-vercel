@@ -154,6 +154,21 @@ const AdminVolunteersPanel = () => {
         });
       }
 
+      // Send approval email
+      try {
+        await supabase.functions.invoke("send-notification-email", {
+          body: {
+            to: app.email,
+            name: app.name,
+            type: "mentor_approved",
+            data: {},
+          },
+        });
+      } catch (emailError) {
+        console.error("Error sending approval email:", emailError);
+        // Don't fail the approval if email fails
+      }
+
       toast.success(`${app.name} foi aprovado como voluntário!`);
       fetchApplications();
     } catch (error: any) {
