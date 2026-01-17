@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Heart, FileText, Video, Users, Loader2, ExternalLink, Clock, CheckCircle, XCircle, Calendar, Settings, Award } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -190,157 +190,194 @@ const VolunteerPanel = () => {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-card rounded-2xl shadow-card p-6 space-y-6"
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      className="relative bg-card/80 backdrop-blur-sm rounded-3xl shadow-card border border-border/50 p-6 space-y-6 overflow-hidden group"
     >
+      {/* Decorative gradient */}
+      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
-            <Heart className="w-5 h-5 text-primary" />
-          </div>
+      <div className="relative flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <motion.div 
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.1, duration: 0.3 }}
+            className="w-12 h-12 bg-gradient-to-br from-primary to-primary/80 rounded-2xl flex items-center justify-center shadow-button"
+          >
+            <Heart className="w-6 h-6 text-primary-foreground" />
+          </motion.div>
           <div>
-            <h3 className="font-bold text-foreground">Painel do Voluntário</h3>
+            <h3 className="font-bold text-lg text-foreground">Painel do Voluntário</h3>
             <p className="text-sm text-muted-foreground">
               {mentorData ? mentorData.area : "Gerencie suas contribuições"}
             </p>
           </div>
         </div>
         {mentorData && (
-          <span
-            className={`px-3 py-1 rounded-full text-xs font-medium ${
+          <motion.span
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
+            className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 ${
               mentorData.status === "approved"
-                ? "bg-green-100 text-green-700"
+                ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
                 : mentorData.status === "pending"
-                ? "bg-yellow-100 text-yellow-700"
-                : "bg-red-100 text-red-700"
+                ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
             }`}
           >
             {mentorData.status === "approved" ? "Ativo" : mentorData.status === "pending" ? "Pendente" : "Inativo"}
-          </span>
+          </motion.span>
         )}
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-border pb-2">
-        <button
-          onClick={() => setActiveTab("overview")}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            activeTab === "overview" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
-          }`}
-        >
-          Visão Geral
-        </button>
-        {mentorData && (
-          <button
-            onClick={() => setActiveTab("agenda")}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === "agenda" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
+      <div className="flex gap-2 border-b border-border/50 pb-2">
+        {[
+          { id: "overview", label: "Visão Geral" },
+          ...(mentorData ? [{ id: "agenda", label: "Agenda" }] : []),
+          { id: "content", label: "Conteúdos" },
+        ].map((tab) => (
+          <motion.button
+            key={tab.id}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setActiveTab(tab.id as any)}
+            className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 ${
+              activeTab === tab.id 
+                ? "bg-primary text-primary-foreground shadow-button" 
+                : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
             }`}
           >
-            Agenda
-          </button>
-        )}
-        <button
-          onClick={() => setActiveTab("content")}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            activeTab === "content" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
-          }`}
-        >
-          Conteúdos
-        </button>
+            {tab.label}
+          </motion.button>
+        ))}
       </div>
 
       {/* Overview Tab */}
-      {activeTab === "overview" && (
-        <div className="space-y-5">
-          {/* Mentor Progress Bar - Shows for mentors with approved status */}
-          {mentorData && mentorData.status === "approved" && (
-            <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-accent/10 rounded-xl p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                  <Award className="w-4 h-4 text-primary" />
-                  Seu impacto como Mentor
-                </h4>
-                <span className="text-xs text-muted-foreground">
-                  {stats.completedSessions} {stats.completedSessions === 1 ? "mentoria" : "mentorias"} realizadas
-                </span>
-              </div>
-              
-              {/* Progress bar */}
-              <div className="relative">
-                <div className="h-3 bg-muted rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-gradient-to-r from-primary to-primary/70 rounded-full transition-all duration-500"
-                    style={{ width: `${Math.min((stats.completedSessions / 10) * 100, 100)}%` }}
-                  />
-                </div>
-                <div className="flex justify-between mt-1 text-xs text-muted-foreground">
-                  <span>0</span>
-                  <span>Meta: 10 mentorias</span>
-                </div>
-              </div>
-
-              {/* Quick stats */}
-              <div className="grid grid-cols-3 gap-2 pt-2">
-                <div className="text-center">
-                  <div className="text-xl font-bold text-primary">{stats.completedSessions}</div>
-                  <div className="text-[10px] text-muted-foreground">Realizadas</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-xl font-bold text-green-600">{stats.uniqueMentees}</div>
-                  <div className="text-[10px] text-muted-foreground">Pessoas</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-xl font-bold text-blue-600">{stats.upcomingSessions}</div>
-                  <div className="text-[10px] text-muted-foreground">Agendadas</div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Content Stats */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-green-50 rounded-xl p-4 text-center border border-green-100">
-              <div className="text-2xl font-bold text-green-700">{approvedSubmissions.length}</div>
-              <div className="text-xs text-muted-foreground">Conteúdos aprovados</div>
-            </div>
-            <div className="bg-amber-50 rounded-xl p-4 text-center border border-amber-100">
-              <div className="text-2xl font-bold text-amber-700">{pendingSubmissions.length}</div>
-              <div className="text-xs text-muted-foreground">Em análise</div>
-            </div>
-          </div>
-
-          {/* Session confirmations - only for mentors */}
-          {mentorData && sessions.length > 0 && (
-            <MentorSessionConfirmation sessions={sessions} onUpdate={fetchData} />
-          )}
-
-          {/* Quick actions */}
-          <div className="space-y-3">
-            <h4 className="text-sm font-medium text-foreground">Ações rápidas</h4>
-            <div className="grid grid-cols-2 gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setSubmissionModal({ isOpen: true, category: "aulas_lives" })}
-                className="flex items-center gap-2"
+      <AnimatePresence mode="wait">
+        {activeTab === "overview" && (
+          <motion.div 
+            key="overview"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="space-y-5"
+          >
+            {/* Mentor Progress Bar - Shows for mentors with approved status */}
+            {mentorData && mentorData.status === "approved" && (
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="bg-gradient-to-br from-primary/10 via-primary/5 to-accent/10 rounded-2xl p-5 space-y-4 border border-primary/20"
               >
-                <Video className="w-4 h-4" />
-                Enviar Aula/Live
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setSubmissionModal({ isOpen: true, category: "templates_arquivos" })}
-                className="flex items-center gap-2"
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                    <Award className="w-4 h-4 text-primary" />
+                    Seu impacto como Mentor
+                  </h4>
+                  <span className="text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-lg">
+                    {stats.completedSessions} {stats.completedSessions === 1 ? "mentoria" : "mentorias"} realizadas
+                  </span>
+                </div>
+                
+                {/* Progress bar */}
+                <div className="relative">
+                  <div className="h-3 bg-muted/50 rounded-full overflow-hidden">
+                    <motion.div 
+                      initial={{ width: 0 }}
+                      animate={{ width: `${Math.min((stats.completedSessions / 10) * 100, 100)}%` }}
+                      transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
+                      className="h-full bg-gradient-to-r from-primary to-primary/70 rounded-full"
+                    />
+                  </div>
+                  <div className="flex justify-between mt-2 text-xs text-muted-foreground">
+                    <span>0</span>
+                    <span>Meta: 10 mentorias</span>
+                  </div>
+                </div>
+
+                {/* Quick stats */}
+                <div className="grid grid-cols-3 gap-3 pt-2">
+                  {[
+                    { value: stats.completedSessions, label: "Realizadas", color: "text-primary" },
+                    { value: stats.uniqueMentees, label: "Pessoas", color: "text-green-600 dark:text-green-400" },
+                    { value: stats.upcomingSessions, label: "Agendadas", color: "text-blue-600 dark:text-blue-400" },
+                  ].map((stat, index) => (
+                    <motion.div 
+                      key={stat.label}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.3 + index * 0.1 }}
+                      className="text-center bg-card/50 rounded-xl p-3 border border-border/50"
+                    >
+                      <div className={`text-2xl font-bold ${stat.color}`}>{stat.value}</div>
+                      <div className="text-[10px] text-muted-foreground font-medium">{stat.label}</div>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+
+            {/* Content Stats */}
+            <div className="grid grid-cols-2 gap-3">
+              <motion.div 
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.1 }}
+                className="bg-gradient-to-br from-green-50 to-green-100/50 dark:from-green-900/20 dark:to-green-900/10 rounded-2xl p-4 text-center border border-green-200/50 dark:border-green-800/50 hover:shadow-soft transition-all duration-300 group"
               >
-                <FileText className="w-4 h-4" />
-                Enviar Template
-              </Button>
+                <div className="text-3xl font-bold text-green-600 dark:text-green-400 transition-transform duration-300 group-hover:scale-110">{approvedSubmissions.length}</div>
+                <div className="text-xs text-muted-foreground mt-1">Conteúdos aprovados</div>
+              </motion.div>
+              <motion.div 
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.15 }}
+                className="bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-900/20 dark:to-amber-900/10 rounded-2xl p-4 text-center border border-amber-200/50 dark:border-amber-800/50 hover:shadow-soft transition-all duration-300 group"
+              >
+                <div className="text-3xl font-bold text-amber-600 dark:text-amber-400 transition-transform duration-300 group-hover:scale-110">{pendingSubmissions.length}</div>
+                <div className="text-xs text-muted-foreground mt-1">Em análise</div>
+              </motion.div>
             </div>
-          </div>
-        </div>
-      )}
+
+            {/* Session confirmations - only for mentors */}
+            {mentorData && sessions.length > 0 && (
+              <MentorSessionConfirmation sessions={sessions} onUpdate={fetchData} />
+            )}
+
+            {/* Quick actions */}
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="space-y-3"
+            >
+              <h4 className="text-sm font-semibold text-foreground">Ações rápidas</h4>
+              <div className="grid grid-cols-2 gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setSubmissionModal({ isOpen: true, category: "aulas_lives" })}
+                  className="flex items-center gap-2 rounded-xl py-5 border-border/50 hover:border-primary/50 hover:bg-primary/5 transition-all duration-300"
+                >
+                  <Video className="w-5 h-5 text-primary" />
+                  <span>Enviar Aula/Live</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setSubmissionModal({ isOpen: true, category: "templates_arquivos" })}
+                  className="flex items-center gap-2 rounded-xl py-5 border-border/50 hover:border-primary/50 hover:bg-primary/5 transition-all duration-300"
+                >
+                  <FileText className="w-5 h-5 text-primary" />
+                  <span>Enviar Template</span>
+                </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Content Submission Modal */}
       <ContentSubmissionModal
@@ -354,147 +391,199 @@ const VolunteerPanel = () => {
       />
 
       {/* Agenda Tab */}
-      {activeTab === "agenda" && mentorData && (
-        <div className="space-y-6">
-          {/* Current availability */}
-          <div>
-            <h4 className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
-              <Clock className="w-4 h-4 text-primary" />
-              Sua disponibilidade atual
-            </h4>
-            <div className="flex flex-wrap gap-2">
-              {mentorData.availability.length > 0 ? (
-                mentorData.availability.map((avail: any) => (
-                  <div
-                    key={avail.day}
-                    className="bg-muted px-3 py-2 rounded-lg text-sm"
-                  >
-                    <span className="font-medium">{dayLabels[avail.day]}:</span>{" "}
-                    <span className="text-muted-foreground">{avail.times?.join(", ") || "Sem horários"}</span>
-                  </div>
-                ))
-              ) : (
-                <p className="text-sm text-muted-foreground">Nenhuma disponibilidade configurada</p>
-              )}
-            </div>
-          </div>
-
-          {/* Blocked periods */}
-          <div>
-            <button
-              onClick={() => setShowBlockedPeriods(!showBlockedPeriods)}
-              className="flex items-center gap-2 text-sm text-primary hover:underline"
+      <AnimatePresence mode="wait">
+        {activeTab === "agenda" && mentorData && (
+          <motion.div 
+            key="agenda"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="space-y-6"
+          >
+            {/* Current availability */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
             >
-              <Settings className="w-4 h-4" />
-              {showBlockedPeriods ? "Ocultar" : "Gerenciar"} períodos bloqueados
-            </button>
-            
-            {showBlockedPeriods && (
-              <div className="mt-4">
-                <MentorBlockedPeriodsManager mentorId={mentorData.id} />
-              </div>
-            )}
-          </div>
-
-          {/* Upcoming sessions */}
-          {upcomingSessions.length > 0 && (
-            <div>
-              <h4 className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-primary" />
-                Próximas sessões ({upcomingSessions.length})
+              <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                <Clock className="w-4 h-4 text-primary" />
+                Sua disponibilidade atual
               </h4>
-              <div className="space-y-3 max-h-60 overflow-y-auto">
-                {upcomingSessions.map((session) => (
-                  <div
-                    key={session.id}
-                    className="bg-accent/50 rounded-xl p-4 space-y-2"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Users className="w-4 h-4 text-muted-foreground" />
-                      <span className="font-medium text-foreground">
-                        {session.mentee_profile?.name || "Mentorado"}
-                      </span>
-                      {session.confirmed_by_mentor && (
-                        <Badge variant="outline" className="text-green-600 border-green-600">
-                          Confirmado
-                        </Badge>
-                      )}
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      📅 {format(new Date(session.scheduled_at), "EEEE, d 'de' MMMM 'às' HH:mm", { locale: ptBR })}
-                    </p>
-                    {session.mentee_profile?.phone && (
-                      <p className="text-sm text-muted-foreground">
-                        📞 {session.mentee_profile.phone}
-                      </p>
-                    )}
-                  </div>
-                ))}
+              <div className="flex flex-wrap gap-2">
+                {mentorData.availability.length > 0 ? (
+                  mentorData.availability.map((avail: any, index: number) => (
+                    <motion.div
+                      key={avail.day}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.15 + index * 0.05 }}
+                      className="bg-muted/50 px-4 py-2.5 rounded-xl text-sm border border-border/50 hover:border-primary/30 transition-all duration-300"
+                    >
+                      <span className="font-medium text-foreground">{dayLabels[avail.day]}:</span>{" "}
+                      <span className="text-muted-foreground">{avail.times?.join(", ") || "Sem horários"}</span>
+                    </motion.div>
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground bg-muted/30 px-4 py-3 rounded-xl">Nenhuma disponibilidade configurada</p>
+                )}
               </div>
-            </div>
-          )}
-        </div>
-      )}
+            </motion.div>
+
+            {/* Blocked periods */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+            >
+              <button
+                onClick={() => setShowBlockedPeriods(!showBlockedPeriods)}
+                className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors group"
+              >
+                <Settings className="w-4 h-4 transition-transform group-hover:rotate-90 duration-300" />
+                {showBlockedPeriods ? "Ocultar" : "Gerenciar"} períodos bloqueados
+              </button>
+              
+              <AnimatePresence>
+                {showBlockedPeriods && (
+                  <motion.div 
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="mt-4 overflow-hidden"
+                  >
+                    <MentorBlockedPeriodsManager mentorId={mentorData.id} />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+
+            {/* Upcoming sessions */}
+            {upcomingSessions.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.25 }}
+              >
+                <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-primary" />
+                  Próximas sessões ({upcomingSessions.length})
+                </h4>
+                <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
+                  {upcomingSessions.map((session, index) => (
+                    <motion.div
+                      key={session.id}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.3 + index * 0.1 }}
+                      className="bg-gradient-to-br from-accent/50 to-accent/30 rounded-2xl p-4 space-y-2 border border-border/50 hover:border-primary/30 transition-all duration-300 hover:shadow-soft"
+                    >
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Users className="w-4 h-4 text-muted-foreground" />
+                        <span className="font-medium text-foreground">
+                          {session.mentee_profile?.name || "Mentorado"}
+                        </span>
+                        {session.confirmed_by_mentor && (
+                          <Badge variant="outline" className="text-green-600 dark:text-green-400 border-green-600 dark:border-green-400 text-xs">
+                            <CheckCircle className="w-3 h-3 mr-1" />
+                            Confirmado
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        📅 {format(new Date(session.scheduled_at), "EEEE, d 'de' MMMM 'às' HH:mm", { locale: ptBR })}
+                      </p>
+                      {session.mentee_profile?.phone && (
+                        <p className="text-sm text-muted-foreground">
+                          📞 {session.mentee_profile.phone}
+                        </p>
+                      )}
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Content Tab */}
-      {activeTab === "content" && (
-        <div className="space-y-4">
-          {submissions.length > 0 ? (
-            <div className="space-y-2 max-h-80 overflow-y-auto">
-              {submissions.map((submission) => {
-                const status = statusConfig[submission.status] || statusConfig.pending;
-                return (
-                  <div
-                    key={submission.id}
-                    className="flex items-start justify-between gap-2 p-3 bg-muted/50 rounded-lg"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm text-foreground truncate">
-                        {submission.title}
-                      </p>
-                      <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">
-                        {submission.description}
-                      </p>
-                      <div className="flex items-center gap-2 mt-2">
-                        <Badge variant="secondary" className="text-xs">
-                          {categoryLabels[submission.category] || submission.category}
-                        </Badge>
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs ${status.className}`}>
-                          {status.icon}
-                          {status.label}
-                        </span>
+      <AnimatePresence mode="wait">
+        {activeTab === "content" && (
+          <motion.div 
+            key="content"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="space-y-4"
+          >
+            {submissions.length > 0 ? (
+              <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
+                {submissions.map((submission, index) => {
+                  const status = statusConfig[submission.status] || statusConfig.pending;
+                  return (
+                    <motion.div
+                      key={submission.id}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      className="flex items-start justify-between gap-3 p-4 bg-muted/30 rounded-2xl border border-border/50 hover:border-primary/30 transition-all duration-300 hover:shadow-soft group"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm text-foreground truncate group-hover:text-primary transition-colors">
+                          {submission.title}
+                        </p>
+                        <p className="text-xs text-muted-foreground line-clamp-1 mt-1">
+                          {submission.description}
+                        </p>
+                        <div className="flex items-center gap-2 mt-3 flex-wrap">
+                          <Badge variant="secondary" className="text-xs rounded-lg">
+                            {categoryLabels[submission.category] || submission.category}
+                          </Badge>
+                          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium ${status.className}`}>
+                            {status.icon}
+                            {status.label}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                    {submission.status === "approved" && (
-                      <a
-                        href={submission.content_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary hover:text-primary/80"
-                      >
-                        <ExternalLink className="w-4 h-4" />
-                      </a>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-              <p className="text-muted-foreground">Você ainda não enviou conteúdos</p>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setSubmissionModal({ isOpen: true, category: "templates_arquivos" })}
-                className="mt-3"
+                      {submission.status === "approved" && (
+                        <a
+                          href={submission.content_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary hover:text-primary/80 p-2 rounded-lg hover:bg-primary/10 transition-all duration-300"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                        </a>
+                      )}
+                    </motion.div>
+                  );
+                })}
+              </div>
+            ) : (
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="text-center py-12 bg-muted/20 rounded-2xl border border-dashed border-border"
               >
-                Enviar primeiro conteúdo
-              </Button>
-            </div>
-          )}
-        </div>
-      )}
+                <FileText className="w-14 h-14 text-muted-foreground/50 mx-auto mb-4" />
+                <p className="text-muted-foreground font-medium">Você ainda não enviou conteúdos</p>
+                <p className="text-sm text-muted-foreground/70 mt-1 mb-4">Compartilhe seu conhecimento com a comunidade</p>
+                <Button
+                  variant="outline"
+                  onClick={() => setSubmissionModal({ isOpen: true, category: "templates_arquivos" })}
+                  className="rounded-xl"
+                >
+                  Enviar primeiro conteúdo
+                </Button>
+              </motion.div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };
