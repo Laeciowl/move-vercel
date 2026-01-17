@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Heart, Loader2, CheckCircle, Upload, X, Plus } from "lucide-react";
+import { ArrowLeft, Heart, Loader2, CheckCircle, Upload, X, Plus, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -10,6 +10,7 @@ import MentorDisclaimerModal from "@/components/MentorDisclaimerModal";
 
 const emailSchema = z.string().email("E-mail inválido").max(255);
 const nameSchema = z.string().min(2, "Nome deve ter pelo menos 2 caracteres").max(100);
+const passwordSchema = z.string().min(6, "Senha deve ter pelo menos 6 caracteres").max(72);
 
 // Voluntários agora são automaticamente mentores e podem contribuir com todo tipo de conteúdo
 
@@ -54,6 +55,7 @@ const Volunteer = () => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    password: "",
     area: "",
     // Mentor fields - todos voluntários são mentores
     description: "",
@@ -67,9 +69,14 @@ const Volunteer = () => {
   const [submitted, setSubmitted] = useState(false);
   const [showDisclaimerModal, setShowDisclaimerModal] = useState(false);
   const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [createdAccount, setCreatedAccount] = useState(false);
   
   // Todos os voluntários são automaticamente mentores
   const isMentorApplication = true;
+  
+  // Verifica se precisa criar conta (não está logado)
+  const needsAccountCreation = !user;
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -132,6 +139,18 @@ const Volunteer = () => {
       }
     }
 
+    // Validação de senha para quem não está logado
+    if (needsAccountCreation) {
+      try {
+        passwordSchema.parse(formData.password);
+      } catch (error) {
+        if (error instanceof z.ZodError) {
+          toast.error(error.errors[0].message);
+          return false;
+        }
+      }
+    }
+
     if (!formData.area.trim()) {
       toast.error("Por favor, informe sua área de atuação");
       return false;
@@ -181,12 +200,49 @@ const Volunteer = () => {
     setLoading(true);
 
     try {
-      // Não fazemos SELECT após INSERT aqui porque isso exigiria permissão de leitura
-      // (e o cadastro de voluntário é revisado pelo admin).
+      let currentUserId = user?.id || null;
+
+      // Se não está logado, criar conta primeiro
+      if (needsAccountCreation) {
+        const redirectUrl = `${window.location.origin}/onboarding-voluntario`;
+        
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+          email: formData.email.trim(),
+          password: formData.password,
+          options: {
+            emailRedirectTo: redirectUrl,
+            data: {
+              name: formData.name.trim(),
+              age: 25, // Default age for volunteers
+              city: "N/A",
+              state: "N/A",
+              professional_status: "empregado",
+              income_range: "acima_3000",
+            },
+          },
+        });
+
+        if (authError) {
+          if (authError.message.includes("already registered")) {
+            toast.error("Este e-mail já está cadastrado. Faça login primeiro.");
+          } else {
+            toast.error("Erro ao criar conta: " + authError.message);
+          }
+          setLoading(false);
+          return;
+        }
+
+        if (authData.user) {
+          currentUserId = authData.user.id;
+          setCreatedAccount(true);
+          // Aguarda um momento para o trigger criar o perfil
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      }
 
       // For logged-in users who are already volunteers (have voluntario role),
       // skip volunteer_applications insert and go directly to mentor registration
-      const isExistingVolunteer = user ? await checkIfVolunteer() : false;
+      const isExistingVolunteer = currentUserId ? await checkIfVolunteerByUserId(currentUserId) : false;
 
       if (!isExistingVolunteer) {
         // Insert into volunteer_applications for new volunteers
@@ -198,7 +254,7 @@ const Volunteer = () => {
             area: formData.area.trim(),
             how_to_help: "Mentoria, Aulas/Lives, Templates",
             categories: ["mentoria", "aulas_lives", "templates_arquivos"],
-            user_id: user?.id || null,
+            user_id: currentUserId,
           });
 
         if (volunteerError) {
@@ -211,7 +267,7 @@ const Volunteer = () => {
         }
       }
 
-      // If they want to be a mentor, insert into mentors table
+      // Insert into mentors table
       if (isMentorApplication) {
         let photoUrl: string | null = null;
 
@@ -260,12 +316,23 @@ const Volunteer = () => {
       }
 
       setSubmitted(true);
-      toast.success(isMentorApplication ? "Cadastro de mentor enviado com sucesso!" : "Aplicação enviada com sucesso!");
+      toast.success("Cadastro enviado com sucesso! Aguarde aprovação.");
     } catch (error: any) {
       toast.error("Erro ao enviar: " + error.message);
     }
 
     setLoading(false);
+  };
+
+  const checkIfVolunteerByUserId = async (userId: string): Promise<boolean> => {
+    const { data } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .eq("role", "voluntario")
+      .maybeSingle();
+    
+    return !!data;
   };
 
   const checkIfVolunteer = async (): Promise<boolean> => {
@@ -295,15 +362,40 @@ const Volunteer = () => {
           <h2 className="text-2xl font-bold text-foreground mb-4">
             Obrigado por querer ajudar! 💙
           </h2>
-          <p className="text-muted-foreground mb-8">
-            Recebemos sua inscrição como mentor. Após aprovação, seu perfil ficará visível para os participantes agendarem mentorias.
+          <p className="text-muted-foreground mb-6">
+            Recebemos sua inscrição como voluntário. Após aprovação, você terá acesso à área de voluntários.
           </p>
-          <button
-            onClick={() => navigate("/")}
-            className="bg-gradient-hero text-primary-foreground px-8 py-3 rounded-xl font-bold shadow-button hover:opacity-90 transition-opacity"
-          >
-            Voltar ao início
-          </button>
+          {createdAccount && (
+            <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6 text-left">
+              <p className="text-sm text-green-800">
+                <strong>✅ Sua conta foi criada!</strong><br />
+                Use o e-mail e senha cadastrados para fazer login quando for aprovado.
+              </p>
+            </div>
+          )}
+          <div className="flex flex-col gap-3">
+            {createdAccount ? (
+              <button
+                onClick={() => navigate("/onboarding-voluntario")}
+                className="bg-gradient-hero text-primary-foreground px-8 py-3 rounded-xl font-bold shadow-button hover:opacity-90 transition-opacity"
+              >
+                Continuar para Onboarding
+              </button>
+            ) : (
+              <button
+                onClick={() => navigate("/dashboard")}
+                className="bg-gradient-hero text-primary-foreground px-8 py-3 rounded-xl font-bold shadow-button hover:opacity-90 transition-opacity"
+              >
+                Ir para o Dashboard
+              </button>
+            )}
+            <button
+              onClick={() => navigate("/")}
+              className="text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Voltar ao início
+            </button>
+          </div>
         </motion.div>
       </div>
     );
@@ -386,6 +478,45 @@ const Volunteer = () => {
                 maxLength={100}
               />
             </div>
+
+            {/* Password field - only for new users */}
+            {needsAccountCreation && (
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Crie uma senha *
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    className="w-full px-4 py-3 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 pr-12"
+                    placeholder="Mínimo 6 caracteres"
+                    required
+                    minLength={6}
+                    maxLength={72}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Esta senha será usada para acessar sua conta após aprovação.
+                </p>
+              </div>
+            )}
+
+            {user && (
+              <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+                <p className="text-sm text-green-800">
+                  <strong>✅ Você está logado como:</strong> {user.email}
+                </p>
+              </div>
+            )}
 
             {/* Info box - todos podem fazer tudo */}
             <div className="bg-accent/50 rounded-xl p-4 border border-primary/20">

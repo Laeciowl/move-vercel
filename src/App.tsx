@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Volunteer from "./pages/Volunteer";
+import VolunteerOnboarding from "./pages/VolunteerOnboarding";
 import Mentors from "./pages/Mentors";
 import Admin from "./pages/Admin";
 import Terms from "./pages/Terms";
@@ -27,6 +28,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/voluntario" element={<Volunteer />} />
+            <Route path="/onboarding-voluntario" element={<VolunteerOnboarding />} />
             <Route path="/mentores" element={<Mentors />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/termos" element={<Terms />} />
