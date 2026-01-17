@@ -190,8 +190,8 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error(`Template '${type}' not found`);
     }
 
-    // Use resend.dev domain for testing, or custom domain if configured
-    const fromEmail = Deno.env.get("EMAIL_FROM") || "Movê <onboarding@resend.dev>";
+    // Use verified custom domain
+    const fromEmail = "Movê <noreply@movecarreiras.org>";
 
     // Use Resend API directly via fetch
     const res = await fetch("https://api.resend.com/emails", {
