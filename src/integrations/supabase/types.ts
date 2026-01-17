@@ -293,6 +293,7 @@ export type Database = {
           city: string
           created_at: string
           description: string | null
+          email_notifications: boolean
           id: string
           income_range: Database["public"]["Enums"]["income_range"]
           lgpd_consent: boolean
@@ -310,6 +311,7 @@ export type Database = {
           city: string
           created_at?: string
           description?: string | null
+          email_notifications?: boolean
           id?: string
           income_range: Database["public"]["Enums"]["income_range"]
           lgpd_consent?: boolean
@@ -327,6 +329,7 @@ export type Database = {
           city?: string
           created_at?: string
           description?: string | null
+          email_notifications?: boolean
           id?: string
           income_range?: Database["public"]["Enums"]["income_range"]
           lgpd_consent?: boolean
