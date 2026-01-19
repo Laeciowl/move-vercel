@@ -40,6 +40,7 @@ interface MentorSession {
   user_id: string;
   confirmed_by_mentor: boolean;
   mentor_notes: string | null;
+  mentee_email?: string;
   mentee_profile?: {
     name: string;
     phone: string | null;
@@ -135,6 +136,7 @@ const VolunteerPanel = () => {
         // Fetch mentee profiles (avoid `.in()` with empty array)
         const userIds = sessionsData.map((s) => s.user_id);
         let profiles: { user_id: string; name: string; phone: string | null }[] = [];
+        let emailsData: { user_id: string; email: string }[] = [];
 
         if (userIds.length > 0) {
           const { data: profilesData, error: profilesError } = await supabase
@@ -145,11 +147,20 @@ const VolunteerPanel = () => {
           if (!profilesError && profilesData) {
             profiles = profilesData;
           }
+
+          // Fetch mentee emails using the RPC function
+          const { data: emailsResult } = await supabase
+            .rpc("get_mentee_emails", { session_user_ids: userIds });
+          
+          if (emailsResult) {
+            emailsData = emailsResult;
+          }
         }
 
         const sessionsWithProfiles = sessionsData.map((session) => ({
           ...session,
           mentee_profile: profiles.find((p) => p.user_id === session.user_id),
+          mentee_email: emailsData.find((e) => e.user_id === session.user_id)?.email,
         }));
 
         setSessions(sessionsWithProfiles);
