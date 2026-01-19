@@ -253,12 +253,27 @@ const Dashboard = () => {
         </div>
       </motion.header>
 
-      <main className="container mx-auto px-4 py-6 md:py-8 space-y-6 relative z-10">
+      <motion.main 
+        className="container mx-auto px-4 py-6 md:py-8 space-y-6 relative z-10"
+        initial="initial"
+        animate="animate"
+        variants={{
+          initial: {},
+          animate: {
+            transition: {
+              staggerChildren: 0.1,
+              delayChildren: 0.1
+            }
+          }
+        }}
+      >
         {/* Welcome Card - Simplified */}
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
+          variants={{
+            initial: { opacity: 0, y: 20 },
+            animate: { opacity: 1, y: 0 }
+          }}
+          transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
           className="relative overflow-hidden rounded-2xl bg-card/50 backdrop-blur-sm border border-border/30"
         >
           <div className="p-5 md:p-6">
@@ -267,38 +282,48 @@ const Dashboard = () => {
                 <motion.button
                   onClick={() => setShowProfileEdit(true)}
                   className="relative group"
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
+                  whileHover={{ scale: 1.05, rotate: 2 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
                 >
-                  <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-gradient-hero flex items-center justify-center overflow-hidden ring-2 ring-primary/20 group-hover:ring-primary/40 transition-all">
+                  <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-gradient-hero flex items-center justify-center overflow-hidden ring-2 ring-primary/20 group-hover:ring-primary/40 transition-all duration-300">
                     {profile.photo_url ? (
                       <img src={profile.photo_url} alt={profile.name} className="w-full h-full object-cover" />
                     ) : (
                       <User className="w-7 h-7 md:w-8 md:h-8 text-primary-foreground" />
                     )}
                   </div>
-                  <div className="absolute -bottom-0.5 -right-0.5 w-6 h-6 bg-card rounded-full flex items-center justify-center shadow-sm border border-border/50 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <motion.div 
+                    initial={{ scale: 0, opacity: 0 }}
+                    whileHover={{ scale: 1, opacity: 1 }}
+                    className="absolute -bottom-0.5 -right-0.5 w-6 h-6 bg-card rounded-full flex items-center justify-center shadow-sm border border-border/50"
+                  >
                     <Edit className="w-3 h-3 text-primary" />
-                  </div>
+                  </motion.div>
                 </motion.button>
                 <div>
                   <motion.h2 
-                    initial={{ opacity: 0, x: -8 }}
+                    initial={{ opacity: 0, x: -16 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.1 }}
+                    transition={{ delay: 0.15, duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
                     className="text-xl md:text-2xl font-semibold text-foreground"
                   >
                     Olá, {profile.name.split(" ")[0]}
                   </motion.h2>
                   <motion.p 
-                    initial={{ opacity: 0, x: -8 }}
+                    initial={{ opacity: 0, x: -16 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.15 }}
+                    transition={{ delay: 0.2, duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
                     className="text-sm text-muted-foreground mt-0.5"
                   >
                     {isVolunteer ? (
                       <span className="flex items-center gap-1.5">
-                        <Sparkles className="w-3.5 h-3.5 text-primary" />
+                        <motion.span
+                          animate={{ rotate: [0, 10, -10, 0] }}
+                          transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                        >
+                          <Sparkles className="w-3.5 h-3.5 text-primary" />
+                        </motion.span>
                         Obrigado por transformar vidas
                       </span>
                     ) : (
@@ -309,27 +334,33 @@ const Dashboard = () => {
               </div>
               
               <motion.div 
-                initial={{ opacity: 0, scale: 0.95 }}
+                initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.2 }}
+                transition={{ delay: 0.25, type: "spring", stiffness: 300, damping: 20 }}
                 className="flex flex-wrap gap-2"
               >
                 {!isVolunteer && (
-                  <Badge variant="secondary" className="text-xs px-3 py-1 rounded-full bg-muted/60 font-medium">
-                    {professionalStatusLabels[profile.professional_status]}
-                  </Badge>
+                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    <Badge variant="secondary" className="text-xs px-3 py-1 rounded-full bg-muted/60 font-medium cursor-default">
+                      {professionalStatusLabels[profile.professional_status]}
+                    </Badge>
+                  </motion.div>
                 )}
                 {isVolunteer && (
-                  <Badge className="bg-primary/10 text-primary border-primary/20 text-xs px-3 py-1 rounded-full font-medium">
-                    <Heart className="w-3 h-3 mr-1" />
-                    Voluntário
-                  </Badge>
+                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    <Badge className="bg-primary/10 text-primary border-primary/20 text-xs px-3 py-1 rounded-full font-medium cursor-default">
+                      <Heart className="w-3 h-3 mr-1" />
+                      Voluntário
+                    </Badge>
+                  </motion.div>
                 )}
                 {isAdmin && (
-                  <Badge className="bg-secondary/10 text-secondary border-secondary/20 text-xs px-3 py-1 rounded-full font-medium">
-                    <Shield className="w-3 h-3 mr-1" />
-                    Admin
-                  </Badge>
+                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    <Badge className="bg-secondary/10 text-secondary border-secondary/20 text-xs px-3 py-1 rounded-full font-medium cursor-default">
+                      <Shield className="w-3 h-3 mr-1" />
+                      Admin
+                    </Badge>
+                  </motion.div>
                 )}
               </motion.div>
             </div>
@@ -337,7 +368,13 @@ const Dashboard = () => {
         </motion.div>
 
         {/* Main Grid */}
-        <div className="grid lg:grid-cols-3 gap-6">
+        <motion.div 
+          variants={{
+            initial: { opacity: 0 },
+            animate: { opacity: 1 }
+          }}
+          className="grid lg:grid-cols-3 gap-6"
+        >
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Volunteer Panel */}
@@ -532,8 +569,8 @@ const Dashboard = () => {
               </div>
             </motion.div>
           </div>
-        </div>
-      </main>
+        </motion.div>
+      </motion.main>
 
       {/* Bug Report Button */}
       <BugReportButton />

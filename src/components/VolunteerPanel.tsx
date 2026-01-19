@@ -93,6 +93,23 @@ const VolunteerPanel = () => {
     category: "aulas_lives",
   });
 
+  // Listen for notification actions to switch tabs
+  useEffect(() => {
+    const handleNotificationAction = (event: CustomEvent<{ type: string; tab?: string }>) => {
+      const { type, tab } = event.detail;
+      if (type === "mentorship_request" && tab === "agenda" && mentorData) {
+        setActiveTab("agenda");
+      } else if (type === "volunteer_approval" && tab === "overview") {
+        setActiveTab("overview");
+      }
+    };
+
+    window.addEventListener("notification-action", handleNotificationAction as EventListener);
+    return () => {
+      window.removeEventListener("notification-action", handleNotificationAction as EventListener);
+    };
+  }, [mentorData]);
+
   useEffect(() => {
     if (!user?.email || !isVolunteer) {
       setLoading(false);
@@ -201,17 +218,21 @@ const VolunteerPanel = () => {
 
   return (
     <motion.div
+      id="volunteer-panel"
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
+      transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
       className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/30 p-5 md:p-6 space-y-5"
     >
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
+          <motion.div 
+            whileHover={{ scale: 1.05, rotate: 5 }}
+            className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center"
+          >
             <Heart className="w-5 h-5 text-primary" />
-          </div>
+          </motion.div>
           <div>
             <h3 className="font-semibold text-foreground">Área do voluntário</h3>
             <p className="text-xs text-muted-foreground">
@@ -220,39 +241,54 @@ const VolunteerPanel = () => {
           </div>
         </div>
         {mentorData && (
-          <Badge 
-            variant="outline" 
-            className={`text-xs ${
-              mentorData.status === "approved"
-                ? "border-green-500/50 text-green-600 bg-green-500/10"
-                : mentorData.status === "pending"
-                ? "border-amber-500/50 text-amber-600 bg-amber-500/10"
-                : "border-red-500/50 text-red-600 bg-red-500/10"
-            }`}
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", stiffness: 400, damping: 20 }}
           >
-            {mentorData.status === "approved" ? "Ativo" : mentorData.status === "pending" ? "Pendente" : "Inativo"}
-          </Badge>
+            <Badge 
+              variant="outline" 
+              className={`text-xs ${
+                mentorData.status === "approved"
+                  ? "border-green-500/50 text-green-600 bg-green-500/10"
+                  : mentorData.status === "pending"
+                  ? "border-amber-500/50 text-amber-600 bg-amber-500/10"
+                  : "border-red-500/50 text-red-600 bg-red-500/10"
+              }`}
+            >
+              {mentorData.status === "approved" ? "Ativo" : mentorData.status === "pending" ? "Pendente" : "Inativo"}
+            </Badge>
+          </motion.div>
         )}
       </div>
 
-      {/* Tabs - Minimal */}
-      <div className="flex gap-1 p-1 bg-muted/30 rounded-xl">
+      {/* Tabs - Minimal with animation */}
+      <div className="flex gap-1 p-1 bg-muted/30 rounded-xl relative">
         {[
           { id: "overview", label: "Geral" },
           ...(mentorData ? [{ id: "agenda", label: "Agenda" }] : []),
           { id: "content", label: "Conteúdos" },
         ].map((tab) => (
-          <button
+          <motion.button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
-            className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all relative ${
               activeTab === tab.id 
-                ? "bg-card text-foreground shadow-sm" 
+                ? "text-foreground" 
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            {tab.label}
-          </button>
+            {activeTab === tab.id && (
+              <motion.div
+                layoutId="activeTabBg"
+                className="absolute inset-0 bg-card shadow-sm rounded-lg"
+                transition={{ type: "spring", stiffness: 400, damping: 30 }}
+              />
+            )}
+            <span className="relative z-10">{tab.label}</span>
+          </motion.button>
         ))}
       </div>
 

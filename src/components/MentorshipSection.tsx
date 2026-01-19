@@ -113,10 +113,10 @@ const MentorshipSection = () => {
 
   return (
     <motion.section
-      id="my-sessions"
+      id="mentorship-section"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.15 }}
+      transition={{ delay: 0.15, ease: [0.25, 0.46, 0.45, 0.94] }}
       className="space-y-4"
     >
       <div className="flex items-center justify-between">
