@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Calendar, Clock, User, Loader2, CheckCircle, XCircle, Users } from "lucide-react";
+import { Calendar, Clock, User, Loader2, CheckCircle, XCircle, Users, Timer } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import SessionManagement from "./SessionManagement";
+import { Badge } from "@/components/ui/badge";
 
 interface MentorSession {
   id: string;
@@ -14,6 +15,7 @@ interface MentorSession {
   notes: string | null;
   created_at: string;
   confirmed_by_mentor?: boolean;
+  duration?: number;
   mentor?: {
     name: string;
     area: string;
@@ -174,6 +176,12 @@ const MentorshipSection = () => {
                           <Clock className="w-3 h-3" />
                           {formatDate(session.scheduled_at)}
                         </p>
+                        {session.duration && (
+                          <Badge variant="secondary" className="text-xs mt-1 bg-muted/60">
+                            <Timer className="w-3 h-3 mr-1" />
+                            {session.duration} min
+                          </Badge>
+                        )}
                       </div>
                       <div className="flex flex-col items-end gap-2">
                         <span className={`px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${statusLabels[session.status]?.color || "bg-gray-100"}`}>

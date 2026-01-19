@@ -2,8 +2,9 @@ import { useState, useMemo } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { format, addDays, startOfDay, isSameDay, getDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Clock, Loader2, AlertCircle } from "lucide-react";
+import { Clock, Loader2, AlertCircle, Timer } from "lucide-react";
 import { isDateBlocked, getBlockedReason, isHoliday } from "@/lib/brazilianHolidays";
+import { motion } from "framer-motion";
 
 interface Availability {
   day: string;
@@ -19,7 +20,7 @@ interface BlockedPeriod {
 interface BookingCalendarProps {
   availability: Availability[];
   blockedPeriods: BlockedPeriod[];
-  onConfirm: (date: Date, time: string) => Promise<void>;
+  onConfirm: (date: Date, time: string, duration: number) => Promise<void>;
   loading: boolean;
 }
 
@@ -43,6 +44,12 @@ const dayLabels: Record<string, string> = {
   sunday: "Domingo",
 };
 
+const DURATION_OPTIONS = [
+  { value: 30, label: "30 min", description: "Conversa rápida" },
+  { value: 45, label: "45 min", description: "Sessão padrão" },
+  { value: 60, label: "1 hora", description: "Mentoria completa" },
+];
+
 const BookingCalendar = ({ 
   availability, 
   blockedPeriods, 
@@ -51,6 +58,7 @@ const BookingCalendar = ({
 }: BookingCalendarProps) => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState<string>("");
+  const [selectedDuration, setSelectedDuration] = useState<number>(30);
 
   // Get available weekdays from mentor's availability
   const availableDayIndices = useMemo(() => {
@@ -106,7 +114,7 @@ const BookingCalendar = ({
     const bookingDate = new Date(selectedDate);
     bookingDate.setHours(hours, minutes, 0, 0);
     
-    await onConfirm(bookingDate, selectedTime);
+    await onConfirm(bookingDate, selectedTime, selectedDuration);
   };
 
   return (
@@ -167,6 +175,43 @@ const BookingCalendar = ({
         </div>
       )}
 
+      {/* Duration selection */}
+      {selectedDate && selectedTime && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <label className="flex items-center gap-2 text-sm font-medium text-foreground mb-3">
+            <Timer className="w-4 h-4 text-primary" />
+            Duração da mentoria
+          </label>
+          <div className="grid grid-cols-3 gap-2">
+            {DURATION_OPTIONS.map((option) => (
+              <motion.button
+                key={option.value}
+                type="button"
+                onClick={() => setSelectedDuration(option.value)}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className={`p-3 rounded-xl text-center transition-all border ${
+                  selectedDuration === option.value
+                    ? "bg-primary text-primary-foreground border-primary shadow-button"
+                    : "bg-muted text-foreground hover:bg-muted/80 border-border/50"
+                }`}
+              >
+                <span className="block font-semibold text-sm">{option.label}</span>
+                <span className={`block text-xs mt-0.5 ${
+                  selectedDuration === option.value ? "text-primary-foreground/80" : "text-muted-foreground"
+                }`}>
+                  {option.description}
+                </span>
+              </motion.button>
+            ))}
+          </div>
+        </motion.div>
+      )}
+
       {/* No times available */}
       {selectedDate && availableTimes.length === 0 && (
         <div className="flex items-center gap-2 text-sm text-muted-foreground p-4 bg-muted rounded-xl">
@@ -176,14 +221,16 @@ const BookingCalendar = ({
       )}
 
       {/* Confirm button */}
-      <button
+      <motion.button
         onClick={handleConfirm}
         disabled={!selectedDate || !selectedTime || loading}
-        className="w-full bg-gradient-hero text-primary-foreground py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
+        whileHover={{ scale: 1.01 }}
+        whileTap={{ scale: 0.99 }}
+        className="w-full bg-gradient-hero text-primary-foreground py-3.5 rounded-xl font-semibold hover:opacity-90 transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-button"
       >
         {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-        Confirmar agendamento
-      </button>
+        Confirmar agendamento ({DURATION_OPTIONS.find(d => d.value === selectedDuration)?.label})
+      </motion.button>
 
       {/* Legend */}
       <div className="flex flex-wrap gap-4 text-xs text-muted-foreground pt-2">
