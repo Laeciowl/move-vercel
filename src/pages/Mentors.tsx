@@ -88,7 +88,7 @@ const Mentors = () => {
     }
   };
 
-  const handleBookSession = async (date: Date, time: string) => {
+  const handleBookSession = async (date: Date, time: string, duration: number) => {
     if (!user) {
       toast.error("Faz login primeiro pra agendar uma mentoria 😊");
       navigate("/auth?cadastro=true");
@@ -114,12 +114,14 @@ const Mentors = () => {
       mentor_id: selectedMentor.id,
       user_id: user.id,
       scheduled_at: date.toISOString(),
+      duration: duration,
     });
 
     if (error) {
       toast.error("Erro ao agendar: " + error.message);
     } else {
-      toast.success("Show! Mentoria agendada! O mentor vai entrar em contato pra confirmar.");
+      const durationLabel = duration === 30 ? "30 min" : duration === 45 ? "45 min" : "1 hora";
+      toast.success(`Show! Mentoria de ${durationLabel} agendada! O mentor vai entrar em contato pra confirmar.`);
       setDialogOpen(false);
     }
 

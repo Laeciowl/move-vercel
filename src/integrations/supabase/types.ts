@@ -160,9 +160,11 @@ export type Database = {
       }
       mentor_sessions: {
         Row: {
+          completed_at: string | null
           confirmed_at: string | null
           confirmed_by_mentor: boolean | null
           created_at: string
+          duration: number | null
           id: string
           mentor_id: string
           mentor_notes: string | null
@@ -172,9 +174,11 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          completed_at?: string | null
           confirmed_at?: string | null
           confirmed_by_mentor?: boolean | null
           created_at?: string
+          duration?: number | null
           id?: string
           mentor_id: string
           mentor_notes?: string | null
@@ -184,9 +188,11 @@ export type Database = {
           user_id: string
         }
         Update: {
+          completed_at?: string | null
           confirmed_at?: string | null
           confirmed_by_mentor?: boolean | null
           created_at?: string
+          duration?: number | null
           id?: string
           mentor_id?: string
           mentor_notes?: string | null

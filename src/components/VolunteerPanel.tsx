@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, FileText, Video, Users, Loader2, ExternalLink, Clock, CheckCircle, XCircle, Calendar, Settings, Award, Mail, Phone, User } from "lucide-react";
+import { Heart, FileText, Video, Users, Loader2, ExternalLink, Clock, CheckCircle, XCircle, Calendar, Settings, Award, Mail, Phone, User, PartyPopper } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useVolunteerCheck } from "@/hooks/useVolunteerCheck";
@@ -11,8 +11,9 @@ import MentorSessionConfirmation from "./MentorSessionConfirmation";
 import MentorAvailabilityEditor from "./MentorAvailabilityEditor";
 import SessionManagement from "./SessionManagement";
 import ContentSubmissionModal from "./ContentSubmissionModal";
-import { format } from "date-fns";
+import { format, isPast } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { toast } from "sonner";
 
 interface Submission {
   id: string;
@@ -42,6 +43,8 @@ interface MentorSession {
   user_id: string;
   confirmed_by_mentor: boolean;
   mentor_notes: string | null;
+  duration?: number;
+  completed_at?: string;
   mentee_email?: string;
   mentee_profile?: {
     name: string;
@@ -88,10 +91,40 @@ const VolunteerPanel = () => {
   const [loading, setLoading] = useState(true);
   const [showBlockedPeriods, setShowBlockedPeriods] = useState(false);
   const [activeTab, setActiveTab] = useState<"overview" | "agenda" | "content">("overview");
+  const [completingSession, setCompletingSession] = useState<string | null>(null);
   const [submissionModal, setSubmissionModal] = useState<{ isOpen: boolean; category: "aulas_lives" | "templates_arquivos" }>({
     isOpen: false,
     category: "aulas_lives",
   });
+
+  // Mark session as completed
+  const handleMarkAsCompleted = async (sessionId: string) => {
+    setCompletingSession(sessionId);
+    
+    const { error } = await supabase
+      .from("mentor_sessions")
+      .update({
+        status: "completed",
+        completed_at: new Date().toISOString(),
+      })
+      .eq("id", sessionId);
+
+    if (error) {
+      toast.error("Erro ao marcar sessão: " + error.message);
+    } else {
+      toast.success("🎉 Mentoria concluída! Parabéns pelo impacto!");
+      fetchData();
+    }
+    
+    setCompletingSession(null);
+  };
+
+  // Check if session time has passed (can be marked as completed)
+  const canMarkAsCompleted = (scheduledAt: string, duration: number = 30): boolean => {
+    const sessionEndTime = new Date(scheduledAt);
+    sessionEndTime.setMinutes(sessionEndTime.getMinutes() + duration);
+    return isPast(sessionEndTime);
+  };
 
   // Listen for notification actions to switch tabs
   useEffect(() => {
@@ -495,82 +528,115 @@ const VolunteerPanel = () => {
                   Próximas sessões ({upcomingSessions.length})
                 </h4>
                 <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
-                  {upcomingSessions.map((session, index) => (
-                    <motion.div
-                      key={session.id}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.3 + index * 0.1 }}
-                      className="bg-gradient-to-br from-accent/50 to-accent/30 rounded-2xl p-4 space-y-3 border border-border/50 hover:border-primary/30 transition-all duration-300 hover:shadow-soft"
-                    >
-                      <div className="flex items-center gap-3">
-                        {/* Mentee photo */}
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center overflow-hidden border-2 border-primary/30 shrink-0">
-                          {session.mentee_profile?.photo_url ? (
-                            <img 
-                              src={session.mentee_profile.photo_url} 
-                              alt={session.mentee_profile.name || "Mentorado"} 
-                              className="w-full h-full object-cover"
-                            />
+                  {upcomingSessions.map((session, index) => {
+                    const sessionDuration = session.duration || 30;
+                    const canComplete = canMarkAsCompleted(session.scheduled_at, sessionDuration);
+                    const isCompleting = completingSession === session.id;
+                    
+                    return (
+                      <motion.div
+                        key={session.id}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.3 + index * 0.1 }}
+                        className="bg-gradient-to-br from-accent/50 to-accent/30 rounded-2xl p-4 space-y-3 border border-border/50 hover:border-primary/30 transition-all duration-300 hover:shadow-soft"
+                      >
+                        <div className="flex items-center gap-3">
+                          {/* Mentee photo */}
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center overflow-hidden border-2 border-primary/30 shrink-0">
+                            {session.mentee_profile?.photo_url ? (
+                              <img 
+                                src={session.mentee_profile.photo_url} 
+                                alt={session.mentee_profile.name || "Mentorado"} 
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <User className="w-5 h-5 text-primary/60" />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <span className="font-medium text-foreground block truncate">
+                              {session.mentee_profile?.name || "Mentorado"}
+                            </span>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              {session.confirmed_by_mentor && (
+                                <Badge variant="outline" className="text-green-600 dark:text-green-400 border-green-600 dark:border-green-400 text-xs">
+                                  <CheckCircle className="w-3 h-3 mr-1" />
+                                  Confirmado
+                                </Badge>
+                              )}
+                              <Badge variant="secondary" className="text-xs bg-muted/60">
+                                <Clock className="w-3 h-3 mr-1" />
+                                {sessionDuration} min
+                              </Badge>
+                            </div>
+                          </div>
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          📅 {format(new Date(session.scheduled_at), "EEEE, d 'de' MMMM 'às' HH:mm", { locale: ptBR })}
+                        </p>
+                        
+                        {/* Contact info */}
+                        <div className="bg-card/50 rounded-lg p-2 space-y-1 border border-border/50">
+                          {session.mentee_email && (
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Mail className="w-3 h-3 text-primary" />
+                              <a href={`mailto:${session.mentee_email}`} className="hover:text-primary transition-colors underline truncate">
+                                {session.mentee_email}
+                              </a>
+                            </div>
+                          )}
+
+                          {session.mentee_profile?.phone ? (
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Phone className="w-3 h-3 text-primary" />
+                              <a href={`tel:${session.mentee_profile.phone}`} className="hover:text-primary transition-colors">
+                                {session.mentee_profile.phone}
+                              </a>
+                            </div>
                           ) : (
-                            <User className="w-5 h-5 text-primary/60" />
+                            <p className="text-xs text-muted-foreground italic">Telefone não informado pelo mentorado</p>
                           )}
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <span className="font-medium text-foreground block truncate">
-                            {session.mentee_profile?.name || "Mentorado"}
-                          </span>
-                          {session.confirmed_by_mentor && (
-                            <Badge variant="outline" className="text-green-600 dark:text-green-400 border-green-600 dark:border-green-400 text-xs mt-0.5">
-                              <CheckCircle className="w-3 h-3 mr-1" />
-                              Confirmado
-                            </Badge>
-                          )}
+
+                        {/* Session actions */}
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-2 border-t border-border/50">
+                          {/* Mark as completed button */}
+                          <motion.button
+                            onClick={() => handleMarkAsCompleted(session.id)}
+                            disabled={!canComplete || isCompleting}
+                            whileHover={canComplete ? { scale: 1.02 } : {}}
+                            whileTap={canComplete ? { scale: 0.98 } : {}}
+                            className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all ${
+                              canComplete
+                                ? "bg-green-500 hover:bg-green-600 text-white shadow-sm"
+                                : "bg-muted text-muted-foreground cursor-not-allowed"
+                            }`}
+                          >
+                            {isCompleting ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <PartyPopper className="w-4 h-4" />
+                            )}
+                            {canComplete ? "Marcar como realizada" : "Aguardando horário"}
+                          </motion.button>
+                          
+                          {/* Session management for mentor */}
+                          <SessionManagement
+                            sessionId={session.id}
+                            scheduledAt={session.scheduled_at}
+                            mentorName={mentorData.name}
+                            mentorId={mentorData.id}
+                            menteeName={session.mentee_profile?.name}
+                            menteeEmail={session.mentee_email}
+                            mentorEmail={mentorData.email}
+                            userRole="mentor"
+                            onUpdate={fetchData}
+                          />
                         </div>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        📅 {format(new Date(session.scheduled_at), "EEEE, d 'de' MMMM 'às' HH:mm", { locale: ptBR })}
-                      </p>
-                      
-                      {/* Contact info */}
-                      <div className="bg-card/50 rounded-lg p-2 space-y-1 border border-border/50">
-                        {session.mentee_email && (
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Mail className="w-3 h-3 text-primary" />
-                            <a href={`mailto:${session.mentee_email}`} className="hover:text-primary transition-colors underline truncate">
-                              {session.mentee_email}
-                            </a>
-                          </div>
-                        )}
-
-                        {session.mentee_profile?.phone ? (
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Phone className="w-3 h-3 text-primary" />
-                            <a href={`tel:${session.mentee_profile.phone}`} className="hover:text-primary transition-colors">
-                              {session.mentee_profile.phone}
-                            </a>
-                          </div>
-                        ) : (
-                          <p className="text-xs text-muted-foreground italic">Telefone não informado pelo mentorado</p>
-                        )}
-                      </div>
-
-                      {/* Session management for mentor */}
-                      <div className="flex justify-end pt-2 border-t border-border/50">
-                        <SessionManagement
-                          sessionId={session.id}
-                          scheduledAt={session.scheduled_at}
-                          mentorName={mentorData.name}
-                          mentorId={mentorData.id}
-                          menteeName={session.mentee_profile?.name}
-                          menteeEmail={session.mentee_email}
-                          mentorEmail={mentorData.email}
-                          userRole="mentor"
-                          onUpdate={fetchData}
-                        />
-                      </div>
-                    </motion.div>
-                  ))}
+                      </motion.div>
+                    );
+                  })}
                 </div>
               </motion.div>
             )}
