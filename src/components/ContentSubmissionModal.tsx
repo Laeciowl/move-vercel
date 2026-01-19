@@ -1,10 +1,17 @@
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Upload, Video, FileText, Loader2, CheckCircle, Link as LinkIcon } from "lucide-react";
+import { X, Upload, Video, FileText, Loader2, CheckCircle, Link as LinkIcon, ChevronDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface ContentSubmissionModalProps {
   isOpen: boolean;
@@ -28,6 +35,32 @@ const categoryInfo = {
   },
 };
 
+// Predefined areas (broad categories)
+const AREAS = [
+  { value: "carreira", label: "Carreira" },
+  { value: "tecnologia", label: "Tecnologia" },
+  { value: "negocios", label: "Negócios" },
+  { value: "desenvolvimento", label: "Desenvolvimento Pessoal" },
+  { value: "geral", label: "Geral" },
+];
+
+// Predefined themes (specific topics)
+const THEMES = [
+  { value: "curriculo", label: "Currículo" },
+  { value: "entrevistas", label: "Entrevistas" },
+  { value: "linkedin", label: "LinkedIn" },
+  { value: "dados", label: "Análise de Dados" },
+  { value: "programacao", label: "Programação" },
+  { value: "marketing", label: "Marketing" },
+  { value: "lideranca", label: "Liderança" },
+  { value: "produtividade", label: "Produtividade" },
+  { value: "comunicacao", label: "Comunicação" },
+  { value: "financas", label: "Finanças" },
+  { value: "empreendedorismo", label: "Empreendedorismo" },
+  { value: "soft_skills", label: "Soft Skills" },
+  { value: "geral", label: "Geral" },
+];
+
 const ContentSubmissionModal = ({ isOpen, onClose, onSuccess, category }: ContentSubmissionModalProps) => {
   const { user, profile } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -37,6 +70,8 @@ const ContentSubmissionModal = ({ isOpen, onClose, onSuccess, category }: Conten
     title: "",
     description: "",
     url: "",
+    area: "",
+    tema: "",
   });
   const [file, setFile] = useState<File | null>(null);
 
@@ -82,6 +117,16 @@ const ContentSubmissionModal = ({ isOpen, onClose, onSuccess, category }: Conten
       return;
     }
 
+    if (!formData.area) {
+      toast.error("Por favor, selecione a área");
+      return;
+    }
+
+    if (!formData.tema) {
+      toast.error("Por favor, selecione o tema");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -116,6 +161,8 @@ const ContentSubmissionModal = ({ isOpen, onClose, onSuccess, category }: Conten
           description: formData.description.trim(),
           content_type: info.contentType,
           content_url: contentUrl,
+          area: formData.area,
+          tema: formData.tema,
         });
 
       if (submissionError) {
@@ -137,7 +184,7 @@ const ContentSubmissionModal = ({ isOpen, onClose, onSuccess, category }: Conten
   };
 
   const resetForm = () => {
-    setFormData({ title: "", description: "", url: "" });
+    setFormData({ title: "", description: "", url: "", area: "", tema: "" });
     setFile(null);
     setSubmitted(false);
   };
@@ -229,6 +276,50 @@ const ContentSubmissionModal = ({ isOpen, onClose, onSuccess, category }: Conten
                     maxLength={1000}
                     required
                   />
+                </div>
+
+                {/* Area Select */}
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Área *
+                  </label>
+                  <Select
+                    value={formData.area}
+                    onValueChange={(value) => setFormData({ ...formData, area: value })}
+                  >
+                    <SelectTrigger className="w-full rounded-xl border-input bg-background">
+                      <SelectValue placeholder="Selecione a área" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-card border-border">
+                      {AREAS.map((area) => (
+                        <SelectItem key={area.value} value={area.value}>
+                          {area.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Theme Select */}
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Tema *
+                  </label>
+                  <Select
+                    value={formData.tema}
+                    onValueChange={(value) => setFormData({ ...formData, tema: value })}
+                  >
+                    <SelectTrigger className="w-full rounded-xl border-input bg-background">
+                      <SelectValue placeholder="Selecione o tema" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-card border-border max-h-64">
+                      {THEMES.map((theme) => (
+                        <SelectItem key={theme.value} value={theme.value}>
+                          {theme.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {info.contentType === "link" ? (
