@@ -134,7 +134,7 @@ const AdminVolunteersPanel = () => {
         }
       }
 
-      // Add volunteer role if user_id exists
+      // Add volunteer role and update profile photo if user_id exists
       if (app.user_id) {
         const { error: roleError } = await supabase
           .from("user_roles")
@@ -143,6 +143,19 @@ const AdminVolunteersPanel = () => {
 
         if (roleError && !roleError.message.includes("duplicate")) {
           console.error("Error adding role:", roleError);
+        }
+
+        // Update profile photo from mentor photo if available
+        const mentor = mentorsByEmail[app.email];
+        if (mentor?.photo_url) {
+          const { error: photoError } = await supabase
+            .from("profiles")
+            .update({ photo_url: mentor.photo_url })
+            .eq("user_id", app.user_id);
+
+          if (photoError) {
+            console.error("Error updating profile photo:", photoError);
+          }
         }
 
         // Create notification for the user

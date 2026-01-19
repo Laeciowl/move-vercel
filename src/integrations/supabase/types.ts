@@ -61,6 +61,7 @@ export type Database = {
       }
       content_items: {
         Row: {
+          area: string
           category: string
           created_at: string
           description: string | null
@@ -70,6 +71,7 @@ export type Database = {
           url: string
         }
         Insert: {
+          area?: string
           category?: string
           created_at?: string
           description?: string | null
@@ -79,6 +81,7 @@ export type Database = {
           url: string
         }
         Update: {
+          area?: string
           category?: string
           created_at?: string
           description?: string | null

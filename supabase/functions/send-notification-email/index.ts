@@ -32,7 +32,16 @@ interface NotificationEmailRequest {
 }
 
 const emailFooter = `
-  <p style="color: #999; font-size: 12px; text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee;">
+  <div style="margin-top: 40px; padding: 20px; border-top: 1px solid #eee; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 0 0 8px 8px;">
+    <p style="color: #666; font-size: 14px; line-height: 1.6; margin: 0 0 10px 0; font-style: italic;">
+      "Obrigado por se unir à Comunidade Movê! Juntos, criamos um movimento que move a sociedade. 
+      Cada conexão, cada mentoria, cada aprendizado nos aproxima de um futuro onde todos têm as mesmas oportunidades."
+    </p>
+    <p style="color: #7c3aed; font-weight: bold; margin: 0; font-size: 13px;">
+      — Laécio Oliveira, Fundador da Movê
+    </p>
+  </div>
+  <p style="color: #999; font-size: 12px; text-align: center; margin-top: 20px;">
     <strong>Movê — educação que Move</strong>
   </p>
 `;
