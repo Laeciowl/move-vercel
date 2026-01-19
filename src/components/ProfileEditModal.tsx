@@ -1,9 +1,10 @@
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Camera, Loader2, User } from "lucide-react";
+import { X, Camera, Loader2, User, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
+import DeleteAccountModal from "./DeleteAccountModal";
 import type { Enums } from "@/integrations/supabase/types";
 
 type ProfessionalStatus = Enums<"professional_status">;
@@ -51,6 +52,7 @@ const ProfileEditModal = ({ isOpen, onClose, profile, onProfileUpdated }: Profil
   });
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -85,7 +87,9 @@ const ProfileEditModal = ({ isOpen, onClose, profile, onProfileUpdated }: Profil
         .from("profile-photos")
         .getPublicUrl(fileName);
 
-      setFormData({ ...formData, photo_url: publicUrl });
+      // Add cache buster to force refresh
+      const urlWithCacheBuster = `${publicUrl}?t=${Date.now()}`;
+      setFormData({ ...formData, photo_url: urlWithCacheBuster });
       toast.success("Foto salva!");
     } catch (error: any) {
       toast.error("Erro ao carregar foto: " + error.message);
@@ -291,10 +295,34 @@ const ProfileEditModal = ({ isOpen, onClose, profile, onProfileUpdated }: Profil
                   Salvar
                 </button>
               </div>
+
+              {/* Delete Account Section */}
+              <div className="border-t border-border pt-4 mt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteModal(true)}
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-destructive/30 text-destructive hover:bg-destructive/10 transition-colors text-sm font-medium"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Deletar minha conta
+                </button>
+              </div>
             </form>
           </motion.div>
         </>
       )}
+
+      {/* Delete Account Modal */}
+      <DeleteAccountModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        userName={profile.name}
+        onDeleted={() => {
+          setShowDeleteModal(false);
+          onClose();
+          window.location.href = "/";
+        }}
+      />
     </AnimatePresence>
   );
 };
