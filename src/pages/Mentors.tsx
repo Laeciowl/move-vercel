@@ -30,7 +30,6 @@ interface BlockedPeriod {
 
 interface Review {
   id: string;
-  rating: number;
   comment: string | null;
   created_at: string;
 }
@@ -43,7 +42,6 @@ interface Mentor {
   education: string | null;
   photo_url: string | null;
   availability: Availability[];
-  averageRating: number;
   totalReviews: number;
   reviews: Review[];
 }
@@ -105,7 +103,6 @@ const Mentors = () => {
         const existing = reviewsByMentor.get(review.mentor_id) || [];
         existing.push({
           id: review.id,
-          rating: review.rating,
           comment: review.comment,
           created_at: review.created_at
         });
@@ -114,10 +111,8 @@ const Mentors = () => {
 
       const formattedMentors = data.map((m) => {
         const mentorReviews = reviewsByMentor.get(m.id!) || [];
-        const totalReviews = mentorReviews.length;
-        const averageRating = totalReviews > 0
-          ? mentorReviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews
-          : 0;
+        // Only count reviews that have comments
+        const totalReviews = mentorReviews.filter(r => r.comment?.trim()).length;
 
         return {
           ...m,
@@ -127,18 +122,12 @@ const Mentors = () => {
           description: m.description!,
           availability: (m.availability as unknown as Availability[]) || [],
           reviews: mentorReviews,
-          totalReviews,
-          averageRating
+          totalReviews
         };
       });
 
-      // Sort by rating (highest first), then by number of reviews
-      formattedMentors.sort((a, b) => {
-        if (b.averageRating !== a.averageRating) {
-          return b.averageRating - a.averageRating;
-        }
-        return b.totalReviews - a.totalReviews;
-      });
+      // Sort by number of reviews (most reviews first)
+      formattedMentors.sort((a, b) => b.totalReviews - a.totalReviews);
 
       setMentors(formattedMentors);
       setLoading(false);
@@ -284,10 +273,9 @@ const Mentors = () => {
                     {mentor.description}
                   </p>
 
-                  {/* Rating Display */}
+                  {/* Feedback Display */}
                   <div className="mb-3">
                     <MentorRatingDisplay
-                      averageRating={mentor.averageRating}
                       totalReviews={mentor.totalReviews}
                       size="sm"
                     />
@@ -299,7 +287,7 @@ const Mentors = () => {
                         onClick={() => openReviewsDialog(mentor)}
                       >
                         <MessageSquare className="w-3 h-3 mr-1" />
-                        Ver avaliações
+                        Ver feedbacks
                       </Button>
                     )}
                   </div>
@@ -378,11 +366,10 @@ const Mentors = () => {
         <Dialog open={reviewsDialogOpen} onOpenChange={setReviewsDialogOpen}>
           <DialogContent className="sm:max-w-md max-h-[80vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Avaliações de {selectedMentorForReviews?.name}</DialogTitle>
+              <DialogTitle>Feedbacks sobre {selectedMentorForReviews?.name}</DialogTitle>
               <DialogDescription>
                 {selectedMentorForReviews && (
                   <MentorRatingDisplay
-                    averageRating={selectedMentorForReviews.averageRating}
                     totalReviews={selectedMentorForReviews.totalReviews}
                     size="md"
                   />
