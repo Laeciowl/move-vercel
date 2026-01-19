@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, X, Loader2, Calendar, User, MessageSquare } from "lucide-react";
+import { Check, X, Loader2, Calendar, User, MessageSquare, Mail, Phone, Info } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -12,6 +12,7 @@ interface MentorSession {
   status: string;
   confirmed_by_mentor: boolean;
   mentor_notes: string | null;
+  mentee_email?: string;
   mentee_profile?: {
     name: string;
     phone: string | null;
@@ -100,11 +101,44 @@ const MentorSessionConfirmation = ({ sessions, onUpdate }: MentorSessionConfirma
               📅 {formatSessionDate(session.scheduled_at)}
             </p>
             
-            {session.mentee_profile?.phone && (
-              <p className="text-sm text-muted-foreground">
-                📱 {session.mentee_profile.phone}
+            {/* Contact information */}
+            <div className="bg-white/50 dark:bg-black/20 rounded-lg p-3 space-y-2 border border-border/50">
+              <p className="text-xs font-medium text-foreground flex items-center gap-1">
+                <Info className="w-3 h-3" />
+                Dados de contato do mentorado:
               </p>
-            )}
+              
+              {session.mentee_email && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Mail className="w-3 h-3" />
+                  <a href={`mailto:${session.mentee_email}`} className="hover:text-primary transition-colors underline">
+                    {session.mentee_email}
+                  </a>
+                </div>
+              )}
+              
+              {session.mentee_profile?.phone && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Phone className="w-3 h-3" />
+                  <a href={`tel:${session.mentee_profile.phone}`} className="hover:text-primary transition-colors">
+                    {session.mentee_profile.phone}
+                  </a>
+                </div>
+              )}
+              
+              {!session.mentee_email && !session.mentee_profile?.phone && (
+                <p className="text-xs text-muted-foreground italic">
+                  Nenhum contato disponível
+                </p>
+              )}
+            </div>
+
+            {/* Disclaimer */}
+            <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 text-xs text-muted-foreground space-y-1">
+              <p className="font-medium text-foreground">📌 Importante:</p>
+              <p>• A sessão pode ser realizada por Google Meet, Zoom ou qualquer plataforma de sua escolha.</p>
+              <p>• Entre em contato e confirme a sessão com o mentorado até <strong>24h antes</strong> do horário agendado.</p>
+            </div>
 
             <div className="flex flex-wrap gap-2 pt-2">
               <button
