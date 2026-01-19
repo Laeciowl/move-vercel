@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, FileText, Video, Users, Loader2, ExternalLink, Clock, CheckCircle, XCircle, Calendar, Settings, Award } from "lucide-react";
+import { Heart, FileText, Video, Users, Loader2, ExternalLink, Clock, CheckCircle, XCircle, Calendar, Settings, Award, Mail, Phone, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useVolunteerCheck } from "@/hooks/useVolunteerCheck";
@@ -140,10 +140,9 @@ const VolunteerPanel = () => {
         let emailsData: { user_id: string; email: string }[] = [];
 
         if (userIds.length > 0) {
+          // Fetch mentee profiles using the RPC function
           const { data: profilesData, error: profilesError } = await supabase
-            .from("profiles")
-            .select("user_id, name, phone, photo_url")
-            .in("user_id", userIds);
+            .rpc("get_mentee_contact_profiles", { session_user_ids: userIds });
 
           if (!profilesError && profilesData) {
             profiles = profilesData;
@@ -160,8 +159,8 @@ const VolunteerPanel = () => {
 
         const sessionsWithProfiles = sessionsData.map((session) => ({
           ...session,
-          mentee_profile: profiles.find((p) => p.user_id === session.user_id),
-          mentee_email: emailsData.find((e) => e.user_id === session.user_id)?.email,
+          mentee_profile: profiles.find((p: { user_id: string }) => p.user_id === session.user_id),
+          mentee_email: emailsData.find((e: { user_id: string; email: string }) => e.user_id === session.user_id)?.email,
         }));
 
         setSessions(sessionsWithProfiles);
@@ -495,28 +494,59 @@ const VolunteerPanel = () => {
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.3 + index * 0.1 }}
-                      className="bg-gradient-to-br from-accent/50 to-accent/30 rounded-2xl p-4 space-y-2 border border-border/50 hover:border-primary/30 transition-all duration-300 hover:shadow-soft"
+                      className="bg-gradient-to-br from-accent/50 to-accent/30 rounded-2xl p-4 space-y-3 border border-border/50 hover:border-primary/30 transition-all duration-300 hover:shadow-soft"
                     >
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <Users className="w-4 h-4 text-muted-foreground" />
-                        <span className="font-medium text-foreground">
-                          {session.mentee_profile?.name || "Mentorado"}
-                        </span>
-                        {session.confirmed_by_mentor && (
-                          <Badge variant="outline" className="text-green-600 dark:text-green-400 border-green-600 dark:border-green-400 text-xs">
-                            <CheckCircle className="w-3 h-3 mr-1" />
-                            Confirmado
-                          </Badge>
-                        )}
+                      <div className="flex items-center gap-3">
+                        {/* Mentee photo */}
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center overflow-hidden border-2 border-primary/30 shrink-0">
+                          {session.mentee_profile?.photo_url ? (
+                            <img 
+                              src={session.mentee_profile.photo_url} 
+                              alt={session.mentee_profile.name || "Mentorado"} 
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <User className="w-5 h-5 text-primary/60" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <span className="font-medium text-foreground block truncate">
+                            {session.mentee_profile?.name || "Mentorado"}
+                          </span>
+                          {session.confirmed_by_mentor && (
+                            <Badge variant="outline" className="text-green-600 dark:text-green-400 border-green-600 dark:border-green-400 text-xs mt-0.5">
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              Confirmado
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                       <p className="text-sm text-muted-foreground">
                         📅 {format(new Date(session.scheduled_at), "EEEE, d 'de' MMMM 'às' HH:mm", { locale: ptBR })}
                       </p>
-                      {session.mentee_profile?.phone && (
-                        <p className="text-sm text-muted-foreground">
-                          📞 {session.mentee_profile.phone}
-                        </p>
-                      )}
+                      
+                      {/* Contact info */}
+                      <div className="bg-card/50 rounded-lg p-2 space-y-1 border border-border/50">
+                        {session.mentee_email && (
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Mail className="w-3 h-3 text-primary" />
+                            <a href={`mailto:${session.mentee_email}`} className="hover:text-primary transition-colors underline truncate">
+                              {session.mentee_email}
+                            </a>
+                          </div>
+                        )}
+                        {session.mentee_profile?.phone && (
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Phone className="w-3 h-3 text-primary" />
+                            <a href={`tel:${session.mentee_profile.phone}`} className="hover:text-primary transition-colors">
+                              {session.mentee_profile.phone}
+                            </a>
+                          </div>
+                        )}
+                        {!session.mentee_email && !session.mentee_profile?.phone && (
+                          <p className="text-xs text-muted-foreground italic">Contato não disponível</p>
+                        )}
+                      </div>
                     </motion.div>
                   ))}
                 </div>
