@@ -407,6 +407,7 @@ export type Database = {
       volunteer_submissions: {
         Row: {
           admin_notes: string | null
+          area: string | null
           category: Database["public"]["Enums"]["volunteer_category"]
           content_type: string
           content_url: string
@@ -416,6 +417,7 @@ export type Database = {
           reviewed_at: string | null
           reviewed_by: string | null
           status: string
+          tema: string | null
           title: string
           volunteer_email: string
           volunteer_id: string | null
@@ -423,6 +425,7 @@ export type Database = {
         }
         Insert: {
           admin_notes?: string | null
+          area?: string | null
           category: Database["public"]["Enums"]["volunteer_category"]
           content_type: string
           content_url: string
@@ -432,6 +435,7 @@ export type Database = {
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: string
+          tema?: string | null
           title: string
           volunteer_email: string
           volunteer_id?: string | null
@@ -439,6 +443,7 @@ export type Database = {
         }
         Update: {
           admin_notes?: string | null
+          area?: string | null
           category?: Database["public"]["Enums"]["volunteer_category"]
           content_type?: string
           content_url?: string
@@ -448,6 +453,7 @@ export type Database = {
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: string
+          tema?: string | null
           title?: string
           volunteer_email?: string
           volunteer_id?: string | null
