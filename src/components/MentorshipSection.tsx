@@ -47,20 +47,44 @@ const MentorshipSection = () => {
     const fetchSessions = async () => {
       if (!user) return;
 
-      const { data, error } = await supabase
+      // Fetch sessions first, then get mentor data from mentors_public view
+      const { data: sessionsData, error: sessionsError } = await supabase
         .from("mentor_sessions")
-        .select(`
-          *,
-          mentor:mentors(name, area, photo_url)
-        `)
+        .select("*")
         .eq("user_id", user.id)
         .order("scheduled_at", { ascending: false });
 
-      if (error) {
-        console.error("Error fetching sessions:", error);
-      } else if (data) {
-        setSessions(data as unknown as MentorSession[]);
+      if (sessionsError) {
+        console.error("Error fetching sessions:", sessionsError);
+        setLoading(false);
+        return;
       }
+
+      if (!sessionsData || sessionsData.length === 0) {
+        setSessions([]);
+        setLoading(false);
+        return;
+      }
+
+      // Get unique mentor IDs
+      const mentorIds = [...new Set(sessionsData.map(s => s.mentor_id))];
+      
+      // Fetch mentor data from mentors_public view (excludes sensitive email)
+      const { data: mentorsData } = await supabase
+        .from("mentors_public")
+        .select("id, name, area, photo_url")
+        .in("id", mentorIds);
+
+      // Map mentor data to sessions
+      const mentorsMap = new Map(
+        (mentorsData || []).map(m => [m.id, m])
+      );
+
+      const data = sessionsData.map(session => ({
+        ...session,
+        mentor: mentorsMap.get(session.mentor_id) || null
+      }));
+      setSessions(data as MentorSession[]);
       setLoading(false);
     };
 
