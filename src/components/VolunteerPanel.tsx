@@ -247,7 +247,24 @@ const VolunteerPanel = () => {
 
   const approvedSubmissions = submissions.filter(s => s.status === "approved");
   const pendingSubmissions = submissions.filter(s => s.status === "pending");
-  const upcomingSessions = sessions.filter(s => s.status === "scheduled" && new Date(s.scheduled_at) > new Date());
+
+  const now = new Date();
+  const scheduledSessions = sessions.filter((s) => s.status === "scheduled");
+
+  const ongoingSessions = scheduledSessions.filter((s) => {
+    const start = new Date(s.scheduled_at);
+    const duration = s.duration || 30;
+    const end = new Date(start.getTime() + duration * 60 * 1000);
+    return start <= now && end > now;
+  });
+
+  const sessionsToComplete = scheduledSessions.filter((s) =>
+    canMarkAsCompleted(s.scheduled_at, s.duration || 30)
+  );
+
+  const upcomingSessions = scheduledSessions.filter(
+    (s) => new Date(s.scheduled_at) > now
+  );
 
   return (
     <motion.div
@@ -515,6 +532,118 @@ const VolunteerPanel = () => {
               </AnimatePresence>
             </motion.div>
 
+            {/* Sessions to complete (past sessions) */}
+            {sessionsToComplete.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.22 }}
+              >
+                <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                  <PartyPopper className="w-4 h-4 text-primary" />
+                  Sessões para marcar como realizadas ({sessionsToComplete.length})
+                </h4>
+                <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
+                  {sessionsToComplete.map((session, index) => {
+                    const sessionDuration = session.duration || 30;
+                    const isCompleting = completingSession === session.id;
+
+                    return (
+                      <motion.div
+                        key={session.id}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.25 + index * 0.06 }}
+                        className="bg-gradient-to-br from-accent/50 to-accent/30 rounded-2xl p-4 space-y-3 border border-border/50 hover:border-primary/30 transition-all duration-300 hover:shadow-soft"
+                      >
+                        <div className="flex items-center gap-3">
+                          {/* Mentee photo */}
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center overflow-hidden border-2 border-primary/30 shrink-0">
+                            {session.mentee_profile?.photo_url ? (
+                              <img
+                                src={session.mentee_profile.photo_url}
+                                alt={session.mentee_profile.name || "Mentorado"}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <User className="w-5 h-5 text-primary/60" />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <span className="font-medium text-foreground block truncate">
+                              {session.mentee_profile?.name || "Mentorado"}
+                            </span>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <Badge variant="secondary" className="text-xs bg-muted/60">
+                                <Clock className="w-3 h-3 mr-1" />
+                                {sessionDuration} min
+                              </Badge>
+                            </div>
+                          </div>
+                        </div>
+
+                        <p className="text-sm text-muted-foreground">
+                          📅 {format(new Date(session.scheduled_at), "EEEE, d 'de' MMMM 'às' HH:mm", { locale: ptBR })}
+                        </p>
+
+                        {/* Contact info */}
+                        <div className="bg-card/50 rounded-lg p-2 space-y-1 border border-border/50">
+                          {session.mentee_email && (
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Mail className="w-3 h-3 text-primary" />
+                              <a href={`mailto:${session.mentee_email}`} className="hover:text-primary transition-colors underline truncate">
+                                {session.mentee_email}
+                              </a>
+                            </div>
+                          )}
+
+                          {session.mentee_profile?.phone ? (
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Phone className="w-3 h-3 text-primary" />
+                              <a href={`tel:${session.mentee_profile.phone}`} className="hover:text-primary transition-colors">
+                                {session.mentee_profile.phone}
+                              </a>
+                            </div>
+                          ) : (
+                            <p className="text-xs text-muted-foreground italic">Telefone não informado pelo mentorado</p>
+                          )}
+                        </div>
+
+                        {/* Session actions */}
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-2 border-t border-border/50">
+                          <motion.button
+                            onClick={() => handleMarkAsCompleted(session.id)}
+                            disabled={isCompleting}
+                            whileHover={!isCompleting ? { scale: 1.02 } : {}}
+                            whileTap={!isCompleting ? { scale: 0.98 } : {}}
+                            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all bg-green-500 hover:bg-green-600 text-white shadow-sm disabled:opacity-50"
+                          >
+                            {isCompleting ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <PartyPopper className="w-4 h-4" />
+                            )}
+                            Marcar como realizada
+                          </motion.button>
+
+                          <SessionManagement
+                            sessionId={session.id}
+                            scheduledAt={session.scheduled_at}
+                            mentorName={mentorData.name}
+                            mentorId={mentorData.id}
+                            menteeName={session.mentee_profile?.name}
+                            menteeEmail={session.mentee_email}
+                            mentorEmail={mentorData.email}
+                            userRole="mentor"
+                            onUpdate={fetchData}
+                          />
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            )}
 
             {/* Upcoming sessions */}
             {upcomingSessions.length > 0 && (
@@ -532,7 +661,7 @@ const VolunteerPanel = () => {
                     const sessionDuration = session.duration || 30;
                     const canComplete = canMarkAsCompleted(session.scheduled_at, sessionDuration);
                     const isCompleting = completingSession === session.id;
-                    
+
                     return (
                       <motion.div
                         key={session.id}
@@ -545,9 +674,9 @@ const VolunteerPanel = () => {
                           {/* Mentee photo */}
                           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center overflow-hidden border-2 border-primary/30 shrink-0">
                             {session.mentee_profile?.photo_url ? (
-                              <img 
-                                src={session.mentee_profile.photo_url} 
-                                alt={session.mentee_profile.name || "Mentorado"} 
+                              <img
+                                src={session.mentee_profile.photo_url}
+                                alt={session.mentee_profile.name || "Mentorado"}
                                 className="w-full h-full object-cover"
                               />
                             ) : (
@@ -575,7 +704,7 @@ const VolunteerPanel = () => {
                         <p className="text-sm text-muted-foreground">
                           📅 {format(new Date(session.scheduled_at), "EEEE, d 'de' MMMM 'às' HH:mm", { locale: ptBR })}
                         </p>
-                        
+
                         {/* Contact info */}
                         <div className="bg-card/50 rounded-lg p-2 space-y-1 border border-border/50">
                           {session.mentee_email && (
@@ -620,7 +749,7 @@ const VolunteerPanel = () => {
                             )}
                             {canComplete ? "Marcar como realizada" : "Aguardando horário"}
                           </motion.button>
-                          
+
                           {/* Session management for mentor */}
                           <SessionManagement
                             sessionId={session.id}
@@ -639,6 +768,12 @@ const VolunteerPanel = () => {
                   })}
                 </div>
               </motion.div>
+            )}
+
+            {sessionsToComplete.length === 0 && upcomingSessions.length === 0 && (
+              <div className="text-sm text-muted-foreground bg-muted/30 px-4 py-3 rounded-xl">
+                Nenhuma sessão por aqui por enquanto.
+              </div>
             )}
           </motion.div>
         )}
