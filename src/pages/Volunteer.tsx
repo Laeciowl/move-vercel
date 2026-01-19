@@ -10,7 +10,14 @@ import MentorDisclaimerModal from "@/components/MentorDisclaimerModal";
 
 const emailSchema = z.string().email("E-mail inválido").max(255);
 const nameSchema = z.string().min(2, "Nome deve ter pelo menos 2 caracteres").max(100);
-const passwordSchema = z.string().min(6, "Senha deve ter pelo menos 6 caracteres").max(72);
+const passwordSchema = z
+  .string()
+  .min(8, "Senha deve ter pelo menos 8 caracteres")
+  .max(72, "Senha muito longa")
+  .regex(/[A-Z]/, "Senha deve conter pelo menos uma letra maiúscula")
+  .regex(/[a-z]/, "Senha deve conter pelo menos uma letra minúscula")
+  .regex(/[0-9]/, "Senha deve conter pelo menos um número")
+  .regex(/[^A-Za-z0-9]/, "Senha deve conter pelo menos um caractere especial (!@#$%^&*)");
 const phoneSchema = z
   .string()
   .min(10, "Telefone deve ter pelo menos 10 dígitos")
@@ -533,9 +540,9 @@ const Volunteer = () => {
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                     className="w-full px-4 py-3 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 pr-12"
-                    placeholder="Mínimo 6 caracteres"
+                    placeholder="Mín. 8 caracteres, maiúscula, número e especial"
                     required
-                    minLength={6}
+                    minLength={8}
                     maxLength={72}
                   />
                   <button
