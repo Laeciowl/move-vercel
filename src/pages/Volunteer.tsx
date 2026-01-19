@@ -315,6 +315,21 @@ const Volunteer = () => {
         }
       }
 
+      // Send welcome email to volunteer
+      try {
+        await supabase.functions.invoke("send-notification-email", {
+          body: {
+            to: formData.email.trim(),
+            name: formData.name.trim(),
+            type: "volunteer_application_received",
+            skipPreferenceCheck: true,
+          },
+        });
+        console.log("Volunteer welcome email sent to:", formData.email);
+      } catch (emailError) {
+        console.error("Error sending volunteer welcome email:", emailError);
+      }
+
       setSubmitted(true);
       toast.success("Tudo certo! Cadastro enviado. Logo entramos em contato.");
     } catch (error: any) {

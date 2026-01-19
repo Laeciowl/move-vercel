@@ -21,6 +21,7 @@ type EmailType =
   | "welcome"
   | "registration_confirmation"
   | "volunteer_approved"
+  | "volunteer_application_received"
   | "new_user_admin_notification";
 
 interface NotificationEmailRequest {
@@ -32,18 +33,66 @@ interface NotificationEmailRequest {
 }
 
 const emailFooter = `
-  <div style="margin-top: 40px; padding: 20px; border-top: 1px solid #eee; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 0 0 8px 8px;">
-    <p style="color: #666; font-size: 14px; line-height: 1.6; margin: 0 0 10px 0; font-style: italic;">
-      "Obrigado por se unir à Comunidade Movê! Juntos, criamos um movimento que move a sociedade. 
-      Cada conexão, cada mentoria, cada aprendizado nos aproxima de um futuro onde todos têm as mesmas oportunidades."
-    </p>
-    <p style="color: #7c3aed; font-weight: bold; margin: 0; font-size: 13px;">
-      — Laécio Oliveira, Fundador da Movê
-    </p>
-  </div>
-  <p style="color: #999; font-size: 12px; text-align: center; margin-top: 20px;">
+  <p style="color: #999; font-size: 12px; text-align: center; margin-top: 30px;">
     <strong>Movê — educação que Move</strong>
   </p>
+`;
+
+const studentWelcomeMessage = `
+  <p style="color: #666; font-size: 16px; line-height: 1.6;">
+    Que bom ter você por aqui 😊
+  </p>
+  <p style="color: #666; font-size: 16px; line-height: 1.6;">
+    Ao se inscrever na Movê, você passa a fazer parte de uma comunidade que acredita que carreira não é linha reta — é movimento, troca, aprendizado e apoio ao longo do caminho.
+  </p>
+  <p style="color: #666; font-size: 16px; line-height: 1.6;">
+    O Movê nasceu para conectar pessoas a orientação real, experiências práticas e conversas honestas sobre carreira. Aqui, ninguém caminha sozinho. A ideia é aprender junto, trocar vivências e evoluir passo a passo.
+  </p>
+  <p style="color: #666; font-size: 16px; line-height: 1.6;">
+    Esse é só o começo — e ficamos felizes de ter você com a gente nessa jornada.
+  </p>
+  <p style="color: #666; font-size: 16px; line-height: 1.6;">
+    <strong>Seja muito bem-vindo(a).</strong><br>
+    Vamos colocar sua carreira em movimento 🚀
+  </p>
+  <p style="color: #666; font-size: 16px; line-height: 1.6; margin-top: 20px;">
+    Abraços,<br>
+    <strong>Time Movê</strong>
+  </p>
+`;
+
+const volunteerWelcomeMessage = `
+  <p style="color: #666; font-size: 16px; line-height: 1.6;">
+    Muito obrigado por se inscrever como voluntário(a) na Movê 💜
+  </p>
+  <p style="color: #666; font-size: 16px; line-height: 1.6;">
+    Ao dar esse passo, você ajuda a construir algo maior: um movimento que acredita no poder da orientação, da escuta e da troca genuína para transformar trajetórias profissionais.
+  </p>
+  <p style="color: #666; font-size: 16px; line-height: 1.6;">
+    Compartilhar sua experiência pode fazer muita diferença na vida de alguém — e é isso que move o Movê todos os dias. Aqui, voluntários não são "apoio", são parte central do movimento.
+  </p>
+  <p style="color: #666; font-size: 16px; line-height: 1.6;">
+    Estamos muito felizes de ter você com a gente. Em breve, entraremos em contato com os próximos passos.
+  </p>
+  <p style="color: #666; font-size: 16px; line-height: 1.6;">
+    <strong>Obrigado por doar seu tempo, sua experiência e sua vontade de ajudar.</strong><br>
+    Juntos, colocamos carreiras em movimento 🚀
+  </p>
+  <p style="color: #666; font-size: 16px; line-height: 1.6; margin-top: 20px;">
+    Com carinho,<br>
+    <strong>Time Movê</strong>
+  </p>
+`;
+
+const founderSignature = `
+  <div style="margin-top: 30px; padding: 20px; border-top: 1px solid #eee; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 8px;">
+    <p style="color: #666; font-size: 14px; line-height: 1.6; margin: 0 0 10px 0; font-style: italic;">
+      "Juntos, criamos um movimento que move a sociedade. Cada conexão, cada mentoria, cada aprendizado nos aproxima de um futuro onde todos têm as mesmas oportunidades."
+    </p>
+    <p style="color: #7c3aed; font-weight: bold; margin: 0; font-size: 13px;">
+      — Laecio Oliveira, Fundador da Movê
+    </p>
+  </div>
 `;
 
 const emailTemplates: Record<string, { subject: string; html: (name: string, data?: Record<string, string>) => string; isTransactional?: boolean }> = {
@@ -52,54 +101,33 @@ const emailTemplates: Record<string, { subject: string; html: (name: string, dat
     isTransactional: false,
     html: (name) => `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <h1 style="color: #333; text-align: center;">Olá, ${name}! 👋</h1>
-        <p style="color: #666; font-size: 16px; line-height: 1.6;">
-          Seja muito bem-vindo(a) ao <strong>Movê</strong>! Estamos muito felizes em ter você conosco.
-        </p>
-        <p style="color: #666; font-size: 16px; line-height: 1.6;">
-          Aqui você terá acesso a:
-        </p>
-        <ul style="color: #666; font-size: 16px; line-height: 1.8;">
-          <li>📚 Conteúdos educacionais gratuitos</li>
-          <li>🎯 Mentorias com profissionais experientes</li>
-          <li>👥 Uma comunidade acolhedora</li>
-        </ul>
-        <p style="color: #666; font-size: 16px; line-height: 1.6;">
-          Explore a plataforma e não hesite em nos procurar se precisar de ajuda!
-        </p>
+        <h1 style="color: #333; text-align: center;">Oi, ${name}! 👋</h1>
+        ${studentWelcomeMessage}
         <div style="text-align: center; margin-top: 30px;">
           <a href="${Deno.env.get("SITE_URL") || "https://movesocial.lovable.app"}/dashboard" 
              style="background-color: #7c3aed; color: white; padding: 12px 30px; text-decoration: none; border-radius: 8px; font-weight: bold;">
             Acessar Plataforma
           </a>
         </div>
+        ${founderSignature}
         ${emailFooter}
       </div>
     `,
   },
   registration_confirmation: {
-    subject: "Sua conta foi criada com sucesso! ✅",
+    subject: "Bem-vindo à Movê! 🚀",
     isTransactional: true,
     html: (name) => `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <h1 style="color: #22c55e; text-align: center;">Conta criada com sucesso! ✅</h1>
-        <p style="color: #666; font-size: 16px; line-height: 1.6;">
-          Olá, ${name}! Sua conta no <strong>Movê</strong> foi criada com sucesso.
-        </p>
-        <p style="color: #666; font-size: 16px; line-height: 1.6;">
-          Agora você tem acesso a todos os nossos recursos:
-        </p>
-        <ul style="color: #666; font-size: 16px; line-height: 1.8;">
-          <li>📚 Aulas e lives gratuitas</li>
-          <li>📄 Templates e guias práticos</li>
-          <li>🎯 Mentorias com profissionais</li>
-        </ul>
+        <h1 style="color: #7c3aed; text-align: center;">Oi, ${name}! 👋</h1>
+        ${studentWelcomeMessage}
         <div style="text-align: center; margin-top: 30px;">
           <a href="${Deno.env.get("SITE_URL") || "https://movesocial.lovable.app"}/dashboard" 
              style="background-color: #7c3aed; color: white; padding: 12px 30px; text-decoration: none; border-radius: 8px; font-weight: bold;">
             Acessar minha conta
           </a>
         </div>
+        ${founderSignature}
         ${emailFooter}
       </div>
     `,
@@ -130,6 +158,25 @@ const emailTemplates: Record<string, { subject: string; html: (name: string, dat
             Acessar Painel
           </a>
         </div>
+        ${founderSignature}
+        ${emailFooter}
+      </div>
+    `,
+  },
+  volunteer_application_received: {
+    subject: "Obrigado por se voluntariar! 💜",
+    isTransactional: true,
+    html: (name) => `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h1 style="color: #7c3aed; text-align: center;">Oi, ${name}! 👋</h1>
+        ${volunteerWelcomeMessage}
+        <div style="text-align: center; margin-top: 30px;">
+          <a href="${Deno.env.get("SITE_URL") || "https://movesocial.lovable.app"}" 
+             style="background-color: #7c3aed; color: white; padding: 12px 30px; text-decoration: none; border-radius: 8px; font-weight: bold;">
+            Conhecer mais sobre o Movê
+          </a>
+        </div>
+        ${founderSignature}
         ${emailFooter}
       </div>
     `,
@@ -175,6 +222,7 @@ const emailTemplates: Record<string, { subject: string; html: (name: string, dat
         <p style="color: #666; font-size: 16px; line-height: 1.6;">
           O mentor confirmará a sessão em breve. Você receberá uma notificação quando isso acontecer.
         </p>
+        ${founderSignature}
         ${emailFooter}
       </div>
     `,
@@ -195,6 +243,7 @@ const emailTemplates: Record<string, { subject: string; html: (name: string, dat
         <p style="color: #666; font-size: 16px; line-height: 1.6;">
           Prepare-se para a sessão! Anote suas dúvidas e objetivos para aproveitar ao máximo.
         </p>
+        ${founderSignature}
         ${emailFooter}
       </div>
     `,
@@ -233,6 +282,7 @@ const emailTemplates: Record<string, { subject: string; html: (name: string, dat
         <p style="color: #666; font-size: 16px; line-height: 1.6;">
           Obrigado por contribuir com o Movê! Sua dedicação ajuda a transformar vidas.
         </p>
+        ${founderSignature}
         ${emailFooter}
       </div>
     `,
@@ -277,6 +327,7 @@ const emailTemplates: Record<string, { subject: string; html: (name: string, dat
             Acessar Painel
           </a>
         </div>
+        ${founderSignature}
         ${emailFooter}
       </div>
     `,
