@@ -12,18 +12,43 @@ const corsHeaders = {
 };
 
 const emailFooter = `
-  <div style="margin-top: 40px; padding: 20px; border-top: 1px solid #eee; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 0 0 8px 8px;">
-    <p style="color: #666; font-size: 14px; line-height: 1.6; margin: 0 0 10px 0; font-style: italic;">
-      "Obrigado por se unir à Comunidade Movê! Juntos, criamos um movimento que move a sociedade. 
-      Cada conexão, cada mentoria, cada aprendizado nos aproxima de um futuro onde todos têm as mesmas oportunidades."
-    </p>
-    <p style="color: #7c3aed; font-weight: bold; margin: 0; font-size: 13px;">
-      — Laécio Oliveira, Fundador da Movê
-    </p>
-  </div>
-  <p style="color: #999; font-size: 12px; text-align: center; margin-top: 20px;">
+  <p style="color: #999; font-size: 12px; text-align: center; margin-top: 30px;">
     <strong>Movê — educação que Move</strong>
   </p>
+`;
+
+const studentWelcomeMessage = `
+  <p style="color: #666; font-size: 16px; line-height: 1.6;">
+    Que bom ter você por aqui 😊
+  </p>
+  <p style="color: #666; font-size: 16px; line-height: 1.6;">
+    Ao se inscrever na Movê, você passa a fazer parte de uma comunidade que acredita que carreira não é linha reta — é movimento, troca, aprendizado e apoio ao longo do caminho.
+  </p>
+  <p style="color: #666; font-size: 16px; line-height: 1.6;">
+    O Movê nasceu para conectar pessoas a orientação real, experiências práticas e conversas honestas sobre carreira. Aqui, ninguém caminha sozinho. A ideia é aprender junto, trocar vivências e evoluir passo a passo.
+  </p>
+  <p style="color: #666; font-size: 16px; line-height: 1.6;">
+    Esse é só o começo — e ficamos felizes de ter você com a gente nessa jornada.
+  </p>
+  <p style="color: #666; font-size: 16px; line-height: 1.6;">
+    <strong>Seja muito bem-vindo(a).</strong><br>
+    Vamos colocar sua carreira em movimento 🚀
+  </p>
+  <p style="color: #666; font-size: 16px; line-height: 1.6; margin-top: 20px;">
+    Abraços,<br>
+    <strong>Time Movê</strong>
+  </p>
+`;
+
+const founderSignature = `
+  <div style="margin-top: 30px; padding: 20px; border-top: 1px solid #eee; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 8px;">
+    <p style="color: #666; font-size: 14px; line-height: 1.6; margin: 0 0 10px 0; font-style: italic;">
+      "Juntos, criamos um movimento que move a sociedade. Cada conexão, cada mentoria, cada aprendizado nos aproxima de um futuro onde todos têm as mesmas oportunidades."
+    </p>
+    <p style="color: #7c3aed; font-weight: bold; margin: 0; font-size: 13px;">
+      — Laecio Oliveira, Fundador da Movê
+    </p>
+  </div>
 `;
 
 interface UserCreatedPayload {
@@ -127,30 +152,21 @@ const handler = async (req: Request): Promise<Response> => {
     // 1. Send registration confirmation email to user (transactional - always send)
     const confirmationHtml = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <h1 style="color: #22c55e; text-align: center;">Conta criada com sucesso! ✅</h1>
-        <p style="color: #666; font-size: 16px; line-height: 1.6;">
-          Olá, ${record.name}! Sua conta no <strong>Movê</strong> foi criada com sucesso.
-        </p>
-        <p style="color: #666; font-size: 16px; line-height: 1.6;">
-          Agora você tem acesso a todos os nossos recursos:
-        </p>
-        <ul style="color: #666; font-size: 16px; line-height: 1.8;">
-          <li>📚 Aulas e lives gratuitas</li>
-          <li>📄 Templates e guias práticos</li>
-          <li>🎯 Mentorias com profissionais</li>
-        </ul>
+        <h1 style="color: #7c3aed; text-align: center;">Oi, ${record.name}! 👋</h1>
+        ${studentWelcomeMessage}
         <div style="text-align: center; margin-top: 30px;">
           <a href="${Deno.env.get("SITE_URL") || "https://movesocial.lovable.app"}/dashboard" 
              style="background-color: #7c3aed; color: white; padding: 12px 30px; text-decoration: none; border-radius: 8px; font-weight: bold;">
             Acessar minha conta
           </a>
         </div>
+        ${founderSignature}
         ${emailFooter}
       </div>
     `;
 
     try {
-      await sendEmail(userEmail, "Sua conta foi criada com sucesso! ✅", confirmationHtml);
+      await sendEmail(userEmail, "Bem-vindo à Movê! 🚀", confirmationHtml);
       console.log("Registration confirmation email sent to:", userEmail);
     } catch (emailError) {
       console.error("Error sending confirmation email:", emailError);
