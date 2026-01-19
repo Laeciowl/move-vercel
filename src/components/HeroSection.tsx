@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Heart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const HeroSection = () => {
@@ -12,6 +12,10 @@ const HeroSection = () => {
 
   const goToSignup = () => {
     navigate("/auth?cadastro=true");
+  };
+
+  const goToVolunteer = () => {
+    navigate("/voluntario");
   };
 
   return (
@@ -137,23 +141,42 @@ const HeroSection = () => {
             Porque ninguém constrói uma carreira sozinho.
           </motion.p>
 
-          {/* CTA buttons */}
+          {/* CTA buttons - Two paths */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.7 }}
-            className="flex flex-col sm:flex-row gap-4"
+            className="flex flex-col gap-6"
           >
-            <button
-              onClick={goToSignup}
-              className="group inline-flex items-center justify-center gap-2 bg-gradient-hero text-primary-foreground px-8 py-4 rounded-full font-bold text-lg shadow-button hover:scale-105 transition-transform"
-            >
-              Inscreva-se gratuitamente
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </button>
+            {/* Student/Mentee CTA */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+              <span className="text-muted-foreground font-medium whitespace-nowrap">Quer ser mentorado?</span>
+              <button
+                onClick={goToSignup}
+                className="group inline-flex items-center justify-center gap-2 bg-gradient-hero text-primary-foreground px-8 py-4 rounded-full font-bold text-lg shadow-button hover:scale-105 transition-transform"
+              >
+                Inscreva-se gratuitamente
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </button>
+            </div>
+
+            {/* Volunteer/Mentor CTA */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+              <span className="text-muted-foreground font-medium whitespace-nowrap">Quer ser mentor?</span>
+              <button
+                onClick={goToVolunteer}
+                className="group inline-flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white px-8 py-4 rounded-full font-bold text-lg shadow-button hover:scale-105 transition-transform"
+              >
+                <Heart className="w-5 h-5" />
+                Seja voluntário
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </button>
+            </div>
+
+            {/* Learn more link */}
             <button
               onClick={scrollToAbout}
-              className="inline-flex items-center justify-center text-foreground px-8 py-4 font-semibold text-lg hover:text-primary transition-colors underline underline-offset-4"
+              className="inline-flex items-center text-foreground font-semibold text-lg hover:text-primary transition-colors underline underline-offset-4 w-fit"
             >
               Entenda como funciona
             </button>
