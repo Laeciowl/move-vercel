@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Calendar, Clock, User, Loader2, CheckCircle, XCircle, Users, Timer } from "lucide-react";
+import { Calendar, Clock, User, Loader2, CheckCircle, XCircle, Users, Timer, Star } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import SessionManagement from "./SessionManagement";
+import SessionReviewModal from "./SessionReviewModal";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 interface MentorSession {
   id: string;
@@ -16,6 +18,8 @@ interface MentorSession {
   created_at: string;
   confirmed_by_mentor?: boolean;
   duration?: number;
+  completed_at?: string;
+  hasReview?: boolean;
   mentor?: {
     name: string;
     area: string;
@@ -47,6 +51,8 @@ const MentorshipSection = () => {
   const { user, profile } = useAuth();
   const [sessions, setSessions] = useState<MentorSession[]>([]);
   const [loading, setLoading] = useState(true);
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [sessionToReview, setSessionToReview] = useState<MentorSession | null>(null);
 
   const fetchSessions = async () => {
     if (!user) return;
@@ -70,26 +76,44 @@ const MentorshipSection = () => {
       return;
     }
 
-    // Get unique mentor IDs
+    // Get unique mentor IDs and session IDs
     const mentorIds = [...new Set(sessionsData.map(s => s.mentor_id))];
+    const sessionIds = sessionsData.map(s => s.id);
     
-    // Fetch mentor data from mentors table (need email for reschedule notifications)
-    const { data: mentorsData } = await supabase
-      .from("mentors")
-      .select("id, name, area, photo_url, email")
-      .in("id", mentorIds);
+    // Fetch mentor data and reviews in parallel
+    const [mentorsResult, reviewsResult] = await Promise.all([
+      supabase
+        .from("mentors")
+        .select("id, name, area, photo_url, email")
+        .in("id", mentorIds),
+      supabase
+        .from("session_reviews")
+        .select("session_id")
+        .in("session_id", sessionIds)
+    ]);
 
     // Map mentor data to sessions
     const mentorsMap = new Map(
-      (mentorsData || []).map(m => [m.id, m])
+      (mentorsResult.data || []).map(m => [m.id, m])
+    );
+
+    // Set of sessions that have reviews
+    const reviewedSessionIds = new Set(
+      (reviewsResult.data || []).map(r => r.session_id)
     );
 
     const data = sessionsData.map(session => ({
       ...session,
-      mentor: mentorsMap.get(session.mentor_id) || null
+      mentor: mentorsMap.get(session.mentor_id) || null,
+      hasReview: reviewedSessionIds.has(session.id)
     }));
     setSessions(data as MentorSession[]);
     setLoading(false);
+  };
+
+  const openReviewModal = (session: MentorSession) => {
+    setSessionToReview(session);
+    setReviewModalOpen(true);
   };
 
   useEffect(() => {
@@ -219,11 +243,11 @@ const MentorshipSection = () => {
             </h4>
 
             {pastSessions.length > 0 ? (
-              <div className="space-y-2 max-h-48 overflow-y-auto">
+              <div className="space-y-2 max-h-64 overflow-y-auto">
                 {pastSessions.map((session) => (
                   <div
                     key={session.id}
-                    className="flex items-center justify-between py-2 border-b border-border last:border-0"
+                    className="flex items-center justify-between py-3 px-3 border-b border-border last:border-0 bg-accent/30 rounded-lg"
                   >
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-foreground truncate">
@@ -233,10 +257,29 @@ const MentorshipSection = () => {
                         {new Date(session.scheduled_at).toLocaleDateString("pt-BR")}
                       </p>
                     </div>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${statusLabels[session.status]?.color || "bg-gray-100"}`}>
-                      {statusLabels[session.status]?.icon}
-                      {statusLabels[session.status]?.label || session.status}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${statusLabels[session.status]?.color || "bg-gray-100"}`}>
+                        {statusLabels[session.status]?.icon}
+                        {statusLabels[session.status]?.label || session.status}
+                      </span>
+                      {session.status === "completed" && !session.hasReview && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openReviewModal(session)}
+                          className="text-xs h-7 gap-1 border-yellow-400/50 text-yellow-600 hover:bg-yellow-50"
+                        >
+                          <Star className="w-3 h-3" />
+                          Avaliar
+                        </Button>
+                      )}
+                      {session.hasReview && (
+                        <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">
+                          <CheckCircle className="w-3 h-3 mr-1" />
+                          Avaliada
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -259,6 +302,19 @@ const MentorshipSection = () => {
             )}
           </div>
         </>
+      )}
+
+      {/* Review Modal */}
+      {sessionToReview && user && (
+        <SessionReviewModal
+          open={reviewModalOpen}
+          onOpenChange={setReviewModalOpen}
+          sessionId={sessionToReview.id}
+          mentorId={sessionToReview.mentor_id}
+          mentorName={sessionToReview.mentor?.name || "Mentor"}
+          userId={user.id}
+          onReviewSubmitted={fetchSessions}
+        />
       )}
     </motion.section>
   );
