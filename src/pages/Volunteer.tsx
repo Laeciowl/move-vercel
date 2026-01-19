@@ -24,6 +24,13 @@ const phoneSchema = z
   .max(20, "Telefone muito longo")
   .regex(/^[\d\s()+-]+$/, "Telefone inválido");
 
+// Availability validation schema for defense-in-depth
+const validDays = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"] as const;
+const availabilityItemSchema = z.object({
+  day: z.enum(validDays, { errorMap: () => ({ message: "Dia inválido" }) }),
+  times: z.array(z.string().regex(/^\d{2}:\d{2}$/, "Formato de hora inválido")).min(1, "Selecione pelo menos um horário"),
+});
+const availabilitySchema = z.array(availabilityItemSchema).min(1, "Adicione pelo menos um dia de disponibilidade");
 // Voluntários agora são automaticamente mentores e podem contribuir com todo tipo de conteúdo
 
 const dayOptions = [
@@ -176,15 +183,21 @@ const Volunteer = () => {
       return false;
     }
 
-    // Validação de disponibilidade (todos são mentores)
-    if (availability.length === 0) {
-      toast.error("Adiciona pelo menos um dia que você pode atender!");
-      return false;
-    }
-    const hasValidAvailability = availability.every((a) => a.times.length > 0);
-    if (!hasValidAvailability) {
-      toast.error("Seleciona pelo menos um horário pra cada dia marcado!");
-      return false;
+    // Validação de disponibilidade usando zod (defesa em profundidade)
+    try {
+      availabilitySchema.parse(availability);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const firstError = error.errors[0];
+        if (firstError.path.length === 0) {
+          toast.error("Adiciona pelo menos um dia que você pode atender!");
+        } else if (firstError.path.includes("times")) {
+          toast.error("Seleciona pelo menos um horário pra cada dia marcado!");
+        } else {
+          toast.error(firstError.message);
+        }
+        return false;
+      }
     }
 
     return true;
