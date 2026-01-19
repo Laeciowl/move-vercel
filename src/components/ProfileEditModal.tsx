@@ -83,16 +83,41 @@ const ProfileEditModal = ({ isOpen, onClose, profile, onProfileUpdated }: Profil
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from("profile-photos")
-        .getPublicUrl(fileName);
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("profile-photos").getPublicUrl(fileName);
 
       // Add cache buster to force refresh
       const urlWithCacheBuster = `${publicUrl}?t=${Date.now()}`;
-      setFormData({ ...formData, photo_url: urlWithCacheBuster });
+
+      // Update UI immediately
+      setFormData((prev) => ({ ...prev, photo_url: urlWithCacheBuster }));
+
+      // Persist photo_url immediately so it doesn't depend on clicking "Salvar"
+      const { error: profileUpdateError } = await supabase
+        .from("profiles")
+        .update({ photo_url: urlWithCacheBuster })
+        .eq("user_id", profile.user_id);
+
+      if (profileUpdateError) {
+        throw profileUpdateError;
+      }
+
+      // Best-effort: if the user is also a mentor, keep mentor photo in sync
+      try {
+        const { data: authUserData } = await supabase.auth.getUser();
+        const email = authUserData.user?.email;
+        if (email) {
+          await supabase.from("mentors").update({ photo_url: urlWithCacheBuster }).eq("email", email);
+        }
+      } catch {
+        // ignore
+      }
+
+      await onProfileUpdated();
       toast.success("Foto salva!");
     } catch (error: any) {
-      toast.error("Erro ao carregar foto: " + error.message);
+      toast.error("Erro ao salvar foto: " + (error?.message || "tente novamente"));
     } finally {
       setUploading(false);
     }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
   LogOut, RefreshCw, User, 
@@ -51,6 +51,7 @@ const Dashboard = () => {
   const { isAdmin } = useAdminCheck();
   const { isVolunteer } = useVolunteerCheck();
   const navigate = useNavigate();
+  const location = useLocation();
   const [impactHistory, setImpactHistory] = useState<ImpactHistory[]>([]);
   const [showUpdateForm, setShowUpdateForm] = useState(false);
   const [showProfileEdit, setShowProfileEdit] = useState(false);
@@ -64,6 +65,23 @@ const Dashboard = () => {
       navigate("/auth");
     }
   }, [user, authLoading, navigate]);
+
+  // Permite redirecionar para abrir o modal de perfil (ex: /dashboard?editarPerfil=1)
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("editarPerfil") === "1") {
+      setShowProfileEdit(true);
+      params.delete("editarPerfil");
+      const nextSearch = params.toString();
+      navigate(
+        {
+          pathname: location.pathname,
+          search: nextSearch ? `?${nextSearch}` : "",
+        },
+        { replace: true }
+      );
+    }
+  }, [location.pathname, location.search, navigate]);
 
   useEffect(() => {
     if (profile) {

@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import MentorBlockedPeriodsManager from "./MentorBlockedPeriodsManager";
 import MentorSessionConfirmation from "./MentorSessionConfirmation";
+import SessionManagement from "./SessionManagement";
 import ContentSubmissionModal from "./ContentSubmissionModal";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -535,17 +536,32 @@ const VolunteerPanel = () => {
                             </a>
                           </div>
                         )}
-                        {session.mentee_profile?.phone && (
+
+                        {session.mentee_profile?.phone ? (
                           <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <Phone className="w-3 h-3 text-primary" />
                             <a href={`tel:${session.mentee_profile.phone}`} className="hover:text-primary transition-colors">
                               {session.mentee_profile.phone}
                             </a>
                           </div>
+                        ) : (
+                          <p className="text-xs text-muted-foreground italic">Telefone não informado pelo mentorado</p>
                         )}
-                        {!session.mentee_email && !session.mentee_profile?.phone && (
-                          <p className="text-xs text-muted-foreground italic">Contato não disponível</p>
-                        )}
+                      </div>
+
+                      {/* Session management for mentor */}
+                      <div className="flex justify-end pt-2 border-t border-border/50">
+                        <SessionManagement
+                          sessionId={session.id}
+                          scheduledAt={session.scheduled_at}
+                          mentorName={mentorData.name}
+                          mentorId={mentorData.id}
+                          menteeName={session.mentee_profile?.name}
+                          menteeEmail={session.mentee_email}
+                          mentorEmail={mentorData.email}
+                          userRole="mentor"
+                          onUpdate={fetchData}
+                        />
                       </div>
                     </motion.div>
                   ))}
