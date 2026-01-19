@@ -201,70 +201,58 @@ const VolunteerPanel = () => {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className="relative bg-card/80 backdrop-blur-sm rounded-3xl shadow-card border border-border/50 p-6 space-y-6 overflow-hidden group"
+      className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/30 p-5 md:p-6 space-y-5"
     >
-      {/* Decorative gradient */}
-      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
       {/* Header */}
-      <div className="relative flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <motion.div 
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.1, duration: 0.3 }}
-            className="w-12 h-12 bg-gradient-to-br from-primary to-primary/80 rounded-2xl flex items-center justify-center shadow-button"
-          >
-            <Heart className="w-6 h-6 text-primary-foreground" />
-          </motion.div>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
+            <Heart className="w-5 h-5 text-primary" />
+          </div>
           <div>
-            <h3 className="font-bold text-lg text-foreground">Sua área de voluntário</h3>
-            <p className="text-sm text-muted-foreground">
-              {mentorData ? mentorData.area : "Aqui você acompanha suas contribuições"}
+            <h3 className="font-semibold text-foreground">Área do voluntário</h3>
+            <p className="text-xs text-muted-foreground">
+              {mentorData ? mentorData.area : "Suas contribuições"}
             </p>
           </div>
         </div>
         {mentorData && (
-          <motion.span
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 }}
-            className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 ${
+          <Badge 
+            variant="outline" 
+            className={`text-xs ${
               mentorData.status === "approved"
-                ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                ? "border-green-500/50 text-green-600 bg-green-500/10"
                 : mentorData.status === "pending"
-                ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
-                : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                ? "border-amber-500/50 text-amber-600 bg-amber-500/10"
+                : "border-red-500/50 text-red-600 bg-red-500/10"
             }`}
           >
             {mentorData.status === "approved" ? "Ativo" : mentorData.status === "pending" ? "Pendente" : "Inativo"}
-          </motion.span>
+          </Badge>
         )}
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-2 border-b border-border/50 pb-2">
+      {/* Tabs - Minimal */}
+      <div className="flex gap-1 p-1 bg-muted/30 rounded-xl">
         {[
-          { id: "overview", label: "Visão Geral" },
+          { id: "overview", label: "Geral" },
           ...(mentorData ? [{ id: "agenda", label: "Agenda" }] : []),
           { id: "content", label: "Conteúdos" },
         ].map((tab) => (
-          <motion.button
+          <button
             key={tab.id}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
             onClick={() => setActiveTab(tab.id as any)}
-            className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 ${
+            className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
               activeTab === tab.id 
-                ? "bg-primary text-primary-foreground shadow-button" 
-                : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                ? "bg-card text-foreground shadow-sm" 
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
             {tab.label}
-          </motion.button>
+          </button>
         ))}
       </div>
 
@@ -273,90 +261,63 @@ const VolunteerPanel = () => {
         {activeTab === "overview" && (
           <motion.div 
             key="overview"
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
+            exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.2 }}
-            className="space-y-5"
+            className="space-y-4"
           >
-            {/* Mentor Progress Bar - Shows for mentors with approved status */}
+            {/* Mentor Impact Stats - Compact */}
             {mentorData && mentorData.status === "approved" && (
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.98 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="bg-gradient-to-br from-primary/10 via-primary/5 to-accent/10 rounded-2xl p-5 space-y-4 border border-primary/20"
-              >
+              <div className="bg-muted/30 rounded-xl p-4 space-y-3">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <span className="text-sm font-medium text-foreground flex items-center gap-2">
                     <Award className="w-4 h-4 text-primary" />
-                    O impacto que você está gerando
-                  </h4>
-                  <span className="text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-lg">
-                    {stats.completedSessions} {stats.completedSessions === 1 ? "mentoria" : "mentorias"} realizadas
+                    Seu impacto
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {stats.completedSessions}/{10} mentorias
                   </span>
                 </div>
                 
-                {/* Progress bar */}
-                <div className="relative">
-                  <div className="h-3 bg-muted/50 rounded-full overflow-hidden">
-                    <motion.div 
-                      initial={{ width: 0 }}
-                      animate={{ width: `${Math.min((stats.completedSessions / 10) * 100, 100)}%` }}
-                      transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
-                      className="h-full bg-gradient-to-r from-primary to-primary/70 rounded-full"
-                    />
-                  </div>
-                  <div className="flex justify-between mt-2 text-xs text-muted-foreground">
-                    <span>0</span>
-                    <span>Meta: 10 mentorias</span>
-                  </div>
+                {/* Progress bar - Minimal */}
+                <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: `${Math.min((stats.completedSessions / 10) * 100, 100)}%` }}
+                    transition={{ duration: 0.6, ease: "easeOut" }}
+                    className="h-full bg-primary rounded-full"
+                  />
                 </div>
 
-                {/* Quick stats */}
-                <div className="grid grid-cols-3 gap-3 pt-2">
-                  {[
-                    { value: stats.completedSessions, label: "Realizadas", color: "text-primary" },
-                    { value: stats.uniqueMentees, label: "Pessoas", color: "text-green-600 dark:text-green-400" },
-                    { value: stats.upcomingSessions, label: "Agendadas", color: "text-blue-600 dark:text-blue-400" },
-                  ].map((stat, index) => (
-                    <motion.div 
-                      key={stat.label}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.3 + index * 0.1 }}
-                      className="text-center bg-card/50 rounded-xl p-3 border border-border/50"
-                    >
-                      <div className={`text-2xl font-bold ${stat.color}`}>{stat.value}</div>
-                      <div className="text-[10px] text-muted-foreground font-medium">{stat.label}</div>
-                    </motion.div>
-                  ))}
+                {/* Quick stats - Inline */}
+                <div className="flex items-center gap-4 text-sm">
+                  <span className="text-muted-foreground">
+                    <span className="font-semibold text-foreground">{stats.completedSessions}</span> realizadas
+                  </span>
+                  <span className="text-muted-foreground">
+                    <span className="font-semibold text-foreground">{stats.uniqueMentees}</span> pessoas
+                  </span>
+                  <span className="text-muted-foreground">
+                    <span className="font-semibold text-foreground">{stats.upcomingSessions}</span> agendadas
+                  </span>
                 </div>
-              </motion.div>
+              </div>
             )}
 
-            {/* Content Stats */}
+            {/* Content Stats - Minimal */}
             <div className="grid grid-cols-2 gap-3">
-              <motion.div 
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.1 }}
-                className="bg-gradient-to-br from-green-50 to-green-100/50 dark:from-green-900/20 dark:to-green-900/10 rounded-2xl p-4 text-center border border-green-200/50 dark:border-green-800/50 hover:shadow-soft transition-all duration-300 group"
-              >
-                <div className="text-3xl font-bold text-green-600 dark:text-green-400 transition-transform duration-300 group-hover:scale-110">{approvedSubmissions.length}</div>
-                <div className="text-xs text-muted-foreground mt-1">Conteúdos aprovados</div>
-              </motion.div>
-              <motion.div 
-                initial={{ opacity: 0, x: 10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.15 }}
-                className="bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-900/20 dark:to-amber-900/10 rounded-2xl p-4 text-center border border-amber-200/50 dark:border-amber-800/50 hover:shadow-soft transition-all duration-300 group"
-              >
-                <div className="text-3xl font-bold text-amber-600 dark:text-amber-400 transition-transform duration-300 group-hover:scale-110">{pendingSubmissions.length}</div>
-                <div className="text-xs text-muted-foreground mt-1">Em análise</div>
-              </motion.div>
+              <div className="bg-muted/30 rounded-xl p-4 text-center hover:bg-muted/50 transition-colors">
+                <div className="text-2xl font-bold text-green-600">{approvedSubmissions.length}</div>
+                <div className="text-xs text-muted-foreground mt-0.5">Aprovados</div>
+              </div>
+              <div className="bg-muted/30 rounded-xl p-4 text-center hover:bg-muted/50 transition-colors">
+                <div className="text-2xl font-bold text-amber-600">{pendingSubmissions.length}</div>
+                <div className="text-xs text-muted-foreground mt-0.5">Em análise</div>
+              </div>
             </div>
 
-            {/* Session confirmations - only for mentors */}
+            {/* Session confirmations */}
             {mentorData && sessions.length > 0 && (
               <MentorSessionConfirmation 
                 sessions={sessions} 
@@ -366,33 +327,27 @@ const VolunteerPanel = () => {
               />
             )}
 
-            {/* Quick actions */}
-            <motion.div 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="space-y-3"
-            >
-              <h4 className="text-sm font-semibold text-foreground">Ações rápidas</h4>
-              <div className="grid grid-cols-2 gap-3">
-                <Button
-                  variant="outline"
-                  onClick={() => setSubmissionModal({ isOpen: true, category: "aulas_lives" })}
-                  className="flex items-center gap-2 rounded-xl py-5 border-border/50 hover:border-primary/50 hover:bg-primary/5 transition-all duration-300"
-                >
-                  <Video className="w-5 h-5 text-primary" />
-                  <span>Enviar Aula/Live</span>
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setSubmissionModal({ isOpen: true, category: "templates_arquivos" })}
-                  className="flex items-center gap-2 rounded-xl py-5 border-border/50 hover:border-primary/50 hover:bg-primary/5 transition-all duration-300"
-                >
-                  <FileText className="w-5 h-5 text-primary" />
-                  <span>Enviar Template</span>
-                </Button>
-              </div>
-            </motion.div>
+            {/* Quick actions - Compact */}
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSubmissionModal({ isOpen: true, category: "aulas_lives" })}
+                className="justify-start text-muted-foreground hover:text-foreground rounded-xl"
+              >
+                <Video className="w-4 h-4 mr-2 text-primary" />
+                Enviar Aula
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSubmissionModal({ isOpen: true, category: "templates_arquivos" })}
+                className="justify-start text-muted-foreground hover:text-foreground rounded-xl"
+              >
+                <FileText className="w-4 h-4 mr-2 text-primary" />
+                Enviar Template
+              </Button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
