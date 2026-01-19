@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Star, Send, Loader2 } from "lucide-react";
+import { Send, Loader2, MessageSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
@@ -32,14 +31,12 @@ const SessionReviewModal = ({
   userId,
   onReviewSubmitted,
 }: SessionReviewModalProps) => {
-  const [rating, setRating] = useState(0);
-  const [hoveredRating, setHoveredRating] = useState(0);
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async () => {
-    if (rating === 0) {
-      toast.error("Por favor, selecione uma avaliação com estrelas");
+    if (!comment.trim()) {
+      toast.error("Por favor, escreva um comentário sobre a mentoria");
       return;
     }
 
@@ -49,20 +46,19 @@ const SessionReviewModal = ({
       session_id: sessionId,
       mentor_id: mentorId,
       user_id: userId,
-      rating,
-      comment: comment.trim() || null,
+      rating: 5, // Default value since column is required
+      comment: comment.trim(),
     });
 
     if (error) {
       if (error.code === "23505") {
-        toast.error("Você já avaliou esta sessão");
+        toast.error("Você já deixou um feedback para esta sessão");
       } else {
-        toast.error("Erro ao enviar avaliação: " + error.message);
+        toast.error("Erro ao enviar feedback: " + error.message);
       }
     } else {
-      toast.success("Obrigado pela sua avaliação! 🌟");
+      toast.success("Obrigado pelo seu feedback! 💜");
       onOpenChange(false);
-      setRating(0);
       setComment("");
       onReviewSubmitted?.();
     }
@@ -70,72 +66,30 @@ const SessionReviewModal = ({
     setSubmitting(false);
   };
 
-  const displayRating = hoveredRating || rating;
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Avalie sua mentoria</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <MessageSquare className="w-5 h-5 text-primary" />
+            Deixe seu feedback
+          </DialogTitle>
           <DialogDescription>
-            Como foi sua experiência com {mentorName}?
+            Conte como foi sua experiência com {mentorName}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
-          {/* Star Rating */}
-          <div className="flex flex-col items-center gap-3">
-            <div className="flex gap-1">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <motion.button
-                  key={star}
-                  type="button"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setRating(star)}
-                  onMouseEnter={() => setHoveredRating(star)}
-                  onMouseLeave={() => setHoveredRating(0)}
-                  className="focus:outline-none"
-                >
-                  <Star
-                    className={`w-10 h-10 transition-colors ${
-                      star <= displayRating
-                        ? "fill-yellow-400 text-yellow-400"
-                        : "text-muted-foreground/30"
-                    }`}
-                  />
-                </motion.button>
-              ))}
-            </div>
-            <AnimatePresence mode="wait">
-              {displayRating > 0 && (
-                <motion.p
-                  key={displayRating}
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  className="text-sm text-muted-foreground"
-                >
-                  {displayRating === 1 && "Poderia melhorar"}
-                  {displayRating === 2 && "Regular"}
-                  {displayRating === 3 && "Boa experiência"}
-                  {displayRating === 4 && "Muito boa!"}
-                  {displayRating === 5 && "Excelente! 🌟"}
-                </motion.p>
-              )}
-            </AnimatePresence>
-          </div>
-
           {/* Comment */}
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">
-              Deixe um comentário (opcional)
+              Seu feedback
             </label>
             <Textarea
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              placeholder="Conte como foi a experiência, o que você aprendeu..."
-              rows={4}
+              placeholder="Conte como foi a experiência, o que você aprendeu, o que mais gostou..."
+              rows={5}
               className="resize-none"
             />
           </div>
@@ -143,7 +97,7 @@ const SessionReviewModal = ({
           {/* Submit Button */}
           <Button
             onClick={handleSubmit}
-            disabled={rating === 0 || submitting}
+            disabled={!comment.trim() || submitting}
             className="w-full bg-gradient-hero text-primary-foreground"
           >
             {submitting ? (
@@ -154,7 +108,7 @@ const SessionReviewModal = ({
             ) : (
               <>
                 <Send className="w-4 h-4 mr-2" />
-                Enviar avaliação
+                Enviar feedback
               </>
             )}
           </Button>
