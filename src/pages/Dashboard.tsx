@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
   LogOut, RefreshCw, User, 
-  Loader2, History, Edit, Shield, Heart, Sparkles, ExternalLink, MessageCircle
+  Loader2, History, Edit, Shield, Heart, Sparkles, ExternalLink, MessageCircle, Settings
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
@@ -251,6 +251,15 @@ const Dashboard = () => {
               </Button>
             )}
             <NotificationBell />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowProfileEdit(true)}
+              className="text-muted-foreground hover:text-foreground hover:bg-muted/50"
+            >
+              <Settings className="w-4 h-4 md:mr-1.5" />
+              <span className="hidden md:inline">Perfil</span>
+            </Button>
             <Button
               variant="ghost"
               size="sm"
