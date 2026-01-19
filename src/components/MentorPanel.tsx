@@ -285,7 +285,12 @@ const MentorPanel = () => {
       </motion.div>
 
       {/* Session Confirmation */}
-      <MentorSessionConfirmation sessions={sessions} onUpdate={fetchMentorData} />
+      <MentorSessionConfirmation 
+        sessions={sessions} 
+        mentorName={mentorData.name}
+        mentorEmail={mentorData.email}
+        onUpdate={fetchMentorData} 
+      />
 
       {/* Upcoming sessions */}
       {upcomingSessions.filter(s => s.confirmed_by_mentor).length > 0 && (

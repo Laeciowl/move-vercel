@@ -21,10 +21,12 @@ interface MentorSession {
 
 interface MentorSessionConfirmationProps {
   sessions: MentorSession[];
+  mentorName: string;
+  mentorEmail: string;
   onUpdate: () => void;
 }
 
-const MentorSessionConfirmation = ({ sessions, onUpdate }: MentorSessionConfirmationProps) => {
+const MentorSessionConfirmation = ({ sessions, mentorName, mentorEmail, onUpdate }: MentorSessionConfirmationProps) => {
   const [updating, setUpdating] = useState<string | null>(null);
   const [notesModal, setNotesModal] = useState<{ sessionId: string; notes: string } | null>(null);
 
@@ -34,8 +36,54 @@ const MentorSessionConfirmation = ({ sessions, onUpdate }: MentorSessionConfirma
     new Date(s.scheduled_at) > new Date()
   );
 
+  const sendConfirmationEmails = async (session: MentorSession) => {
+    const sessionDate = format(new Date(session.scheduled_at), "EEEE, d 'de' MMMM 'às' HH:mm", { locale: ptBR });
+    
+    // Send email to mentee
+    if (session.mentee_email) {
+      try {
+        await supabase.functions.invoke("send-notification-email", {
+          body: {
+            to: session.mentee_email,
+            name: session.mentee_profile?.name || "Mentorado",
+            type: "session_confirmed",
+            data: {
+              mentorName: mentorName,
+              date: sessionDate,
+            },
+          },
+        });
+        console.log("Email sent to mentee:", session.mentee_email);
+      } catch (err) {
+        console.error("Error sending email to mentee:", err);
+      }
+    }
+
+    // Send email to mentor
+    try {
+      await supabase.functions.invoke("send-notification-email", {
+        body: {
+          to: mentorEmail,
+          name: mentorName,
+          type: "session_confirmed_mentor",
+          data: {
+            menteeName: session.mentee_profile?.name || "Mentorado",
+            menteeEmail: session.mentee_email || "",
+            menteePhone: session.mentee_profile?.phone || "",
+            date: sessionDate,
+          },
+        },
+      });
+      console.log("Email sent to mentor:", mentorEmail);
+    } catch (err) {
+      console.error("Error sending email to mentor:", err);
+    }
+  };
+
   const confirmSession = async (sessionId: string, confirmed: boolean, notes?: string) => {
     setUpdating(sessionId);
+    
+    const session = sessions.find(s => s.id === sessionId);
     
     const updateData: any = {
       confirmed_by_mentor: confirmed,
@@ -59,6 +107,12 @@ const MentorSessionConfirmation = ({ sessions, onUpdate }: MentorSessionConfirma
       toast.error("Erro ao atualizar sessão: " + error.message);
     } else {
       toast.success(confirmed ? "Sessão confirmada!" : "Sessão cancelada");
+      
+      // Send confirmation emails if confirmed
+      if (confirmed && session) {
+        await sendConfirmationEmails(session);
+      }
+      
       onUpdate();
     }
     

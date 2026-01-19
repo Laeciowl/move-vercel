@@ -345,7 +345,12 @@ const VolunteerPanel = () => {
 
             {/* Session confirmations - only for mentors */}
             {mentorData && sessions.length > 0 && (
-              <MentorSessionConfirmation sessions={sessions} onUpdate={fetchData} />
+              <MentorSessionConfirmation 
+                sessions={sessions} 
+                mentorName={mentorData.name}
+                mentorEmail={mentorData.email}
+                onUpdate={fetchData} 
+              />
             )}
 
             {/* Quick actions */}
