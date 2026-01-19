@@ -22,7 +22,7 @@ const studentWelcomeMessage = `
     Que bom ter você por aqui 😊
   </p>
   <p style="color: #666; font-size: 16px; line-height: 1.6;">
-    Ao se inscrever na Movê, você passa a fazer parte de uma comunidade que acredita que carreira não é linha reta — é movimento, troca, aprendizado e apoio ao longo do caminho.
+    Ao se inscrever no Movê, você passa a fazer parte de uma comunidade que acredita que carreira não é linha reta — é movimento, troca, aprendizado e apoio ao longo do caminho.
   </p>
   <p style="color: #666; font-size: 16px; line-height: 1.6;">
     O Movê nasceu para conectar pessoas a orientação real, experiências práticas e conversas honestas sobre carreira. Aqui, ninguém caminha sozinho. A ideia é aprender junto, trocar vivências e evoluir passo a passo.
@@ -46,7 +46,10 @@ const founderSignature = `
       "Juntos, criamos um movimento que move a sociedade. Cada conexão, cada mentoria, cada aprendizado nos aproxima de um futuro onde todos têm as mesmas oportunidades."
     </p>
     <p style="color: #7c3aed; font-weight: bold; margin: 0; font-size: 13px;">
-      — Laecio Oliveira, Fundador da Movê
+      — Laecio Oliveira, Fundador do Movê
+    </p>
+    <p style="color: #999; font-size: 12px; margin: 8px 0 0 0;">
+      Contato: <a href="https://www.linkedin.com/in/laecio-rodrigues" style="color: #7c3aed;">LinkedIn</a>
     </p>
   </div>
 `;

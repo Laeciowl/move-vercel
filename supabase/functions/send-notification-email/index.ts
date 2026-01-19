@@ -16,6 +16,8 @@ type EmailType =
   | "session_confirmed" 
   | "session_confirmed_mentor"
   | "session_cancelled" 
+  | "session_cancelled_notification"
+  | "session_rescheduled"
   | "content_approved" 
   | "content_rejected" 
   | "mentor_approved" 
@@ -44,7 +46,7 @@ const studentWelcomeMessage = `
     Que bom ter você por aqui 😊
   </p>
   <p style="color: #666; font-size: 16px; line-height: 1.6;">
-    Ao se inscrever na Movê, você passa a fazer parte de uma comunidade que acredita que carreira não é linha reta — é movimento, troca, aprendizado e apoio ao longo do caminho.
+    Ao se inscrever no Movê, você passa a fazer parte de uma comunidade que acredita que carreira não é linha reta — é movimento, troca, aprendizado e apoio ao longo do caminho.
   </p>
   <p style="color: #666; font-size: 16px; line-height: 1.6;">
     O Movê nasceu para conectar pessoas a orientação real, experiências práticas e conversas honestas sobre carreira. Aqui, ninguém caminha sozinho. A ideia é aprender junto, trocar vivências e evoluir passo a passo.
@@ -64,7 +66,7 @@ const studentWelcomeMessage = `
 
 const volunteerWelcomeMessage = `
   <p style="color: #666; font-size: 16px; line-height: 1.6;">
-    Muito obrigado por se inscrever como voluntário(a) na Movê 💜
+    Muito obrigado por se inscrever como voluntário(a) no Movê 💜
   </p>
   <p style="color: #666; font-size: 16px; line-height: 1.6;">
     Ao dar esse passo, você ajuda a construir algo maior: um movimento que acredita no poder da orientação, da escuta e da troca genuína para transformar trajetórias profissionais.
@@ -91,7 +93,10 @@ const founderSignature = `
       "Juntos, criamos um movimento que move a sociedade. Cada conexão, cada mentoria, cada aprendizado nos aproxima de um futuro onde todos têm as mesmas oportunidades."
     </p>
     <p style="color: #7c3aed; font-weight: bold; margin: 0; font-size: 13px;">
-      — Laecio Oliveira, Fundador da Movê
+      — Laecio Oliveira, Fundador do Movê
+    </p>
+    <p style="color: #999; font-size: 12px; margin: 8px 0 0 0;">
+      Contato: <a href="https://www.linkedin.com/in/laecio-rodrigues" style="color: #7c3aed;">LinkedIn</a>
     </p>
   </div>
 `;
@@ -294,7 +299,7 @@ const emailTemplates: Record<string, { subject: string; html: (name: string, dat
   },
   session_cancelled: {
     subject: "Mentoria cancelada",
-    isTransactional: false,
+    isTransactional: true,
     html: (name, data) => `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <h1 style="color: #ef4444; text-align: center;">Mentoria Cancelada</h1>
@@ -310,6 +315,66 @@ const emailTemplates: Record<string, { subject: string; html: (name: string, dat
             Ver Mentores
           </a>
         </div>
+        ${emailFooter}
+      </div>
+    `,
+  },
+  session_cancelled_notification: {
+    subject: "Sua mentoria foi cancelada 😔",
+    isTransactional: true,
+    html: (name, data) => `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h1 style="color: #ef4444; text-align: center;">Mentoria Cancelada</h1>
+        <p style="color: #666; font-size: 16px; line-height: 1.6;">
+          Olá, ${name}. Infelizmente sua mentoria foi cancelada.
+        </p>
+        <div style="background-color: #fef2f2; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ef4444;">
+          <p style="color: #991b1b; margin: 0;"><strong>Data original:</strong> ${data?.date || ""}</p>
+          <p style="color: #991b1b; margin: 10px 0 0 0;"><strong>Cancelado por:</strong> ${data?.cancelledBy || "Participante"}</p>
+          ${data?.reason && data.reason !== "Não informado" ? `<p style="color: #991b1b; margin: 10px 0 0 0;"><strong>Motivo:</strong> ${data.reason}</p>` : ''}
+        </div>
+        <p style="color: #666; font-size: 16px; line-height: 1.6;">
+          ${data?.userRole === "mentor" 
+            ? "Você pode agendar uma nova sessão com outro mentor disponível na plataforma." 
+            : "Aguarde o contato para reagendamento ou verifique sua agenda."}
+        </p>
+        <div style="text-align: center; margin-top: 30px;">
+          <a href="${Deno.env.get("SITE_URL") || "https://movesocial.lovable.app"}/dashboard" 
+             style="background-color: #7c3aed; color: white; padding: 12px 30px; text-decoration: none; border-radius: 8px; font-weight: bold;">
+            Acessar Plataforma
+          </a>
+        </div>
+        ${emailFooter}
+      </div>
+    `,
+  },
+  session_rescheduled: {
+    subject: "Sua mentoria foi remarcada 📅",
+    isTransactional: true,
+    html: (name, data) => `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h1 style="color: #f59e0b; text-align: center;">Mentoria Remarcada 📅</h1>
+        <p style="color: #666; font-size: 16px; line-height: 1.6;">
+          Olá, ${name}. Sua mentoria foi remarcada para uma nova data.
+        </p>
+        <div style="background-color: #fef3c7; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
+          <p style="color: #92400e; margin: 0;"><strong>Data anterior:</strong> <s>${data?.oldDate || ""}</s></p>
+          <p style="color: #15803d; margin: 10px 0 0 0; font-size: 18px;"><strong>Nova data:</strong> ${data?.newDate || ""}</p>
+          <p style="color: #92400e; margin: 10px 0 0 0;"><strong>Remarcado por:</strong> ${data?.rescheduledBy || "Participante"}</p>
+          ${data?.reason && data.reason !== "Não informado" ? `<p style="color: #92400e; margin: 10px 0 0 0;"><strong>Motivo:</strong> ${data.reason}</p>` : ''}
+        </div>
+        <div style="background-color: #f0f9ff; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #3b82f6;">
+          <p style="color: #1e40af; font-size: 14px; margin: 0;">
+            <strong>📌 Importante:</strong> A sessão precisará ser confirmada novamente. ${data?.userRole === "mentee" ? "O mentor entrará em contato para confirmar os detalhes." : "Entre em contato com o mentorado para confirmar."}
+          </p>
+        </div>
+        <div style="text-align: center; margin-top: 30px;">
+          <a href="${Deno.env.get("SITE_URL") || "https://movesocial.lovable.app"}/dashboard" 
+             style="background-color: #7c3aed; color: white; padding: 12px 30px; text-decoration: none; border-radius: 8px; font-weight: bold;">
+            Acessar Plataforma
+          </a>
+        </div>
+        ${founderSignature}
         ${emailFooter}
       </div>
     `,
