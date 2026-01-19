@@ -39,6 +39,7 @@ interface MentorSession {
   mentee_profile?: {
     name: string;
     phone: string | null;
+    photo_url?: string | null;
   };
 }
 
@@ -99,7 +100,7 @@ const MentorPanel = () => {
         const userIds = sessionsData.map(s => s.user_id);
         const { data: profiles } = await supabase
           .from("profiles")
-          .select("user_id, name, phone")
+          .select("user_id, name, phone, photo_url")
           .in("user_id", userIds);
 
         // Fetch mentee emails using the RPC function
@@ -163,6 +164,7 @@ const MentorPanel = () => {
 
   return (
     <motion.div
+      id="mentor-panel"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}

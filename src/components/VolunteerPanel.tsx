@@ -44,6 +44,7 @@ interface MentorSession {
   mentee_profile?: {
     name: string;
     phone: string | null;
+    photo_url?: string | null;
   };
 }
 
@@ -141,7 +142,7 @@ const VolunteerPanel = () => {
         if (userIds.length > 0) {
           const { data: profilesData, error: profilesError } = await supabase
             .from("profiles")
-            .select("user_id, name, phone")
+            .select("user_id, name, phone, photo_url")
             .in("user_id", userIds);
 
           if (!profilesError && profilesData) {

@@ -16,6 +16,7 @@ interface MentorSession {
   mentee_profile?: {
     name: string;
     phone: string | null;
+    photo_url?: string | null;
   };
 }
 
@@ -130,7 +131,7 @@ const MentorSessionConfirmation = ({ sessions, mentorName, mentorEmail, onUpdate
   }
 
   return (
-    <div className="space-y-4">
+    <div id="mentor-sessions" className="space-y-4">
       <h4 className="text-sm font-medium text-foreground flex items-center gap-2">
         <Calendar className="w-4 h-4 text-primary" />
         Sessões aguardando confirmação ({pendingSessions.length})
@@ -144,21 +145,33 @@ const MentorSessionConfirmation = ({ sessions, mentorName, mentorEmail, onUpdate
             animate={{ opacity: 1, y: 0 }}
             className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 space-y-3"
           >
-            <div className="flex items-center gap-2">
-              <User className="w-4 h-4 text-muted-foreground" />
-              <span className="font-medium text-foreground">
-                {session.mentee_profile?.name || "Mentorado"}
-              </span>
+            <div className="flex items-center gap-3">
+              {/* Mentee photo */}
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center overflow-hidden border-2 border-primary/30 shrink-0">
+                {session.mentee_profile?.photo_url ? (
+                  <img 
+                    src={session.mentee_profile.photo_url} 
+                    alt={session.mentee_profile.name || "Mentorado"} 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <User className="w-6 h-6 text-primary/60" />
+                )}
+              </div>
+              <div>
+                <span className="font-medium text-foreground block">
+                  {session.mentee_profile?.name || "Mentorado"}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  📅 {formatSessionDate(session.scheduled_at)}
+                </span>
+              </div>
             </div>
             
-            <p className="text-sm text-muted-foreground">
-              📅 {formatSessionDate(session.scheduled_at)}
-            </p>
-            
-            {/* Contact information */}
-            <div className="bg-white/50 dark:bg-black/20 rounded-lg p-3 space-y-2 border border-border/50">
-              <p className="text-xs font-medium text-foreground flex items-center gap-1">
-                <Info className="w-3 h-3" />
+            {/* Contact information - always visible */}
+            <div className="bg-white/80 dark:bg-black/20 rounded-lg p-3 space-y-2 border border-primary/20">
+              <p className="text-xs font-semibold text-foreground flex items-center gap-1">
+                <Info className="w-3 h-3 text-primary" />
                 Dados de contato do mentorado:
               </p>
               
