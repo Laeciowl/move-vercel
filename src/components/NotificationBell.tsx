@@ -147,7 +147,7 @@ const NotificationBell = () => {
             <div className="p-8 text-center">
               <Bell className="w-10 h-10 text-muted-foreground/50 mx-auto mb-2" />
               <p className="text-sm text-muted-foreground">
-                Nenhuma notificação ainda
+                Tudo tranquilo por aqui! 😊
               </p>
             </div>
           ) : (

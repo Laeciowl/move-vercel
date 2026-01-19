@@ -71,7 +71,7 @@ const AdminBugReportsPanel = () => {
     if (error) {
       toast.error("Erro ao atualizar: " + error.message);
     } else {
-      toast.success("Status atualizado!");
+      toast.success("Pronto, atualizado!");
       fetchReports();
       setSelectedReport(null);
       setAdminNotes("");

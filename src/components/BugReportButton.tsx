@@ -25,7 +25,7 @@ const BugReportButton = () => {
     }
 
     if (!formData.title.trim() || !formData.description.trim()) {
-      toast.error("Por favor, preencha todos os campos");
+      toast.error("Preenche todos os campos, por favor!");
       return;
     }
 
@@ -44,7 +44,7 @@ const BugReportButton = () => {
       if (error) throw error;
 
       setSubmitted(true);
-      toast.success("Relatório enviado com sucesso!");
+      toast.success("Recebido! A gente vai olhar isso.");
 
       setTimeout(() => {
         setIsOpen(false);
@@ -100,9 +100,9 @@ const BugReportButton = () => {
                   <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <CheckCircle className="w-8 h-8 text-green-600" />
                   </div>
-                  <h3 className="text-xl font-bold text-foreground mb-2">Obrigado!</h3>
+                  <h3 className="text-xl font-bold text-foreground mb-2">Valeu! 💙</h3>
                   <p className="text-muted-foreground">
-                    Seu relatório foi enviado e será analisado pela equipe.
+                    A gente vai olhar isso com carinho e resolver o mais rápido possível.
                   </p>
                 </div>
               ) : (
@@ -114,8 +114,8 @@ const BugReportButton = () => {
                         <Bug className="w-5 h-5 text-destructive" />
                       </div>
                       <div>
-                        <h3 className="font-bold text-foreground">Reportar Erro</h3>
-                        <p className="text-xs text-muted-foreground">Ajude-nos a melhorar</p>
+                        <h3 className="font-bold text-foreground">Achou um problema?</h3>
+                        <p className="text-xs text-muted-foreground">Conta pra gente</p>
                       </div>
                     </div>
                     <button
@@ -129,7 +129,7 @@ const BugReportButton = () => {
                   {/* Form */}
                   <form onSubmit={handleSubmit} className="p-6 space-y-4">
                     <p className="text-sm text-muted-foreground">
-                      Encontrou um problema? Descreva o que aconteceu e nossa equipe irá analisar.
+                      Encontrou algo estranho? Conta o que rolou que a gente resolve.
                     </p>
 
                     <div>

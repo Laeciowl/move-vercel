@@ -152,24 +152,24 @@ const Volunteer = () => {
     }
 
     if (!formData.area.trim()) {
-      toast.error("Por favor, informe sua área de atuação");
+      toast.error("Conta pra gente qual é sua área de atuação!");
       return false;
     }
 
     // Validação de descrição (todos são mentores agora)
     if (!formData.description.trim()) {
-      toast.error("Por favor, adicione uma descrição sobre você");
+      toast.error("Escreve um pouquinho sobre você! Ajuda os mentorados te conhecerem.");
       return false;
     }
 
     // Validação de disponibilidade (todos são mentores)
     if (availability.length === 0) {
-      toast.error("Por favor, adicione pelo menos um dia de disponibilidade");
+      toast.error("Adiciona pelo menos um dia que você pode atender!");
       return false;
     }
     const hasValidAvailability = availability.every((a) => a.times.length > 0);
     if (!hasValidAvailability) {
-      toast.error("Por favor, selecione pelo menos um horário para cada dia");
+      toast.error("Seleciona pelo menos um horário pra cada dia marcado!");
       return false;
     }
 
@@ -316,7 +316,7 @@ const Volunteer = () => {
       }
 
       setSubmitted(true);
-      toast.success("Cadastro enviado com sucesso! Aguarde aprovação.");
+      toast.success("Tudo certo! Cadastro enviado. Logo entramos em contato.");
     } catch (error: any) {
       toast.error("Erro ao enviar: " + error.message);
     }
@@ -360,10 +360,11 @@ const Volunteer = () => {
             <CheckCircle className="w-10 h-10 text-primary" />
           </div>
           <h2 className="text-2xl font-bold text-foreground mb-4">
-            Obrigado por querer ajudar! 💙
+            Que bom ter você no time! 💙
           </h2>
           <p className="text-muted-foreground mb-6">
-            Recebemos sua inscrição como voluntário. Após aprovação, você terá acesso à área de voluntários.
+            Recebemos sua inscrição e estamos muito felizes! 
+            Assim que aprovada, você terá acesso à área de voluntários.
           </p>
           {createdAccount && (
             <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6 text-left">
@@ -422,15 +423,15 @@ const Volunteer = () => {
               <Heart className="w-6 h-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Seja um Voluntário</h1>
-              <p className="text-muted-foreground">Ajude a transformar vidas</p>
+              <h1 className="text-2xl font-bold text-foreground">Faça parte dessa história</h1>
+              <p className="text-muted-foreground">Sua experiência pode mudar uma trajetória</p>
             </div>
           </div>
 
           <p className="text-muted-foreground mb-8">
-            O Movê é feito por pessoas que acreditam no poder da educação. 
-            Se você quer compartilhar seu conhecimento e fazer a diferença na vida de jovens 
-            brasileiros, junte-se a nós como voluntário.
+            O Movê é construído por gente que acredita que educação é o caminho. 
+            Se você já passou por desafios de carreira e quer ajudar quem está começando, 
+            vem com a gente. Seu tempo e conhecimento podem fazer uma diferença enorme.
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-6">

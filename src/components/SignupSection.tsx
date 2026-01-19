@@ -21,12 +21,12 @@ const SignupSection = () => {
           className="text-center max-w-3xl mx-auto mb-24"
         >
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-6 leading-tight">
-            Pronto pra dar o
-            <span className="text-gradient"> próximo passo</span>?
+            E aí, bora
+            <span className="text-gradient"> dar o próximo passo</span>?
           </h2>
           <p className="text-muted-foreground text-lg md:text-xl mb-10 max-w-xl mx-auto">
-            Cadastre-se gratuitamente e comece sua jornada. 
-            Estamos aqui pra te ajudar a conquistar seu espaço.
+            Se cadastrar é grátis e leva menos de 2 minutos. 
+            A gente tá aqui pra te apoiar nessa jornada.
           </p>
           <Link
             to="/auth"
@@ -55,37 +55,42 @@ const SignupSection = () => {
           <Accordion type="single" collapsible className="w-full space-y-4">
             <AccordionItem value="item-1" className="border border-border rounded-2xl px-6 data-[state=open]:bg-accent/30">
               <AccordionTrigger className="text-left text-foreground font-semibold text-lg hover:no-underline py-6">
-                Eu preciso pagar para ter acesso?
+                Eu preciso pagar pra usar?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground text-base pb-6">
-                Não! O Movê é um projeto social 100% gratuito, criado para auxiliar você na sua jornada profissional. Sem custos escondidos, sem pegadinhas.
+                Não! O Movê é 100% gratuito. A gente existe pra te ajudar, não pra cobrar. 
+                Sem taxas escondidas, sem surpresas — só educação de qualidade, de graça.
               </AccordionContent>
             </AccordionItem>
             
             <AccordionItem value="item-2" className="border border-border rounded-2xl px-6 data-[state=open]:bg-accent/30">
               <AccordionTrigger className="text-left text-foreground font-semibold text-lg hover:no-underline py-6">
-                Como funcionam as mentorias?
+                Como funciona a mentoria?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground text-base pb-6">
-                Após criar sua conta, você terá acesso à nossa lista de mentores voluntários. Escolha alguém da área que te interessa e agende uma conversa online. Simples assim!
+                Super simples! Depois de criar sua conta, você vê a lista de mentores e escolhe 
+                alguém da área que te interessa. Aí é só agendar uma conversa online. 
+                Nada complicado, prometemos.
               </AccordionContent>
             </AccordionItem>
             
             <AccordionItem value="item-3" className="border border-border rounded-2xl px-6 data-[state=open]:bg-accent/30">
               <AccordionTrigger className="text-left text-foreground font-semibold text-lg hover:no-underline py-6">
-                Quem pode participar?
+                É pra mim?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground text-base pb-6">
-                Todo mundo! Se você está buscando emprego, quer fazer transição de carreira ou simplesmente quer se desenvolver profissionalmente, o Movê é pra você.
+                Se você quer evoluir na carreira, sim! Seja você estudante, desempregado, 
+                fazendo transição de área ou só querendo crescer — o Movê foi feito pra te apoiar.
               </AccordionContent>
             </AccordionItem>
 
             <AccordionItem value="item-4" className="border border-border rounded-2xl px-6 data-[state=open]:bg-accent/30">
               <AccordionTrigger className="text-left text-foreground font-semibold text-lg hover:no-underline py-6">
-                Posso ser mentor voluntário?
+                Posso ser voluntário também?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground text-base pb-6">
-                Claro! Se você tem experiência profissional e quer compartilhar conhecimento, adoraríamos ter você no time. Acesse a página "Seja Voluntário" e se inscreva.
+                Pode sim, e a gente ia amar! Se você tem experiência profissional e quer 
+                compartilhar o que aprendeu, clica em "Seja Voluntário" e vem fazer parte do time.
               </AccordionContent>
             </AccordionItem>
           </Accordion>

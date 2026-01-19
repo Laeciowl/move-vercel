@@ -213,16 +213,16 @@ const MentorshipSection = () => {
               <div className="text-center py-6">
                 <Users className="w-10 h-10 text-muted-foreground mx-auto mb-2" />
                 <p className="text-sm text-muted-foreground mb-1">
-                  Conecte-se com profissionais voluntários
+                  Bate um papo com quem já passou por isso
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Agende uma conversa gratuita e receba orientação para sua carreira
+                  Agende uma conversa gratuita com um mentor e tire suas dúvidas sobre carreira
                 </p>
                 <button
                   onClick={() => navigate("/mentores")}
                   className="mt-4 bg-gradient-hero text-primary-foreground px-6 py-2 rounded-xl font-semibold hover:opacity-90 transition-opacity text-sm"
                 >
-                  Agendar mentoria
+                  Conhecer mentores
                 </button>
               </div>
             )}

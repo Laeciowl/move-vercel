@@ -73,7 +73,7 @@ const MentorBlockedPeriodsManager = ({ mentorId }: MentorBlockedPeriodsManagerPr
     if (error) {
       toast.error("Erro ao adicionar bloqueio: " + error.message);
     } else {
-      toast.success("Período bloqueado com sucesso!");
+      toast.success("Pronto! Período bloqueado.");
       setNewPeriod({ start_date: "", end_date: "", reason: "" });
       setShowAddForm(false);
       fetchBlockedPeriods();

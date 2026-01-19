@@ -109,7 +109,7 @@ const Dashboard = () => {
     if (error) {
       toast.error("Erro ao atualizar: " + error.message);
     } else {
-      toast.success("Status atualizado com sucesso!");
+      toast.success("Atualizado! Que bom ver sua evolução 💪");
       await refreshProfile();
       
       const { data: historyData } = await supabase

@@ -86,7 +86,7 @@ const ProfileEditModal = ({ isOpen, onClose, profile, onProfileUpdated }: Profil
         .getPublicUrl(fileName);
 
       setFormData({ ...formData, photo_url: publicUrl });
-      toast.success("Foto carregada com sucesso!");
+      toast.success("Foto salva!");
     } catch (error: any) {
       toast.error("Erro ao carregar foto: " + error.message);
     } finally {
@@ -113,7 +113,7 @@ const ProfileEditModal = ({ isOpen, onClose, profile, onProfileUpdated }: Profil
 
       if (error) throw error;
 
-      toast.success("Perfil atualizado com sucesso!");
+      toast.success("Perfil atualizado!");
       onProfileUpdated();
       onClose();
     } catch (error: any) {

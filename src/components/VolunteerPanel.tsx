@@ -208,9 +208,9 @@ const VolunteerPanel = () => {
             <Heart className="w-6 h-6 text-primary-foreground" />
           </motion.div>
           <div>
-            <h3 className="font-bold text-lg text-foreground">Painel do Voluntário</h3>
+            <h3 className="font-bold text-lg text-foreground">Sua área de voluntário</h3>
             <p className="text-sm text-muted-foreground">
-              {mentorData ? mentorData.area : "Gerencie suas contribuições"}
+              {mentorData ? mentorData.area : "Aqui você acompanha suas contribuições"}
             </p>
           </div>
         </div>
@@ -276,7 +276,7 @@ const VolunteerPanel = () => {
                 <div className="flex items-center justify-between">
                   <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
                     <Award className="w-4 h-4 text-primary" />
-                    Seu impacto como Mentor
+                    O impacto que você está gerando
                   </h4>
                   <span className="text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-lg">
                     {stats.completedSessions} {stats.completedSessions === 1 ? "mentoria" : "mentorias"} realizadas

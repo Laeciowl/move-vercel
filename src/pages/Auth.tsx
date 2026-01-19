@@ -89,7 +89,7 @@ const Auth = () => {
         toast.error(error.message);
       }
     } else {
-      toast.success("Login realizado com sucesso!");
+      toast.success("Entrou! Bora lá 🚀");
       navigate("/dashboard");
     }
     setLoading(false);
@@ -159,7 +159,7 @@ const Auth = () => {
       // Wait a moment for the trigger to create the profile
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      toast.success("Cadastro realizado com sucesso!");
+      toast.success("Pronto! Sua conta foi criada 🎉");
       navigate("/dashboard");
     }
     
@@ -187,7 +187,7 @@ const Auth = () => {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success("E-mail de recuperação enviado! Verifique sua caixa de entrada.");
+      toast.success("E-mail enviado! Dá uma olhada na sua caixa de entrada.");
       setView("login");
     }
     
@@ -220,7 +220,7 @@ const Auth = () => {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success("Senha alterada com sucesso!");
+      toast.success("Senha nova salva! Agora você já pode usar.");
       navigate("/dashboard");
     }
     
@@ -453,8 +453,8 @@ const Auth = () => {
                   required
                 />
                 <label htmlFor="lgpd" className="text-sm text-accent-foreground">
-                  Autorizo o uso dos meus dados de forma agregada e anônima para fins de
-                  pesquisa e mensuração de impacto social, conforme a LGPD. *
+                  Aceito que meus dados sejam usados de forma anônima pra gente medir o impacto 
+                  do projeto e melhorar cada vez mais. Prometemos cuidar bem! *
                 </label>
               </div>
 
@@ -476,7 +476,7 @@ const Auth = () => {
                   <KeyRound className="w-8 h-8 text-primary" />
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Digite seu e-mail e enviaremos um link para você redefinir sua senha.
+                  Relaxa, acontece! Coloca seu e-mail aqui que a gente manda um link pra você criar uma nova senha.
                 </p>
               </div>
 

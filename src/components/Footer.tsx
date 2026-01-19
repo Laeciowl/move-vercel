@@ -9,8 +9,8 @@ const Footer = () => {
           <div className="max-w-sm">
             <h3 className="text-3xl font-bold text-gradient mb-4">Movê</h3>
             <p className="text-background/60 leading-relaxed">
-              Um projeto social que acredita no potencial de cada pessoa. 
-              Educação que move.
+              Acreditamos que todo mundo merece orientação pra crescer. 
+              Por isso, conectamos quem quer aprender com quem quer ensinar.
             </p>
             <p className="text-background/40 text-sm mt-4">
               Projeto fundado por{" "}

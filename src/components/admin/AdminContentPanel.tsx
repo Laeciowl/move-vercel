@@ -173,7 +173,7 @@ const AdminContentPanel = () => {
       toast.error("Erro ao adicionar conteúdo");
       console.error(error);
     } else {
-      toast.success("Conteúdo adicionado com sucesso!");
+      toast.success("Conteúdo adicionado!");
       resetForm();
       setDialogOpen(false);
       fetchContents();
