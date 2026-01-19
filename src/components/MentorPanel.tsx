@@ -96,12 +96,10 @@ const MentorPanel = () => {
         .order("scheduled_at", { ascending: true });
 
       if (sessionsData) {
-        // Fetch mentee profiles
+        // Fetch mentee profiles using the RPC function
         const userIds = sessionsData.map(s => s.user_id);
         const { data: profiles } = await supabase
-          .from("profiles")
-          .select("user_id, name, phone, photo_url")
-          .in("user_id", userIds);
+          .rpc("get_mentee_contact_profiles", { session_user_ids: userIds });
 
         // Fetch mentee emails using the RPC function
         const { data: emailsData } = await supabase
@@ -109,7 +107,7 @@ const MentorPanel = () => {
 
         const sessionsWithProfiles = sessionsData.map(session => ({
           ...session,
-          mentee_profile: profiles?.find(p => p.user_id === session.user_id),
+          mentee_profile: profiles?.find((p: { user_id: string }) => p.user_id === session.user_id),
           mentee_email: emailsData?.find((e: { user_id: string; email: string }) => e.user_id === session.user_id)?.email,
         }));
 
@@ -315,29 +313,56 @@ const MentorPanel = () => {
                 transition={{ delay: 0.4 + index * 0.1 }}
                 className="bg-gradient-to-br from-accent/50 to-accent/30 rounded-2xl p-4 space-y-3 border border-border/50 hover:border-primary/30 transition-all duration-300 hover:shadow-soft"
               >
-                <div className="flex items-center gap-2">
-                  <User className="w-4 h-4 text-muted-foreground" />
-                  <span className="font-medium text-foreground">
-                    {session.mentee_profile?.name || "Mentorado"}
-                  </span>
+                <div className="flex items-center gap-3">
+                  {/* Mentee photo */}
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center overflow-hidden border-2 border-primary/30 shrink-0">
+                    {session.mentee_profile?.photo_url ? (
+                      <img 
+                        src={session.mentee_profile.photo_url} 
+                        alt={session.mentee_profile.name || "Mentorado"} 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <User className="w-5 h-5 text-primary/60" />
+                    )}
+                  </div>
+                  <div>
+                    <span className="font-medium text-foreground block">
+                      {session.mentee_profile?.name || "Mentorado"}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {session.confirmed_by_mentor && (
+                        <span className="text-green-600 dark:text-green-400 font-medium">✓ Confirmado</span>
+                      )}
+                    </span>
+                  </div>
                 </div>
                 <p className="text-sm text-muted-foreground">
                   📅 {formatSessionDate(session.scheduled_at)}
                 </p>
-                {session.mentee_email && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Mail className="w-3 h-3" />
-                    <a href={`mailto:${session.mentee_email}`} className="hover:text-primary">
-                      {session.mentee_email}
-                    </a>
-                  </div>
-                )}
-                {session.mentee_profile?.phone && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Phone className="w-3 h-3" />
-                    <span>{session.mentee_profile.phone}</span>
-                  </div>
-                )}
+                
+                {/* Contact info */}
+                <div className="bg-card/50 rounded-lg p-2 space-y-1 border border-border/50">
+                  {session.mentee_email && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Mail className="w-3 h-3 text-primary" />
+                      <a href={`mailto:${session.mentee_email}`} className="hover:text-primary transition-colors underline">
+                        {session.mentee_email}
+                      </a>
+                    </div>
+                  )}
+                  {session.mentee_profile?.phone && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Phone className="w-3 h-3 text-primary" />
+                      <a href={`tel:${session.mentee_profile.phone}`} className="hover:text-primary transition-colors">
+                        {session.mentee_profile.phone}
+                      </a>
+                    </div>
+                  )}
+                  {!session.mentee_email && !session.mentee_profile?.phone && (
+                    <p className="text-xs text-muted-foreground italic">Contato não disponível</p>
+                  )}
+                </div>
                 
                 {/* Session management for mentor */}
                 <div className="flex justify-end pt-2 border-t border-border/50">

@@ -511,6 +511,15 @@ export type Database = {
     Functions: {
       add_admin_by_email: { Args: { admin_email: string }; Returns: undefined }
       current_user_email: { Args: never; Returns: string }
+      get_mentee_contact_profiles: {
+        Args: { session_user_ids: string[] }
+        Returns: {
+          name: string
+          phone: string
+          photo_url: string
+          user_id: string
+        }[]
+      }
       get_mentee_emails: {
         Args: { session_user_ids: string[] }
         Returns: {
