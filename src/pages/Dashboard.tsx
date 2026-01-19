@@ -456,7 +456,7 @@ const Dashboard = () => {
               </motion.div>
             )}
 
-            {/* WhatsApp Community Card */}
+            {/* WhatsApp Community Card - Everyone */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -468,28 +468,59 @@ const Dashboard = () => {
               <div className="relative">
                 <h3 className="font-bold text-foreground text-lg mb-3 flex items-center gap-2">
                   <MessageCircle className="w-5 h-5 text-green-600" />
-                  Comunidade
+                  Comunidade Movê
                 </h3>
                 <p className="text-muted-foreground text-sm leading-relaxed mb-4">
                   Entre no nosso grupo do WhatsApp para conectar com outros membros, tirar dúvidas e ficar por dentro das novidades!
                 </p>
                 <a 
-                  href="https://chat.whatsapp.com/YOUR_GROUP_LINK"
+                  href="https://chat.whatsapp.com/BFDDkhbwz5aFdg6WhIFU6C"
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="w-full inline-flex items-center justify-center gap-2 bg-green-600 text-white py-3 rounded-xl font-semibold text-sm hover:bg-green-700 transition-colors"
                 >
                   <MessageCircle className="w-4 h-4" />
-                  Entrar no grupo
+                  Entrar na comunidade
                 </a>
               </div>
             </motion.div>
+
+            {/* WhatsApp Mentors Card - Only for Volunteers/Mentors */}
+            {isVolunteer && (
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.5 }}
+                className="relative overflow-hidden bg-gradient-to-br from-purple-500/10 via-card to-purple-600/10 rounded-2xl border border-purple-500/20 p-6 shadow-card group hover:shadow-lg transition-shadow"
+              >
+                <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-2xl group-hover:bg-purple-500/20 transition-colors" />
+                
+                <div className="relative">
+                  <h3 className="font-bold text-foreground text-lg mb-3 flex items-center gap-2">
+                    <Heart className="w-5 h-5 text-purple-600" />
+                    Grupo dos Mentores
+                  </h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed mb-4">
+                    Grupo exclusivo para mentores! Compartilhe experiências, tire dúvidas e conecte-se com outros voluntários.
+                  </p>
+                  <a 
+                    href="https://chat.whatsapp.com/LKpz2hr7FnZDpCgNXdxwHl"
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="w-full inline-flex items-center justify-center gap-2 bg-purple-600 text-white py-3 rounded-xl font-semibold text-sm hover:bg-purple-700 transition-colors"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    Entrar no grupo
+                  </a>
+                </div>
+              </motion.div>
+            )}
 
             {/* About Section */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.5 }}
+              transition={{ delay: isVolunteer ? 0.55 : 0.5 }}
               className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-card to-accent/20 rounded-2xl border border-primary/20 p-6 shadow-card"
             >
               {/* Decorative blur */}
