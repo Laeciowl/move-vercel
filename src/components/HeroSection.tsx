@@ -150,7 +150,9 @@ const HeroSection = () => {
           >
             {/* Student/Mentee CTA */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-              <span className="text-muted-foreground font-medium whitespace-nowrap">Quer ser mentorado?</span>
+              <span className="text-muted-foreground font-medium whitespace-nowrap">
+                Quer ser <span className="relative text-foreground font-semibold">mentorado<span className="absolute bottom-0 left-0 w-full h-[3px] bg-gradient-to-r from-primary to-primary/60 rounded-full" /></span>?
+              </span>
               <button
                 onClick={goToSignup}
                 className="group inline-flex items-center justify-center gap-2 bg-gradient-hero text-primary-foreground px-8 py-4 rounded-full font-bold text-lg shadow-button hover:scale-105 transition-transform"
@@ -162,7 +164,9 @@ const HeroSection = () => {
 
             {/* Volunteer/Mentor CTA */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-              <span className="text-muted-foreground font-medium whitespace-nowrap">Quer ser mentor?</span>
+              <span className="text-muted-foreground font-medium whitespace-nowrap">
+                Quer ser <span className="relative text-foreground font-semibold">mentor<span className="absolute bottom-0 left-0 w-full h-[3px] bg-gradient-to-r from-orange-500 to-amber-500 rounded-full" /></span>?
+              </span>
               <button
                 onClick={goToVolunteer}
                 className="group inline-flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white px-8 py-4 rounded-full font-bold text-lg shadow-button hover:scale-105 transition-transform"
