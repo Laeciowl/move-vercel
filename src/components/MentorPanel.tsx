@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import MentorBlockedPeriodsManager from "./MentorBlockedPeriodsManager";
 import MentorDisclaimerModal from "./MentorDisclaimerModal";
 import MentorSessionConfirmation from "./MentorSessionConfirmation";
+import MentorAvailabilityEditor from "./MentorAvailabilityEditor";
 import SessionManagement from "./SessionManagement";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -254,6 +255,19 @@ const MentorPanel = () => {
             </motion.div>
           ))}
         </div>
+      </motion.div>
+
+      {/* Availability Editor */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.25 }}
+      >
+        <MentorAvailabilityEditor
+          mentorId={mentorData.id}
+          initialAvailability={mentorData.availability}
+          onUpdate={fetchMentorData}
+        />
       </motion.div>
 
       {/* Blocked periods toggle */}

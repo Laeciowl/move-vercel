@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
+import RescheduleWithAvailability from "./RescheduleWithAvailability";
 
 interface SessionManagementProps {
   sessionId: string;
@@ -196,100 +197,87 @@ const SessionManagement = ({
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="fixed left-4 right-4 top-1/4 md:left-1/2 md:right-auto md:-translate-x-1/2 md:max-w-md md:w-full bg-card rounded-2xl shadow-xl z-50 p-6"
+              className="fixed left-4 right-4 top-[5%] bottom-[5%] md:left-1/2 md:right-auto md:-translate-x-1/2 md:max-w-lg md:w-full md:top-[5%] md:bottom-auto md:max-h-[90vh] bg-card rounded-2xl shadow-xl z-50 overflow-hidden flex flex-col"
             >
-              <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
+              <div className="p-6 border-b border-border shrink-0">
+                <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
+                  {action === "cancel" ? (
+                    <>
+                      <X className="w-5 h-5 text-destructive" />
+                      Cancelar sessão
+                    </>
+                  ) : (
+                    <>
+                      <Calendar className="w-5 h-5 text-primary" />
+                      Remarcar sessão
+                    </>
+                  )}
+                </h3>
+              </div>
+
+              <div className="p-6 overflow-y-auto flex-1">
                 {action === "cancel" ? (
                   <>
-                    <X className="w-5 h-5 text-destructive" />
-                    Cancelar sessão
+                    <div className="bg-muted/50 rounded-lg p-3 mb-4">
+                      <p className="text-sm text-foreground font-medium">
+                        {userRole === "mentor" ? menteeName : mentorName}
+                      </p>
+                      <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                        <Clock className="w-3 h-3" />
+                        {formattedDate}
+                      </p>
+                    </div>
+
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium text-foreground mb-1 flex items-center gap-1">
+                        <MessageSquare className="w-4 h-4" />
+                        Motivo (opcional)
+                      </label>
+                      <textarea
+                        value={reason}
+                        onChange={(e) => setReason(e.target.value)}
+                        className="w-full px-4 py-3 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 min-h-[80px]"
+                        placeholder="Ex: Tive um imprevisto..."
+                        maxLength={500}
+                      />
+                    </div>
+
+                    <div className="flex gap-3">
+                      <Button
+                        variant="outline"
+                        onClick={() => setShowModal(false)}
+                        className="flex-1"
+                      >
+                        Voltar
+                      </Button>
+                      <Button
+                        onClick={handleCancel}
+                        disabled={loading}
+                        variant="destructive"
+                        className="flex-1"
+                      >
+                        {loading ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          "Confirmar cancelamento"
+                        )}
+                      </Button>
+                    </div>
                   </>
                 ) : (
-                  <>
-                    <Calendar className="w-5 h-5 text-primary" />
-                    Remarcar sessão
-                  </>
+                  <RescheduleWithAvailability
+                    sessionId={sessionId}
+                    scheduledAt={scheduledAt}
+                    mentorName={mentorName}
+                    mentorId={mentorId}
+                    menteeName={menteeName}
+                    menteeEmail={menteeEmail}
+                    mentorEmail={mentorEmail}
+                    userRole={userRole}
+                    onUpdate={onUpdate}
+                    onClose={() => setShowModal(false)}
+                  />
                 )}
-              </h3>
-
-              <div className="bg-muted/50 rounded-lg p-3 mb-4">
-                <p className="text-sm text-foreground font-medium">
-                  {userRole === "mentor" ? menteeName : mentorName}
-                </p>
-                <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                  <Clock className="w-3 h-3" />
-                  {formattedDate}
-                </p>
-              </div>
-
-              {action === "reschedule" && (
-                <div className="space-y-3 mb-4">
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-1">
-                      Nova data
-                    </label>
-                    <input
-                      type="date"
-                      value={newDate}
-                      min={minDate}
-                      onChange={(e) => setNewDate(e.target.value)}
-                      className="w-full px-4 py-2 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-1">
-                      Novo horário
-                    </label>
-                    <input
-                      type="time"
-                      value={newTime}
-                      onChange={(e) => setNewTime(e.target.value)}
-                      className="w-full px-4 py-2 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
-                    />
-                  </div>
-                </div>
-              )}
-
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-foreground mb-1 flex items-center gap-1">
-                  <MessageSquare className="w-4 h-4" />
-                  Motivo (opcional)
-                </label>
-                <textarea
-                  value={reason}
-                  onChange={(e) => setReason(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 min-h-[80px]"
-                  placeholder={
-                    action === "cancel"
-                      ? "Ex: Tive um imprevisto..."
-                      : "Ex: Preciso mudar o horário por conta de..."
-                  }
-                  maxLength={500}
-                />
-              </div>
-
-              <div className="flex gap-3">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowModal(false)}
-                  className="flex-1"
-                >
-                  Voltar
-                </Button>
-                <Button
-                  onClick={action === "cancel" ? handleCancel : handleReschedule}
-                  disabled={loading}
-                  variant={action === "cancel" ? "destructive" : "default"}
-                  className="flex-1"
-                >
-                  {loading ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : action === "cancel" ? (
-                    "Confirmar cancelamento"
-                  ) : (
-                    "Confirmar remarcação"
-                  )}
-                </Button>
               </div>
             </motion.div>
           </>
