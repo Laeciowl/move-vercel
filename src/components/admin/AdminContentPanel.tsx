@@ -31,16 +31,34 @@ interface ContentItem {
   url: string;
   item_type: string;
   category: string;
+  area: string;
   created_at: string;
 }
 
-const CATEGORIES = [
-  { value: "geral", label: "Geral" },
+// Predefined areas (broad categories)
+const AREAS = [
   { value: "carreira", label: "Carreira" },
   { value: "tecnologia", label: "Tecnologia" },
-  { value: "soft_skills", label: "Soft Skills" },
-  { value: "entrevistas", label: "Entrevistas" },
+  { value: "negocios", label: "Negócios" },
+  { value: "desenvolvimento", label: "Desenvolvimento Pessoal" },
+  { value: "geral", label: "Geral" },
+];
+
+// Predefined themes (specific topics)
+const THEMES = [
   { value: "curriculo", label: "Currículo" },
+  { value: "entrevistas", label: "Entrevistas" },
+  { value: "linkedin", label: "LinkedIn" },
+  { value: "dados", label: "Análise de Dados" },
+  { value: "programacao", label: "Programação" },
+  { value: "marketing", label: "Marketing" },
+  { value: "lideranca", label: "Liderança" },
+  { value: "produtividade", label: "Produtividade" },
+  { value: "comunicacao", label: "Comunicação" },
+  { value: "financas", label: "Finanças" },
+  { value: "empreendedorismo", label: "Empreendedorismo" },
+  { value: "soft_skills", label: "Soft Skills" },
+  { value: "geral", label: "Geral" },
 ];
 
 const ITEM_TYPES = [
@@ -67,6 +85,7 @@ const AdminContentPanel = () => {
     description: "",
     url: "",
     item_type: "video",
+    area: "geral",
     category: "geral",
   });
 
@@ -166,6 +185,7 @@ const AdminContentPanel = () => {
       description: newContent.description || null,
       url: finalUrl,
       item_type: newContent.item_type,
+      area: newContent.area,
       category: newContent.category,
     });
 
@@ -187,6 +207,7 @@ const AdminContentPanel = () => {
       description: "",
       url: "",
       item_type: "video",
+      area: "geral",
       category: "geral",
     });
     setSelectedFile(null);
@@ -406,7 +427,28 @@ const AdminContentPanel = () => {
               )}
 
               <div>
-                <Label>Categoria</Label>
+                <Label>Área</Label>
+                <Select
+                  value={newContent.area}
+                  onValueChange={(value) =>
+                    setNewContent({ ...newContent, area: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {AREAS.map((area) => (
+                      <SelectItem key={area.value} value={area.value}>
+                        {area.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>Tema</Label>
                 <Select
                   value={newContent.category}
                   onValueChange={(value) =>
@@ -417,9 +459,9 @@ const AdminContentPanel = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {CATEGORIES.map((cat) => (
-                      <SelectItem key={cat.value} value={cat.value}>
-                        {cat.label}
+                    {THEMES.map((theme) => (
+                      <SelectItem key={theme.value} value={theme.value}>
+                        {theme.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -467,8 +509,10 @@ const AdminContentPanel = () => {
                     {getTypeLabel(content.item_type)}
                   </Badge>
                   <Badge variant="secondary" className="text-xs">
-                    {CATEGORIES.find((c) => c.value === content.category)?.label ||
-                      content.category}
+                    {AREAS.find((a) => a.value === content.area)?.label || content.area}
+                  </Badge>
+                  <Badge variant="outline" className="text-xs bg-muted/50">
+                    {THEMES.find((t) => t.value === content.category)?.label || content.category}
                   </Badge>
                 </div>
                 {content.description && (

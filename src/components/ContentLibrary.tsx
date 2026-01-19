@@ -27,16 +27,38 @@ interface ContentItem {
   url: string;
   item_type: string;
   category: string;
+  area: string;
   created_at: string;
 }
 
-const categoryLabels: Record<string, string> = {
-  curriculo: "Currículo",
-  marketing: "Marketing Pessoal",
-  tecnologia: "Tecnologia",
-  soft_skills: "Soft Skills",
-  geral: "Geral",
-};
+// Predefined areas (broad categories)
+const AREAS = [
+  { value: "carreira", label: "Carreira" },
+  { value: "tecnologia", label: "Tecnologia" },
+  { value: "negocios", label: "Negócios" },
+  { value: "desenvolvimento", label: "Desenvolvimento Pessoal" },
+  { value: "geral", label: "Geral" },
+];
+
+// Predefined themes (specific topics)
+const THEMES = [
+  { value: "curriculo", label: "Currículo" },
+  { value: "entrevistas", label: "Entrevistas" },
+  { value: "linkedin", label: "LinkedIn" },
+  { value: "dados", label: "Análise de Dados" },
+  { value: "programacao", label: "Programação" },
+  { value: "marketing", label: "Marketing" },
+  { value: "lideranca", label: "Liderança" },
+  { value: "produtividade", label: "Produtividade" },
+  { value: "comunicacao", label: "Comunicação" },
+  { value: "financas", label: "Finanças" },
+  { value: "empreendedorismo", label: "Empreendedorismo" },
+  { value: "soft_skills", label: "Soft Skills" },
+  { value: "geral", label: "Geral" },
+];
+
+const areaLabels: Record<string, string> = Object.fromEntries(AREAS.map(a => [a.value, a.label]));
+const themeLabels: Record<string, string> = Object.fromEntries(THEMES.map(t => [t.value, t.label]));
 
 const typeLabels: Record<string, string> = {
   video: "Vídeo Educativo",
@@ -49,7 +71,8 @@ const ContentLibrary = () => {
   const [contents, setContents] = useState<ContentItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedType, setSelectedType] = useState<string>("all");
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedArea, setSelectedArea] = useState<string>("all");
+  const [selectedTheme, setSelectedTheme] = useState<string>("all");
   const [page, setPage] = useState(1);
   const [selectedContent, setSelectedContent] = useState<ContentItem | null>(null);
 
@@ -73,8 +96,9 @@ const ContentLibrary = () => {
   // Filter and sort
   const filteredContents = contents.filter((c) => {
     const typeMatch = selectedType === "all" || c.item_type === selectedType;
-    const categoryMatch = selectedCategory === "all" || c.category === selectedCategory;
-    return typeMatch && categoryMatch;
+    const areaMatch = selectedArea === "all" || c.area === selectedArea;
+    const themeMatch = selectedTheme === "all" || c.category === selectedTheme;
+    return typeMatch && areaMatch && themeMatch;
   });
 
   // Pagination
@@ -94,7 +118,8 @@ const ContentLibrary = () => {
 
   const resetFilters = () => {
     setSelectedType("all");
-    setSelectedCategory("all");
+    setSelectedArea("all");
+    setSelectedTheme("all");
     setPage(1);
   };
 
@@ -106,7 +131,7 @@ const ContentLibrary = () => {
     }
   };
 
-  const uniqueCategories = Array.from(new Set(contents.map(c => c.category)));
+  const hasActiveFilters = selectedType !== "all" || selectedArea !== "all" || selectedTheme !== "all";
 
   if (loading) {
     return (
@@ -172,29 +197,50 @@ const ContentLibrary = () => {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Category Filter */}
+          {/* Area Filter */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="gap-2">
                 <SortDesc className="w-4 h-4" />
-                {selectedCategory === "all" ? "Tema" : categoryLabels[selectedCategory]}
+                {selectedArea === "all" ? "Área" : areaLabels[selectedArea]}
                 <ChevronDown className="w-3 h-3" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="bg-card border-border">
-              <DropdownMenuItem onClick={() => { setSelectedCategory("all"); setPage(1); }}>
+              <DropdownMenuItem onClick={() => { setSelectedArea("all"); setPage(1); }}>
+                Todas as áreas
+              </DropdownMenuItem>
+              {AREAS.map((area) => (
+                <DropdownMenuItem key={area.value} onClick={() => { setSelectedArea(area.value); setPage(1); }}>
+                  {area.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Theme Filter */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2">
+                <BookOpen className="w-4 h-4" />
+                {selectedTheme === "all" ? "Tema" : themeLabels[selectedTheme]}
+                <ChevronDown className="w-3 h-3" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="bg-card border-border max-h-64 overflow-y-auto">
+              <DropdownMenuItem onClick={() => { setSelectedTheme("all"); setPage(1); }}>
                 Todos os temas
               </DropdownMenuItem>
-              {uniqueCategories.map((cat) => (
-                <DropdownMenuItem key={cat} onClick={() => { setSelectedCategory(cat); setPage(1); }}>
-                  {categoryLabels[cat] || cat}
+              {THEMES.map((theme) => (
+                <DropdownMenuItem key={theme.value} onClick={() => { setSelectedTheme(theme.value); setPage(1); }}>
+                  {theme.label}
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
 
           {/* Reset Filters */}
-          {(selectedType !== "all" || selectedCategory !== "all") && (
+          {hasActiveFilters && (
             <Button 
               variant="ghost" 
               size="sm" 
@@ -271,7 +317,7 @@ const ContentLibrary = () => {
                       </p>
                     )}
 
-                    <div className="flex items-center gap-2 pt-1">
+                    <div className="flex items-center gap-2 pt-1 flex-wrap">
                       <Badge variant="secondary" className="text-xs">
                         {content.item_type === "video" ? (
                           <>
@@ -286,7 +332,10 @@ const ContentLibrary = () => {
                         )}
                       </Badge>
                       <Badge variant="outline" className="text-xs">
-                        {categoryLabels[content.category] || content.category}
+                        {areaLabels[content.area] || content.area}
+                      </Badge>
+                      <Badge variant="outline" className="text-xs bg-muted/50">
+                        {themeLabels[content.category] || content.category}
                       </Badge>
                     </div>
                   </div>
@@ -318,11 +367,11 @@ const ContentLibrary = () => {
             <BookOpen className="w-8 h-8 text-muted-foreground" />
           </div>
           <p className="text-muted-foreground font-medium">
-            {selectedType !== "all" || selectedCategory !== "all" 
+            {hasActiveFilters 
               ? "Nenhum conteúdo encontrado com os filtros selecionados."
               : "Em breve teremos conteúdos incríveis para você!"}
           </p>
-          {(selectedType !== "all" || selectedCategory !== "all") && (
+          {hasActiveFilters && (
             <Button variant="link" onClick={resetFilters} className="mt-2">
               Limpar filtros
             </Button>
@@ -355,9 +404,12 @@ const ContentLibrary = () => {
                 </p>
               )}
               <div className="flex flex-col gap-3">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <Badge variant="secondary">
-                    {categoryLabels[selectedContent.category] || selectedContent.category}
+                    {areaLabels[selectedContent.area] || selectedContent.area}
+                  </Badge>
+                  <Badge variant="outline">
+                    {themeLabels[selectedContent.category] || selectedContent.category}
                   </Badge>
                 </div>
                 <p className="text-xs text-muted-foreground italic">
