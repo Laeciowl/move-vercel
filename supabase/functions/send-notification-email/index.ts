@@ -14,6 +14,7 @@ const corsHeaders = {
 type EmailType = 
   | "session_scheduled" 
   | "session_confirmed" 
+  | "session_confirmed_mentor"
   | "session_cancelled" 
   | "content_approved" 
   | "content_rejected" 
@@ -229,7 +230,7 @@ const emailTemplates: Record<string, { subject: string; html: (name: string, dat
   },
   session_confirmed: {
     subject: "Sua mentoria foi confirmada! ✅",
-    isTransactional: false,
+    isTransactional: true,
     html: (name, data) => `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <h1 style="color: #22c55e; text-align: center;">Mentoria Confirmada! ✅</h1>
@@ -240,8 +241,51 @@ const emailTemplates: Record<string, { subject: string; html: (name: string, dat
           <p style="color: #333; margin: 0;"><strong>Mentor:</strong> ${data?.mentorName || ""}</p>
           <p style="color: #333; margin: 10px 0 0 0;"><strong>Data:</strong> ${data?.date || ""}</p>
         </div>
+        <div style="background-color: #f0f9ff; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #3b82f6;">
+          <p style="color: #1e40af; font-size: 14px; margin: 0; font-weight: bold;">📌 Próximos passos:</p>
+          <p style="color: #1e40af; font-size: 14px; margin: 10px 0 0 0;">
+            O mentor entrará em contato com você para confirmar os detalhes da sessão (plataforma, link da reunião, etc). A sessão pode ser realizada por Google Meet, Zoom ou outra plataforma de preferência.
+          </p>
+        </div>
         <p style="color: #666; font-size: 16px; line-height: 1.6;">
           Prepare-se para a sessão! Anote suas dúvidas e objetivos para aproveitar ao máximo.
+        </p>
+        ${founderSignature}
+        ${emailFooter}
+      </div>
+    `,
+  },
+  session_confirmed_mentor: {
+    subject: "Você confirmou uma mentoria! 📅",
+    isTransactional: true,
+    html: (name, data) => `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h1 style="color: #22c55e; text-align: center;">Mentoria Confirmada! 📅</h1>
+        <p style="color: #666; font-size: 16px; line-height: 1.6;">
+          Olá, ${name}! Você confirmou uma sessão de mentoria.
+        </p>
+        <div style="background-color: #dcfce7; padding: 20px; border-radius: 8px; margin: 20px 0;">
+          <p style="color: #333; margin: 0;"><strong>Mentorado:</strong> ${data?.menteeName || ""}</p>
+          <p style="color: #333; margin: 10px 0 0 0;"><strong>Data:</strong> ${data?.date || ""}</p>
+        </div>
+        
+        <div style="background-color: #fef3c7; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
+          <p style="color: #92400e; font-size: 14px; margin: 0; font-weight: bold;">📞 Dados de contato do mentorado:</p>
+          ${data?.menteeEmail ? `<p style="color: #92400e; font-size: 14px; margin: 10px 0 0 0;"><strong>Email:</strong> <a href="mailto:${data.menteeEmail}" style="color: #92400e;">${data.menteeEmail}</a></p>` : ''}
+          ${data?.menteePhone ? `<p style="color: #92400e; font-size: 14px; margin: 5px 0 0 0;"><strong>Telefone:</strong> ${data.menteePhone}</p>` : ''}
+        </div>
+
+        <div style="background-color: #f0f9ff; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #3b82f6;">
+          <p style="color: #1e40af; font-size: 14px; margin: 0; font-weight: bold;">📌 Importante:</p>
+          <ul style="color: #1e40af; font-size: 14px; margin: 10px 0 0 0; padding-left: 20px;">
+            <li>Entre em contato com o mentorado <strong>até 24h antes</strong> da sessão para confirmar os detalhes.</li>
+            <li>A sessão pode ser realizada por Google Meet, Zoom ou qualquer plataforma de sua escolha.</li>
+            <li>Combine o link da reunião diretamente com o mentorado.</li>
+          </ul>
+        </div>
+        
+        <p style="color: #666; font-size: 16px; line-height: 1.6;">
+          Obrigado por dedicar seu tempo para ajudar alguém em sua jornada profissional! 💜
         </p>
         ${founderSignature}
         ${emailFooter}
