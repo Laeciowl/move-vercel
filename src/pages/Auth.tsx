@@ -128,39 +128,50 @@ const Auth = () => {
     
     const redirectUrl = `${window.location.origin}/dashboard`;
     
-    // Sign up with user metadata - profile will be created by database trigger
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email: signupData.email,
-      password: signupData.password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: {
-          name: signupData.name.trim(),
-          age: userAge,
-          city: "N/A",
-          state: "N/A",
-          professional_status: signupData.professionalStatus,
-          income_range: "sem_renda",
+    try {
+      // Sign up with user metadata - profile will be created by database trigger
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: signupData.email,
+        password: signupData.password,
+        options: {
+          emailRedirectTo: redirectUrl,
+          data: {
+            name: signupData.name.trim(),
+            age: userAge,
+            city: "N/A",
+            state: "N/A",
+            professional_status: signupData.professionalStatus,
+            income_range: "sem_renda",
+          },
         },
-      },
-    });
+      });
 
-    if (authError) {
-      if (authError.message.includes("already registered")) {
-        toast.error("Este e-mail já está cadastrado. Faça login.");
-      } else {
-        toast.error(authError.message);
+      if (authError) {
+        if (authError.message.includes("already registered")) {
+          toast.error("Este e-mail já está cadastrado. Faça login.");
+        } else if (authError.message.includes("fetch") || authError.message.includes("network")) {
+          toast.error("Erro de conexão. Verifique sua internet e tente novamente.");
+        } else {
+          toast.error(authError.message);
+        }
+        setLoading(false);
+        return;
       }
-      setLoading(false);
-      return;
-    }
 
-    if (authData.user) {
-      // Wait a moment for the trigger to create the profile
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      toast.success("Pronto! Sua conta foi criada 🎉");
-      navigate("/dashboard");
+      if (authData.user) {
+        // Wait a moment for the trigger to create the profile
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        toast.success("Pronto! Sua conta foi criada 🎉");
+        navigate("/dashboard");
+      }
+    } catch (error: any) {
+      console.error("Signup error:", error);
+      if (error.message?.includes("fetch") || error.name === "TypeError") {
+        toast.error("Erro de conexão. Verifique sua internet e tente novamente.");
+      } else {
+        toast.error("Ocorreu um erro ao criar sua conta. Tente novamente.");
+      }
     }
     
     setLoading(false);
