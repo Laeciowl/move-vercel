@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
-import { ArrowLeft, Calendar, Clock, User, Loader2, GraduationCap } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowLeft, Calendar, Clock, User, Loader2, GraduationCap, MessageSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -13,6 +13,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import BookingCalendar from "@/components/BookingCalendar";
+import MentorRatingDisplay from "@/components/MentorRatingDisplay";
+import MentorReviewsList from "@/components/MentorReviewsList";
+import { Button } from "@/components/ui/button";
 
 interface Availability {
   day: string;
@@ -25,6 +28,13 @@ interface BlockedPeriod {
   reason?: string;
 }
 
+interface Review {
+  id: string;
+  rating: number;
+  comment: string | null;
+  created_at: string;
+}
+
 interface Mentor {
   id: string;
   name: string;
@@ -33,6 +43,9 @@ interface Mentor {
   education: string | null;
   photo_url: string | null;
   availability: Availability[];
+  averageRating: number;
+  totalReviews: number;
+  reviews: Review[];
 }
 
 const dayLabels: Record<string, string> = {
@@ -54,6 +67,8 @@ const Mentors = () => {
   const [blockedPeriods, setBlockedPeriods] = useState<BlockedPeriod[]>([]);
   const [booking, setBooking] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [reviewsDialogOpen, setReviewsDialogOpen] = useState(false);
+  const [selectedMentorForReviews, setSelectedMentorForReviews] = useState<Mentor | null>(null);
 
   useEffect(() => {
     const fetchMentors = async () => {
@@ -64,13 +79,68 @@ const Mentors = () => {
 
       if (error) {
         console.error("Error fetching mentors:", error);
-      } else if (data) {
-        const formattedMentors = data.map((m) => ({
-          ...m,
-          availability: (m.availability as unknown as Availability[]) || [],
-        }));
-        setMentors(formattedMentors);
+        setLoading(false);
+        return;
       }
+
+      if (!data || data.length === 0) {
+        setMentors([]);
+        setLoading(false);
+        return;
+      }
+
+      // Get all mentor IDs
+      const mentorIds = data.map(m => m.id).filter(Boolean) as string[];
+
+      // Fetch all reviews for these mentors
+      const { data: reviewsData } = await supabase
+        .from("session_reviews")
+        .select("*")
+        .in("mentor_id", mentorIds)
+        .order("created_at", { ascending: false });
+
+      // Group reviews by mentor
+      const reviewsByMentor = new Map<string, Review[]>();
+      (reviewsData || []).forEach(review => {
+        const existing = reviewsByMentor.get(review.mentor_id) || [];
+        existing.push({
+          id: review.id,
+          rating: review.rating,
+          comment: review.comment,
+          created_at: review.created_at
+        });
+        reviewsByMentor.set(review.mentor_id, existing);
+      });
+
+      const formattedMentors = data.map((m) => {
+        const mentorReviews = reviewsByMentor.get(m.id!) || [];
+        const totalReviews = mentorReviews.length;
+        const averageRating = totalReviews > 0
+          ? mentorReviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews
+          : 0;
+
+        return {
+          ...m,
+          id: m.id!,
+          name: m.name!,
+          area: m.area!,
+          description: m.description!,
+          availability: (m.availability as unknown as Availability[]) || [],
+          reviews: mentorReviews,
+          totalReviews,
+          averageRating
+        };
+      });
+
+      // Sort by rating (highest first), then by number of reviews
+      formattedMentors.sort((a, b) => {
+        if (b.averageRating !== a.averageRating) {
+          return b.averageRating - a.averageRating;
+        }
+        return b.totalReviews - a.totalReviews;
+      });
+
+      setMentors(formattedMentors);
       setLoading(false);
     };
 
@@ -133,6 +203,11 @@ const Mentors = () => {
     setBlockedPeriods([]);
     setDialogOpen(true);
     await fetchBlockedPeriods(mentor.id);
+  };
+
+  const openReviewsDialog = (mentor: Mentor) => {
+    setSelectedMentorForReviews(mentor);
+    setReviewsDialogOpen(true);
   };
 
   return (
@@ -205,9 +280,29 @@ const Mentors = () => {
                     </div>
                   )}
 
-                  <p className="text-muted-foreground text-sm mb-4 line-clamp-3">
+                  <p className="text-muted-foreground text-sm mb-3 line-clamp-3">
                     {mentor.description}
                   </p>
+
+                  {/* Rating Display */}
+                  <div className="mb-3">
+                    <MentorRatingDisplay
+                      averageRating={mentor.averageRating}
+                      totalReviews={mentor.totalReviews}
+                      size="sm"
+                    />
+                    {mentor.totalReviews > 0 && (
+                      <Button
+                        variant="link"
+                        size="sm"
+                        className="p-0 h-auto text-xs text-primary"
+                        onClick={() => openReviewsDialog(mentor)}
+                      >
+                        <MessageSquare className="w-3 h-3 mr-1" />
+                        Ver avaliações
+                      </Button>
+                    )}
+                  </div>
 
                   {mentor.availability && mentor.availability.length > 0 && (
                     <div className="flex items-center gap-2 mb-4 text-sm text-muted-foreground">
@@ -274,6 +369,31 @@ const Mentors = () => {
                 blockedPeriods={blockedPeriods}
                 onConfirm={handleBookSession}
                 loading={booking}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Reviews Dialog */}
+        <Dialog open={reviewsDialogOpen} onOpenChange={setReviewsDialogOpen}>
+          <DialogContent className="sm:max-w-md max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Avaliações de {selectedMentorForReviews?.name}</DialogTitle>
+              <DialogDescription>
+                {selectedMentorForReviews && (
+                  <MentorRatingDisplay
+                    averageRating={selectedMentorForReviews.averageRating}
+                    totalReviews={selectedMentorForReviews.totalReviews}
+                    size="md"
+                  />
+                )}
+              </DialogDescription>
+            </DialogHeader>
+
+            {selectedMentorForReviews && (
+              <MentorReviewsList
+                reviews={selectedMentorForReviews.reviews}
+                maxVisible={10}
               />
             )}
           </DialogContent>
