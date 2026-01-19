@@ -120,11 +120,21 @@ const MentorshipSection = () => {
     fetchSessions();
   }, [user]);
 
+  // Helper to check if session time has passed (session is effectively "completed")
+  const isSessionPast = (scheduledAt: string, duration: number = 30) => {
+    const endTime = new Date(scheduledAt);
+    endTime.setMinutes(endTime.getMinutes() + duration);
+    return endTime <= new Date();
+  };
+
+  // Upcoming: scheduled and not yet started
   const upcomingSessions = sessions.filter(
-    (s) => s.status === "scheduled" && new Date(s.scheduled_at) > new Date()
+    (s) => s.status === "scheduled" && !isSessionPast(s.scheduled_at, s.duration || 30)
   );
+
+  // Past: either status is not scheduled, or the session time has passed
   const pastSessions = sessions.filter(
-    (s) => s.status !== "scheduled" || new Date(s.scheduled_at) <= new Date()
+    (s) => s.status !== "scheduled" || isSessionPast(s.scheduled_at, s.duration || 30)
   );
 
   const formatDate = (date: string) => {
@@ -239,49 +249,66 @@ const MentorshipSection = () => {
           <div className="bg-card rounded-2xl shadow-card p-5">
             <h4 className="font-semibold text-foreground mb-4 flex items-center gap-2">
               <Clock className="w-4 h-4 text-primary" />
-              Mentorias realizadas
+              Histórico de mentorias
             </h4>
 
             {pastSessions.length > 0 ? (
               <div className="space-y-2 max-h-64 overflow-y-auto">
-                {pastSessions.map((session) => (
-                  <div
-                    key={session.id}
-                    className="flex items-center justify-between py-3 px-3 border-b border-border last:border-0 bg-accent/30 rounded-lg"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate">
-                        {session.mentor?.name || "Mentor"}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(session.scheduled_at).toLocaleDateString("pt-BR")}
-                      </p>
+                {pastSessions.map((session) => {
+                  // Determine effective status for display
+                  const isCompleted = session.status === "completed" || 
+                    (session.status === "scheduled" && isSessionPast(session.scheduled_at, session.duration || 30));
+                  const isCancelled = session.status === "cancelled";
+                  
+                  const displayStatus = isCancelled 
+                    ? statusLabels.cancelled 
+                    : isCompleted 
+                      ? statusLabels.completed 
+                      : statusLabels[session.status] || statusLabels.completed;
+
+                  // Can review if session was completed (not cancelled) and no review yet
+                  const canReview = isCompleted && !isCancelled && !session.hasReview;
+
+                  return (
+                    <div
+                      key={session.id}
+                      className="flex items-center justify-between py-3 px-3 border-b border-border last:border-0 bg-accent/30 rounded-lg"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">
+                          {session.mentor?.name || "Mentor"}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(session.scheduled_at).toLocaleDateString("pt-BR")}
+                          {session.duration && ` • ${session.duration} min`}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${displayStatus.color}`}>
+                          {displayStatus.icon}
+                          {displayStatus.label}
+                        </span>
+                        {canReview && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openReviewModal(session)}
+                            className="text-xs h-7 gap-1 border-yellow-400/50 text-yellow-600 hover:bg-yellow-50"
+                          >
+                            <Star className="w-3 h-3" />
+                            Avaliar
+                          </Button>
+                        )}
+                        {session.hasReview && (
+                          <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">
+                            <CheckCircle className="w-3 h-3 mr-1" />
+                            Avaliada
+                          </Badge>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${statusLabels[session.status]?.color || "bg-gray-100"}`}>
-                        {statusLabels[session.status]?.icon}
-                        {statusLabels[session.status]?.label || session.status}
-                      </span>
-                      {session.status === "completed" && !session.hasReview && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => openReviewModal(session)}
-                          className="text-xs h-7 gap-1 border-yellow-400/50 text-yellow-600 hover:bg-yellow-50"
-                        >
-                          <Star className="w-3 h-3" />
-                          Avaliar
-                        </Button>
-                      )}
-                      {session.hasReview && (
-                        <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">
-                          <CheckCircle className="w-3 h-3 mr-1" />
-                          Avaliada
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <div className="text-center py-6">
