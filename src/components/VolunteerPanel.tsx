@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import MentorBlockedPeriodsManager from "./MentorBlockedPeriodsManager";
 import MentorSessionConfirmation from "./MentorSessionConfirmation";
+import MentorAvailabilityEditor from "./MentorAvailabilityEditor";
 import SessionManagement from "./SessionManagement";
 import ContentSubmissionModal from "./ContentSubmissionModal";
 import { format } from "date-fns";
@@ -448,6 +449,19 @@ const VolunteerPanel = () => {
               </div>
             </motion.div>
 
+            {/* Availability Editor */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.15 }}
+            >
+              <MentorAvailabilityEditor
+                mentorId={mentorData.id}
+                initialAvailability={mentorData.availability}
+                onUpdate={fetchData}
+              />
+            </motion.div>
+
             {/* Blocked periods */}
             <motion.div
               initial={{ opacity: 0 }}
@@ -476,6 +490,7 @@ const VolunteerPanel = () => {
                 )}
               </AnimatePresence>
             </motion.div>
+
 
             {/* Upcoming sessions */}
             {upcomingSessions.length > 0 && (

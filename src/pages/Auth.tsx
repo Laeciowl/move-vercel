@@ -585,9 +585,9 @@ const Auth = () => {
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     className="w-full px-4 py-3 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 pr-12"
-                    placeholder="Mínimo 6 caracteres"
+                    placeholder="Mín. 8 caracteres, maiúscula, número e especial"
                     required
-                    minLength={6}
+                    minLength={8}
                     maxLength={72}
                   />
                   <button
@@ -611,7 +611,7 @@ const Auth = () => {
                   className="w-full px-4 py-3 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
                   placeholder="Digite novamente"
                   required
-                  minLength={6}
+                  minLength={8}
                   maxLength={72}
                 />
               </div>
