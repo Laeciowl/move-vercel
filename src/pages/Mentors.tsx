@@ -47,7 +47,7 @@ const dayLabels: Record<string, string> = {
 
 const Mentors = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [mentors, setMentors] = useState<Mentor[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedMentor, setSelectedMentor] = useState<Mentor | null>(null);
@@ -97,6 +97,14 @@ const Mentors = () => {
 
     if (!selectedMentor) {
       toast.error("Selecione um mentor");
+      return;
+    }
+
+    // Garantir que o mentor consiga entrar em contato (telefone do mentorado)
+    if (!profile?.phone) {
+      toast.error("Antes de agendar, adiciona seu telefone no perfil — é assim que o mentor vai falar com você.");
+      setDialogOpen(false);
+      navigate("/dashboard?editarPerfil=1");
       return;
     }
 

@@ -351,14 +351,18 @@ const MentorPanel = () => {
                       </a>
                     </div>
                   )}
-                  {session.mentee_profile?.phone && (
+
+                  {session.mentee_profile?.phone ? (
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Phone className="w-3 h-3 text-primary" />
                       <a href={`tel:${session.mentee_profile.phone}`} className="hover:text-primary transition-colors">
                         {session.mentee_profile.phone}
                       </a>
                     </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground italic">Telefone não informado pelo mentorado</p>
                   )}
+
                   {!session.mentee_email && !session.mentee_profile?.phone && (
                     <p className="text-xs text-muted-foreground italic">Contato não disponível</p>
                   )}
