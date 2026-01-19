@@ -34,9 +34,9 @@ interface MentorSession {
   user_id: string;
   confirmed_by_mentor: boolean;
   mentor_notes: string | null;
+  mentee_email?: string;
   mentee_profile?: {
     name: string;
-    email?: string;
     phone: string | null;
   };
 }
@@ -94,20 +94,21 @@ const MentorPanel = () => {
         .order("scheduled_at", { ascending: true });
 
       if (sessionsData) {
-        // Fetch mentee profiles with email
+        // Fetch mentee profiles
         const userIds = sessionsData.map(s => s.user_id);
         const { data: profiles } = await supabase
           .from("profiles")
-          .select("user_id, name, phone, email:user_id")
+          .select("user_id, name, phone")
           .in("user_id", userIds);
-        
-        // Fetch emails from auth (via profiles table join not possible, use stored email)
-        // We'll need to get emails from the profiles or use a workaround
-        // For now, let's fetch from auth.users via a function or use the user_id
+
+        // Fetch mentee emails using the RPC function
+        const { data: emailsData } = await supabase
+          .rpc("get_mentee_emails", { session_user_ids: userIds });
 
         const sessionsWithProfiles = sessionsData.map(session => ({
           ...session,
           mentee_profile: profiles?.find(p => p.user_id === session.user_id),
+          mentee_email: emailsData?.find((e: { user_id: string; email: string }) => e.user_id === session.user_id)?.email,
         }));
 
         setSessions(sessionsWithProfiles);
