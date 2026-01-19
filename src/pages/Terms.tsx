@@ -222,8 +222,16 @@ const Terms = () => {
             <div>
               <h4 className="font-semibold text-foreground mb-2">9. Fale com a gente</h4>
               <p>
-                Dúvidas? Preocupações? Quer só bater um papo? Manda um e-mail para 
-                <strong> contato@moveplataforma.com.br</strong> que a gente responde!
+                Dúvidas? Preocupações? Quer só bater um papo? Entre em contato pelo{" "}
+                <a 
+                  href="https://www.linkedin.com/in/laecio-rodrigues" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-primary font-semibold hover:underline"
+                >
+                  LinkedIn do Laecio
+                </a>
+                {" "}que a gente responde!
               </p>
             </div>
           </div>
@@ -250,7 +258,15 @@ const Terms = () => {
             </p>
             <p>
               <strong>Responsável pelos dados:</strong> Qualquer dúvida sobre proteção de dados, 
-              manda um e-mail para <strong>contato@moveplataforma.com.br</strong>.
+              entre em contato pelo{" "}
+              <a 
+                href="https://www.linkedin.com/in/laecio-rodrigues" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-primary font-semibold hover:underline"
+              >
+                LinkedIn do Laecio Oliveira
+              </a>.
             </p>
           </div>
         </motion.section>
