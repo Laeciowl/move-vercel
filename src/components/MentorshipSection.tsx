@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Calendar, Clock, User, Loader2, CheckCircle, XCircle, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import SessionManagement from "./SessionManagement";
 
 interface MentorSession {
   id: string;
@@ -12,10 +13,12 @@ interface MentorSession {
   status: string;
   notes: string | null;
   created_at: string;
+  confirmed_by_mentor?: boolean;
   mentor?: {
     name: string;
     area: string;
     photo_url: string | null;
+    email?: string;
   };
 }
 
@@ -39,55 +42,55 @@ const statusLabels: Record<string, { label: string; color: string; icon: React.R
 
 const MentorshipSection = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [sessions, setSessions] = useState<MentorSession[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchSessions = async () => {
-      if (!user) return;
+  const fetchSessions = async () => {
+    if (!user) return;
 
-      // Fetch sessions first, then get mentor data from mentors_public view
-      const { data: sessionsData, error: sessionsError } = await supabase
-        .from("mentor_sessions")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("scheduled_at", { ascending: false });
+    // Fetch sessions first, then get mentor data from mentors_public view
+    const { data: sessionsData, error: sessionsError } = await supabase
+      .from("mentor_sessions")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("scheduled_at", { ascending: false });
 
-      if (sessionsError) {
-        console.error("Error fetching sessions:", sessionsError);
-        setLoading(false);
-        return;
-      }
-
-      if (!sessionsData || sessionsData.length === 0) {
-        setSessions([]);
-        setLoading(false);
-        return;
-      }
-
-      // Get unique mentor IDs
-      const mentorIds = [...new Set(sessionsData.map(s => s.mentor_id))];
-      
-      // Fetch mentor data from mentors_public view (excludes sensitive email)
-      const { data: mentorsData } = await supabase
-        .from("mentors_public")
-        .select("id, name, area, photo_url")
-        .in("id", mentorIds);
-
-      // Map mentor data to sessions
-      const mentorsMap = new Map(
-        (mentorsData || []).map(m => [m.id, m])
-      );
-
-      const data = sessionsData.map(session => ({
-        ...session,
-        mentor: mentorsMap.get(session.mentor_id) || null
-      }));
-      setSessions(data as MentorSession[]);
+    if (sessionsError) {
+      console.error("Error fetching sessions:", sessionsError);
       setLoading(false);
-    };
+      return;
+    }
 
+    if (!sessionsData || sessionsData.length === 0) {
+      setSessions([]);
+      setLoading(false);
+      return;
+    }
+
+    // Get unique mentor IDs
+    const mentorIds = [...new Set(sessionsData.map(s => s.mentor_id))];
+    
+    // Fetch mentor data from mentors table (need email for reschedule notifications)
+    const { data: mentorsData } = await supabase
+      .from("mentors")
+      .select("id, name, area, photo_url, email")
+      .in("id", mentorIds);
+
+    // Map mentor data to sessions
+    const mentorsMap = new Map(
+      (mentorsData || []).map(m => [m.id, m])
+    );
+
+    const data = sessionsData.map(session => ({
+      ...session,
+      mentor: mentorsMap.get(session.mentor_id) || null
+    }));
+    setSessions(data as MentorSession[]);
+    setLoading(false);
+  };
+
+  useEffect(() => {
     fetchSessions();
   }, [user]);
 
@@ -145,35 +148,54 @@ const MentorshipSection = () => {
                 {upcomingSessions.map((session) => (
                   <div
                     key={session.id}
-                    className="flex items-center gap-4 p-3 bg-accent/50 rounded-xl"
+                    className="flex flex-col gap-3 p-4 bg-accent/50 rounded-xl"
                   >
-                    <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center shrink-0 overflow-hidden">
-                      {session.mentor?.photo_url ? (
-                        <img
-                          src={session.mentor.photo_url}
-                          alt={session.mentor.name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <User className="w-6 h-6 text-muted-foreground" />
-                      )}
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center shrink-0 overflow-hidden">
+                        {session.mentor?.photo_url ? (
+                          <img
+                            src={session.mentor.photo_url}
+                            alt={session.mentor.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <User className="w-6 h-6 text-muted-foreground" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-foreground truncate">
+                          {session.mentor?.name || "Mentor"}
+                        </p>
+                        <p className="text-sm text-muted-foreground truncate">
+                          {session.mentor?.area}
+                        </p>
+                        <p className="text-xs text-primary flex items-center gap-1 mt-1">
+                          <Clock className="w-3 h-3" />
+                          {formatDate(session.scheduled_at)}
+                        </p>
+                      </div>
+                      <div className="flex flex-col items-end gap-2">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${statusLabels[session.status]?.color || "bg-gray-100"}`}>
+                          {statusLabels[session.status]?.icon}
+                          {session.confirmed_by_mentor ? "Confirmada" : statusLabels[session.status]?.label || session.status}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-foreground truncate">
-                        {session.mentor?.name || "Mentor"}
-                      </p>
-                      <p className="text-sm text-muted-foreground truncate">
-                        {session.mentor?.area}
-                      </p>
-                      <p className="text-xs text-primary flex items-center gap-1 mt-1">
-                        <Clock className="w-3 h-3" />
-                        {formatDate(session.scheduled_at)}
-                      </p>
+                    
+                    {/* Session management buttons for mentee */}
+                    <div className="flex justify-end">
+                      <SessionManagement
+                        sessionId={session.id}
+                        scheduledAt={session.scheduled_at}
+                        mentorName={session.mentor?.name || "Mentor"}
+                        mentorId={session.mentor_id}
+                        menteeName={profile?.name}
+                        menteeEmail={user?.email}
+                        mentorEmail={session.mentor?.email}
+                        userRole="mentee"
+                        onUpdate={fetchSessions}
+                      />
                     </div>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${statusLabels[session.status]?.color || "bg-gray-100"}`}>
-                      {statusLabels[session.status]?.icon}
-                      {statusLabels[session.status]?.label || session.status}
-                    </span>
                   </div>
                 ))}
               </div>

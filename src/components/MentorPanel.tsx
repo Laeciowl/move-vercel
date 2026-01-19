@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { User, Calendar, Clock, Settings, Shield, Loader2, Phone, CheckCircle } from "lucide-react";
+import { User, Calendar, Clock, Settings, Shield, Loader2, Phone, CheckCircle, Mail } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import MentorBlockedPeriodsManager from "./MentorBlockedPeriodsManager";
 import MentorDisclaimerModal from "./MentorDisclaimerModal";
 import MentorSessionConfirmation from "./MentorSessionConfirmation";
+import SessionManagement from "./SessionManagement";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 interface Availability {
@@ -304,13 +305,13 @@ const MentorPanel = () => {
             Próximas sessões ({upcomingSessions.length})
           </h4>
           <div className="space-y-3">
-            {upcomingSessions.slice(0, 3).map((session, index) => (
+            {upcomingSessions.filter(s => s.confirmed_by_mentor).slice(0, 3).map((session, index) => (
               <motion.div
                 key={session.id}
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.4 + index * 0.1 }}
-                className="bg-gradient-to-br from-accent/50 to-accent/30 rounded-2xl p-4 space-y-2 border border-border/50 hover:border-primary/30 transition-all duration-300 hover:shadow-soft"
+                className="bg-gradient-to-br from-accent/50 to-accent/30 rounded-2xl p-4 space-y-3 border border-border/50 hover:border-primary/30 transition-all duration-300 hover:shadow-soft"
               >
                 <div className="flex items-center gap-2">
                   <User className="w-4 h-4 text-muted-foreground" />
@@ -321,15 +322,35 @@ const MentorPanel = () => {
                 <p className="text-sm text-muted-foreground">
                   📅 {formatSessionDate(session.scheduled_at)}
                 </p>
+                {session.mentee_email && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Mail className="w-3 h-3" />
+                    <a href={`mailto:${session.mentee_email}`} className="hover:text-primary">
+                      {session.mentee_email}
+                    </a>
+                  </div>
+                )}
                 {session.mentee_profile?.phone && (
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Phone className="w-3 h-3" />
                     <span>{session.mentee_profile.phone}</span>
                   </div>
                 )}
-                <p className="text-xs text-primary">
-                  💡 Lembre-se de entrar em contato para confirmar a sessão!
-                </p>
+                
+                {/* Session management for mentor */}
+                <div className="flex justify-end pt-2 border-t border-border/50">
+                  <SessionManagement
+                    sessionId={session.id}
+                    scheduledAt={session.scheduled_at}
+                    mentorName={mentorData.name}
+                    mentorId={mentorData.id}
+                    menteeName={session.mentee_profile?.name}
+                    menteeEmail={session.mentee_email}
+                    mentorEmail={mentorData.email}
+                    userRole="mentor"
+                    onUpdate={fetchMentorData}
+                  />
+                </div>
               </motion.div>
             ))}
           </div>
