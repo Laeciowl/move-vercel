@@ -19,6 +19,8 @@ interface Submission {
   status: string;
   created_at: string;
   reviewed_at: string | null;
+  area: string | null;
+  tema: string | null;
 }
 
 const AdminSubmissionsPanel = () => {
@@ -59,7 +61,8 @@ const AdminSubmissionsPanel = () => {
           description: submission.description,
           url: submission.content_url,
           item_type: submission.content_type === "link" ? "video" : "pdf",
-          category: submission.category === "aulas_lives" ? "aulas" : "templates",
+          category: submission.tema || "geral",
+          area: submission.area || "geral",
         });
 
       if (contentError) {
