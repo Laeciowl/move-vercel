@@ -123,7 +123,7 @@ const ContentSubmissionModal = ({ isOpen, onClose, onSuccess, category }: Conten
       }
 
       setSubmitted(true);
-      toast.success("Conteúdo enviado para aprovação!");
+      toast.success("Enviado! A gente vai analisar e já já aparece por lá.");
       
       setTimeout(() => {
         onSuccess();

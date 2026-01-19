@@ -53,7 +53,7 @@ const AdminMentorsPanel = () => {
       toast.error("Erro ao atualizar status");
       console.error(error);
     } else {
-      toast.success(`Mentor ${status === "approved" ? "aprovado" : "rejeitado"} com sucesso`);
+      toast.success(status === "approved" ? "Mentor aprovado! 🎉" : "Mentor não aprovado.");
       fetchMentors();
     }
     setUpdating(null);

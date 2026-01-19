@@ -126,9 +126,9 @@ const ContentLibrary = () => {
       {/* Curated Content Disclaimer */}
       <div className="bg-gradient-to-r from-primary/5 via-accent/5 to-primary/5 rounded-xl p-4 border border-primary/10">
         <p className="text-sm text-muted-foreground">
-          <span className="font-medium text-foreground">📚 Curadoria de Conteúdo Educativo:</span>{" "}
-          Os vídeos exibidos nesta seção são recomendações de conteúdos educacionais de alta qualidade disponíveis no YouTube. 
-          A Movê não é autora desses materiais — nossa missão é selecionar e organizar os melhores recursos para apoiar seu desenvolvimento profissional.
+          <span className="font-medium text-foreground">📚 Conteúdo selecionado com carinho:</span>{" "}
+          Os vídeos aqui são recomendações de materiais educacionais incríveis que encontramos no YouTube. 
+          A Movê não criou esses conteúdos — nosso papel é garimpar e organizar os melhores recursos pra te ajudar a crescer.
         </p>
       </div>
 
@@ -361,7 +361,7 @@ const ContentLibrary = () => {
                   </Badge>
                 </div>
                 <p className="text-xs text-muted-foreground italic">
-                  Este vídeo é uma recomendação de conteúdo educativo. A Movê não é autora deste material.
+                  💡 Esse vídeo é uma recomendação nossa — a Movê não criou esse conteúdo.
                 </p>
               </div>
             </div>

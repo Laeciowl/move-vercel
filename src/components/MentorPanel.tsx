@@ -175,7 +175,7 @@ const MentorPanel = () => {
             <Shield className="w-6 h-6 text-primary-foreground" />
           </motion.div>
           <div>
-            <h3 className="font-bold text-lg text-foreground">Painel do Mentor</h3>
+            <h3 className="font-bold text-lg text-foreground">Sua área de mentor</h3>
             <p className="text-sm text-muted-foreground">{mentorData.area}</p>
           </div>
         </div>

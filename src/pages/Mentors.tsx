@@ -90,7 +90,7 @@ const Mentors = () => {
 
   const handleBookSession = async (date: Date, time: string) => {
     if (!user) {
-      toast.error("Você precisa estar logado para agendar uma mentoria");
+      toast.error("Faz login primeiro pra agendar uma mentoria 😊");
       navigate("/auth?cadastro=true");
       return;
     }
@@ -111,7 +111,7 @@ const Mentors = () => {
     if (error) {
       toast.error("Erro ao agendar: " + error.message);
     } else {
-      toast.success("Mentoria agendada com sucesso! O mentor entrará em contato para confirmar.");
+      toast.success("Show! Mentoria agendada! O mentor vai entrar em contato pra confirmar.");
       setDialogOpen(false);
     }
 
@@ -142,11 +142,11 @@ const Mentors = () => {
           className="text-center mb-12"
         >
           <h1 className="text-3xl md:text-4xl font-bold text-gradient mb-4">
-            Nossos Mentores
+            Pessoas que querem te ver crescer
           </h1>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Conheça os profissionais voluntários que estão prontos para te ajudar
-            na sua jornada profissional.
+            Profissionais incríveis que doam seu tempo pra conversar com você, 
+            compartilhar experiências e te ajudar a dar os próximos passos.
           </p>
         </motion.div>
 
@@ -231,16 +231,17 @@ const Mentors = () => {
           >
             <User className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-xl font-bold text-foreground mb-2">
-              Nenhum mentor disponível ainda
+              Estamos montando nosso time 🚀
             </h3>
             <p className="text-muted-foreground mb-6">
-              Em breve teremos mentores prontos para te ajudar!
+              Logo mais você vai conhecer pessoas incríveis prontas pra te ouvir e orientar. 
+              Enquanto isso, que tal fazer parte dessa história?
             </p>
             <button
               onClick={() => navigate("/voluntario")}
               className="bg-accent text-accent-foreground px-6 py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity"
             >
-              Quero ser mentor
+              Quero ser voluntário
             </button>
           </motion.div>
         )}
