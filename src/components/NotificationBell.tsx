@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { Bell } from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { Bell, BookOpen, Calendar, CheckCircle, Users } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -20,26 +20,52 @@ interface Notification {
   user_id: string;
 }
 
+// Event to trigger tab changes and scrolling in components
+export const triggerNotificationAction = (action: { type: string; target?: string; tab?: string }) => {
+  window.dispatchEvent(new CustomEvent("notification-action", { detail: action }));
+};
+
 const NotificationBell = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isOpen, setIsOpen] = useState(false);
 
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
-  // Map notification types to routes/anchors
-  const getNotificationRoute = (type: string): string | null => {
+  // Get notification icon based on type
+  const getNotificationIcon = (type: string) => {
     switch (type) {
       case "mentorship_request":
-        return "/dashboard#mentor-sessions";
+        return <Users className="w-4 h-4 text-primary" />;
       case "session_confirmed":
       case "session_cancelled":
-        return "/dashboard#my-sessions";
+        return <Calendar className="w-4 h-4 text-primary" />;
       case "volunteer_approval":
-        return "/dashboard#mentor-panel";
+        return <CheckCircle className="w-4 h-4 text-green-500" />;
       case "content":
-        return "/dashboard#content-library";
+        return <BookOpen className="w-4 h-4 text-secondary" />;
+      default:
+        return <Bell className="w-4 h-4 text-muted-foreground" />;
+    }
+  };
+
+  // Map notification types to routes/anchors and tab actions
+  const getNotificationAction = (type: string): { route: string; tab?: string; scrollTo?: string } | null => {
+    switch (type) {
+      case "mentorship_request":
+        // For mentors: go to volunteer panel agenda tab
+        return { route: "/dashboard", tab: "agenda", scrollTo: "volunteer-panel" };
+      case "session_confirmed":
+      case "session_cancelled":
+        // For students: scroll to their sessions
+        return { route: "/dashboard", scrollTo: "mentorship-section" };
+      case "volunteer_approval":
+        return { route: "/dashboard", tab: "overview", scrollTo: "volunteer-panel" };
+      case "content":
+        // New content available: scroll to content library
+        return { route: "/dashboard", scrollTo: "content-library" };
       default:
         return null;
     }
@@ -47,20 +73,54 @@ const NotificationBell = () => {
 
   const handleNotificationClick = async (notification: Notification) => {
     await markAsRead(notification.id);
-    const route = getNotificationRoute(notification.type);
-    if (route) {
+    const action = getNotificationAction(notification.type);
+    
+    if (action) {
       setIsOpen(false);
-      navigate(route);
-      // Scroll to the element after a short delay to ensure page is loaded
-      setTimeout(() => {
-        const hash = route.split("#")[1];
-        if (hash) {
-          const element = document.getElementById(hash);
-          if (element) {
-            element.scrollIntoView({ behavior: "smooth", block: "start" });
-          }
+      
+      // If already on dashboard, just trigger the action
+      if (location.pathname === "/dashboard") {
+        // Dispatch action for components to react
+        triggerNotificationAction({ 
+          type: notification.type, 
+          target: action.scrollTo,
+          tab: action.tab 
+        });
+        
+        // Scroll to element
+        if (action.scrollTo) {
+          setTimeout(() => {
+            const element = document.getElementById(action.scrollTo!);
+            if (element) {
+              element.scrollIntoView({ behavior: "smooth", block: "start" });
+              // Add highlight effect
+              element.classList.add("notification-highlight");
+              setTimeout(() => element.classList.remove("notification-highlight"), 2000);
+            }
+          }, 100);
         }
-      }, 100);
+      } else {
+        // Navigate first, then trigger action
+        navigate(action.route);
+        setTimeout(() => {
+          triggerNotificationAction({ 
+            type: notification.type, 
+            target: action.scrollTo,
+            tab: action.tab 
+          });
+          
+          if (action.scrollTo) {
+            setTimeout(() => {
+              const element = document.getElementById(action.scrollTo!);
+              if (element) {
+                element.scrollIntoView({ behavior: "smooth", block: "start" });
+                element.classList.add("notification-highlight");
+                setTimeout(() => element.classList.remove("notification-highlight"), 2000);
+              }
+            }, 100);
+          }
+        }, 300);
+      }
     }
   };
 
@@ -152,80 +212,122 @@ const NotificationBell = () => {
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <button className="relative p-2 rounded-full hover:bg-muted transition-colors">
+        <motion.button 
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="relative p-2 rounded-full hover:bg-muted/60 transition-all duration-200"
+        >
           <Bell className="w-5 h-5 text-muted-foreground hover:text-foreground transition-colors" />
           <AnimatePresence>
             {unreadCount > 0 && (
               <motion.span
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                exit={{ scale: 0 }}
-                className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-primary text-primary-foreground text-xs font-bold rounded-full flex items-center justify-center"
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                exit={{ scale: 0, rotate: 180 }}
+                transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-primary text-primary-foreground text-xs font-bold rounded-full flex items-center justify-center shadow-button"
               >
                 {unreadCount > 9 ? "9+" : unreadCount}
               </motion.span>
             )}
           </AnimatePresence>
-        </button>
+        </motion.button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-80 p-0">
-        <div className="p-4 border-b border-border flex items-center justify-between">
-          <h3 className="font-semibold text-foreground">Notificações</h3>
-          {unreadCount > 0 && (
-            <button
-              onClick={markAllAsRead}
-              className="text-xs text-primary hover:underline"
-            >
-              Marcar todas como lidas
-            </button>
-          )}
-        </div>
-        <div className="max-h-80 overflow-y-auto">
-          {notifications.length === 0 ? (
-            <div className="p-8 text-center">
-              <Bell className="w-10 h-10 text-muted-foreground/50 mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground">
-                Tudo tranquilo por aqui! 😊
-              </p>
-            </div>
-          ) : (
-            notifications.map((notification) => (
-              <button
-                key={notification.id}
-                onClick={() => handleNotificationClick(notification)}
-                className={`w-full p-4 text-left border-b border-border last:border-0 hover:bg-muted/50 transition-colors ${
-                  !notification.is_read ? "bg-primary/5" : ""
-                }`}
+      <PopoverContent align="end" className="w-80 p-0 bg-card/95 backdrop-blur-xl border-border/50 shadow-card">
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          <div className="p-4 border-b border-border/50 flex items-center justify-between">
+            <h3 className="font-semibold text-foreground">Notificações</h3>
+            {unreadCount > 0 && (
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={markAllAsRead}
+                className="text-xs text-primary hover:text-primary/80 transition-colors"
               >
-                <div className="flex items-start gap-3">
-                  <div
-                    className={`w-2 h-2 rounded-full mt-2 shrink-0 ${
-                      !notification.is_read ? "bg-primary" : "bg-transparent"
+                Marcar todas como lidas
+              </motion.button>
+            )}
+          </div>
+          <div className="max-h-80 overflow-y-auto">
+            {notifications.length === 0 ? (
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="p-8 text-center"
+              >
+                <motion.div
+                  animate={{ y: [0, -4, 0] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                >
+                  <Bell className="w-10 h-10 text-muted-foreground/30 mx-auto mb-2" />
+                </motion.div>
+                <p className="text-sm text-muted-foreground">
+                  Tudo tranquilo por aqui! 😊
+                </p>
+              </motion.div>
+            ) : (
+              <AnimatePresence>
+                {notifications.map((notification, index) => (
+                  <motion.button
+                    key={notification.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    transition={{ delay: index * 0.03, duration: 0.2 }}
+                    onClick={() => handleNotificationClick(notification)}
+                    className={`w-full p-4 text-left border-b border-border/30 last:border-0 hover:bg-muted/40 transition-all duration-200 group ${
+                      !notification.is_read ? "bg-primary/5" : ""
                     }`}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm text-foreground truncate">
-                      {notification.title}
-                    </p>
-                    <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
-                      {notification.message}
-                    </p>
-                    <div className="flex items-center justify-between mt-1">
-                      <p className="text-xs text-muted-foreground/70">
-                        {getTimeAgo(notification.created_at)}
-                      </p>
-                      {getNotificationRoute(notification.type) && (
-                        <span className="text-xs text-primary font-medium">
-                          Ver →
-                        </span>
-                      )}
+                  >
+                    <div className="flex items-start gap-3">
+                      <motion.div
+                        whileHover={{ scale: 1.1, rotate: 5 }}
+                        className="w-8 h-8 rounded-lg bg-muted/50 flex items-center justify-center shrink-0"
+                      >
+                        {getNotificationIcon(notification.type)}
+                      </motion.div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium text-sm text-foreground truncate">
+                            {notification.title}
+                          </p>
+                          {!notification.is_read && (
+                            <motion.span
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              className="w-2 h-2 rounded-full bg-primary shrink-0"
+                            />
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
+                          {notification.message}
+                        </p>
+                        <div className="flex items-center justify-between mt-1.5">
+                          <p className="text-xs text-muted-foreground/70">
+                            {getTimeAgo(notification.created_at)}
+                          </p>
+                          {getNotificationAction(notification.type) && (
+                            <motion.span 
+                              initial={{ x: 0 }}
+                              whileHover={{ x: 3 }}
+                              className="text-xs text-primary font-medium opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              Ver →
+                            </motion.span>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-              </button>
-            ))
-          )}
-        </div>
+                  </motion.button>
+                ))}
+              </AnimatePresence>
+            )}
+          </div>
+        </motion.div>
       </PopoverContent>
     </Popover>
   );
