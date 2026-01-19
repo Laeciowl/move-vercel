@@ -11,6 +11,11 @@ import MentorDisclaimerModal from "@/components/MentorDisclaimerModal";
 const emailSchema = z.string().email("E-mail inválido").max(255);
 const nameSchema = z.string().min(2, "Nome deve ter pelo menos 2 caracteres").max(100);
 const passwordSchema = z.string().min(6, "Senha deve ter pelo menos 6 caracteres").max(72);
+const phoneSchema = z
+  .string()
+  .min(10, "Telefone deve ter pelo menos 10 dígitos")
+  .max(20, "Telefone muito longo")
+  .regex(/^[\d\s()+-]+$/, "Telefone inválido");
 
 // Voluntários agora são automaticamente mentores e podem contribuir com todo tipo de conteúdo
 
@@ -56,6 +61,7 @@ const Volunteer = () => {
     name: "",
     email: "",
     password: "",
+    phone: "",
     area: "",
     // Mentor fields - todos voluntários são mentores
     description: "",
@@ -132,6 +138,7 @@ const Volunteer = () => {
     try {
       nameSchema.parse(formData.name);
       emailSchema.parse(formData.email);
+      phoneSchema.parse(formData.phone);
     } catch (error) {
       if (error instanceof z.ZodError) {
         toast.error(error.errors[0].message);
@@ -218,6 +225,7 @@ const Volunteer = () => {
               state: "N/A",
               professional_status: "empregado",
               income_range: "acima_3000",
+              phone: formData.phone.trim(),
             },
           },
         });
@@ -478,6 +486,24 @@ const Volunteer = () => {
                 required
                 maxLength={255}
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Telefone (WhatsApp) *
+              </label>
+              <input
+                type="tel"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                className="w-full px-4 py-3 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
+                placeholder="(11) 99999-9999"
+                required
+                maxLength={20}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Usado para comunicação com a equipe e mentorados.
+              </p>
             </div>
 
             <div>

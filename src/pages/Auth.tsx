@@ -10,6 +10,11 @@ import type { Enums } from "@/integrations/supabase/types";
 
 const emailSchema = z.string().email("E-mail inválido").max(255);
 const passwordSchema = z.string().min(6, "Senha deve ter pelo menos 6 caracteres").max(72);
+const phoneSchema = z
+  .string()
+  .min(10, "Telefone deve ter pelo menos 10 dígitos")
+  .max(20, "Telefone muito longo")
+  .regex(/^[\d\s()+-]+$/, "Telefone inválido");
 
 type ProfessionalStatus = Enums<"professional_status">;
 type IncomeRange = Enums<"income_range">;
@@ -46,6 +51,7 @@ const Auth = () => {
     password: "",
     name: "",
     age: "",
+    phone: "",
     professionalStatus: "",
     lgpdConsent: false,
   });
@@ -101,6 +107,7 @@ const Auth = () => {
     try {
       emailSchema.parse(signupData.email);
       passwordSchema.parse(signupData.password);
+      phoneSchema.parse(signupData.phone);
     } catch (error) {
       if (error instanceof z.ZodError) {
         toast.error(error.errors[0].message);
@@ -124,6 +131,8 @@ const Auth = () => {
       return;
     }
 
+    const cleanPhone = signupData.phone.trim();
+
     setLoading(true);
     
     const redirectUrl = `${window.location.origin}/dashboard`;
@@ -142,6 +151,7 @@ const Auth = () => {
             state: "N/A",
             professional_status: signupData.professionalStatus,
             income_range: "sem_renda",
+            phone: cleanPhone,
           },
         },
       });
@@ -419,6 +429,24 @@ const Auth = () => {
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Telefone (WhatsApp) *
+                </label>
+                <input
+                  type="tel"
+                  value={signupData.phone}
+                  onChange={(e) => setSignupData({ ...signupData, phone: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  placeholder="(11) 99999-9999"
+                  required
+                  maxLength={20}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Será usado para mentores entrarem em contato com você.
+                </p>
               </div>
 
               <div>
