@@ -1,10 +1,11 @@
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Camera, Loader2, User, Trash2 } from "lucide-react";
+import { X, Camera, Loader2, User, Trash2, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import DeleteAccountModal from "./DeleteAccountModal";
+import ChangePasswordModal from "./ChangePasswordModal";
 import type { Enums } from "@/integrations/supabase/types";
 
 type ProfessionalStatus = Enums<"professional_status">;
@@ -53,6 +54,7 @@ const ProfileEditModal = ({ isOpen, onClose, profile, onProfileUpdated }: Profil
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -321,8 +323,20 @@ const ProfileEditModal = ({ isOpen, onClose, profile, onProfileUpdated }: Profil
                 </button>
               </div>
 
-              {/* Delete Account Section */}
-              <div className="border-t border-border pt-4 mt-4">
+              {/* Security Section */}
+              <div className="border-t border-border pt-4 mt-4 space-y-3">
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <Lock className="w-4 h-4 text-primary" />
+                  Segurança
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setShowPasswordModal(true)}
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-primary/30 text-primary hover:bg-primary/10 transition-colors text-sm font-medium"
+                >
+                  <Lock className="w-4 h-4" />
+                  Alterar senha
+                </button>
                 <button
                   type="button"
                   onClick={() => setShowDeleteModal(true)}
@@ -336,6 +350,12 @@ const ProfileEditModal = ({ isOpen, onClose, profile, onProfileUpdated }: Profil
           </motion.div>
         </>
       )}
+
+      {/* Change Password Modal */}
+      <ChangePasswordModal
+        isOpen={showPasswordModal}
+        onClose={() => setShowPasswordModal(false)}
+      />
 
       {/* Delete Account Modal */}
       <DeleteAccountModal
