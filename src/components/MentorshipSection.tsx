@@ -113,6 +113,7 @@ const MentorshipSection = () => {
 
   return (
     <motion.section
+      id="my-sessions"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.15 }}

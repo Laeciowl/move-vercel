@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Bell } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,10 +22,47 @@ interface Notification {
 
 const NotificationBell = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isOpen, setIsOpen] = useState(false);
 
   const unreadCount = notifications.filter((n) => !n.is_read).length;
+
+  // Map notification types to routes/anchors
+  const getNotificationRoute = (type: string): string | null => {
+    switch (type) {
+      case "mentorship_request":
+        return "/dashboard#mentor-sessions";
+      case "session_confirmed":
+      case "session_cancelled":
+        return "/dashboard#my-sessions";
+      case "volunteer_approval":
+        return "/dashboard#mentor-panel";
+      case "content":
+        return "/dashboard#content-library";
+      default:
+        return null;
+    }
+  };
+
+  const handleNotificationClick = async (notification: Notification) => {
+    await markAsRead(notification.id);
+    const route = getNotificationRoute(notification.type);
+    if (route) {
+      setIsOpen(false);
+      navigate(route);
+      // Scroll to the element after a short delay to ensure page is loaded
+      setTimeout(() => {
+        const hash = route.split("#")[1];
+        if (hash) {
+          const element = document.getElementById(hash);
+          if (element) {
+            element.scrollIntoView({ behavior: "smooth", block: "start" });
+          }
+        }
+      }, 100);
+    }
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -154,7 +192,7 @@ const NotificationBell = () => {
             notifications.map((notification) => (
               <button
                 key={notification.id}
-                onClick={() => markAsRead(notification.id)}
+                onClick={() => handleNotificationClick(notification)}
                 className={`w-full p-4 text-left border-b border-border last:border-0 hover:bg-muted/50 transition-colors ${
                   !notification.is_read ? "bg-primary/5" : ""
                 }`}
@@ -172,9 +210,16 @@ const NotificationBell = () => {
                     <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
                       {notification.message}
                     </p>
-                    <p className="text-xs text-muted-foreground/70 mt-1">
-                      {getTimeAgo(notification.created_at)}
-                    </p>
+                    <div className="flex items-center justify-between mt-1">
+                      <p className="text-xs text-muted-foreground/70">
+                        {getTimeAgo(notification.created_at)}
+                      </p>
+                      {getNotificationRoute(notification.type) && (
+                        <span className="text-xs text-primary font-medium">
+                          Ver →
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </button>
