@@ -28,7 +28,7 @@ const VideoSection = () => {
         >
           <div className="relative w-full aspect-video rounded-2xl overflow-hidden shadow-2xl border border-border/50">
             <iframe
-              src="https://www.youtube.com/embed/GVhTMaKzmXQ"
+              src="https://www.youtube.com/embed/9AoueBf7Tr0"
               title="Apresentação do Movê"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               allowFullScreen
