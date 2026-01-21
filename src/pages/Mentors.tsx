@@ -56,6 +56,12 @@ const dayLabels: Record<string, string> = {
   sunday: "Domingo",
 };
 
+interface BookedSession {
+  scheduled_at: string;
+  duration: number;
+  status: string;
+}
+
 const Mentors = () => {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
@@ -63,6 +69,7 @@ const Mentors = () => {
   const [loading, setLoading] = useState(true);
   const [selectedMentor, setSelectedMentor] = useState<Mentor | null>(null);
   const [blockedPeriods, setBlockedPeriods] = useState<BlockedPeriod[]>([]);
+  const [bookedSessions, setBookedSessions] = useState<BookedSession[]>([]);
   const [booking, setBooking] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [reviewsDialogOpen, setReviewsDialogOpen] = useState(false);
@@ -149,6 +156,22 @@ const Mentors = () => {
     }
   };
 
+  const fetchBookedSessions = async (mentorId: string) => {
+    // Fetch all scheduled or confirmed sessions for this mentor (not cancelled)
+    const { data, error } = await supabase
+      .from("mentor_sessions")
+      .select("scheduled_at, duration, status")
+      .eq("mentor_id", mentorId)
+      .in("status", ["scheduled", "completed"])
+      .gte("scheduled_at", new Date().toISOString());
+
+    if (data && !error) {
+      setBookedSessions(data);
+    } else {
+      setBookedSessions([]);
+    }
+  };
+
   const handleBookSession = async (date: Date, time: string, duration: number) => {
     if (!user) {
       toast.error("Faz login primeiro pra agendar uma mentoria 😊");
@@ -180,20 +203,64 @@ const Mentors = () => {
 
     if (error) {
       toast.error("Erro ao agendar: " + error.message);
-    } else {
-      const durationLabel = duration === 30 ? "30 min" : duration === 45 ? "45 min" : "1 hora";
-      toast.success(`Show! Mentoria de ${durationLabel} agendada! O mentor vai entrar em contato pra confirmar.`);
-      setDialogOpen(false);
+      setBooking(false);
+      return;
     }
 
+    // Send email notification to mentor
+    try {
+      // Get mentor email from mentors table (need to fetch since we use public view)
+      const { data: mentorData } = await supabase
+        .from("mentors")
+        .select("email")
+        .eq("id", selectedMentor.id)
+        .single();
+
+      if (mentorData?.email) {
+        const durationLabel = duration === 30 ? "30 min" : duration === 45 ? "45 min" : "1 hora";
+        const formattedDate = new Intl.DateTimeFormat("pt-BR", {
+          weekday: "long",
+          day: "numeric",
+          month: "long",
+          hour: "2-digit",
+          minute: "2-digit",
+        }).format(date);
+
+        await supabase.functions.invoke("send-notification-email", {
+          body: {
+            to: mentorData.email,
+            name: selectedMentor.name,
+            type: "session_request_mentor",
+            data: {
+              menteeName: profile?.name || "Mentorado",
+              date: formattedDate,
+              duration: durationLabel,
+            },
+          },
+        });
+        console.log("Notification email sent to mentor:", mentorData.email);
+      }
+    } catch (emailError) {
+      console.error("Error sending email to mentor:", emailError);
+      // Don't show error to user, the session was still created
+    }
+
+    const durationLabel = duration === 30 ? "30 min" : duration === 45 ? "45 min" : "1 hora";
+    toast.success(`Show! Mentoria de ${durationLabel} agendada! O mentor vai entrar em contato pra confirmar.`);
+    setDialogOpen(false);
     setBooking(false);
   };
 
   const openBookingDialog = async (mentor: Mentor) => {
     setSelectedMentor(mentor);
     setBlockedPeriods([]);
+    setBookedSessions([]);
     setDialogOpen(true);
-    await fetchBlockedPeriods(mentor.id);
+    // Fetch blocked periods and booked sessions in parallel
+    await Promise.all([
+      fetchBlockedPeriods(mentor.id),
+      fetchBookedSessions(mentor.id),
+    ]);
   };
 
   const openReviewsDialog = (mentor: Mentor) => {
@@ -376,6 +443,7 @@ const Mentors = () => {
               <BookingCalendar
                 availability={selectedMentor.availability}
                 blockedPeriods={blockedPeriods}
+                bookedSessions={bookedSessions}
                 onConfirm={handleBookSession}
                 loading={booking}
               />
