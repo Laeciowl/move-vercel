@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { useAuth } from "@/contexts/AuthContext";
 import MentorDisclaimerModal from "@/components/MentorDisclaimerModal";
+import PasswordStrengthIndicator from "@/components/PasswordStrengthIndicator";
 
 const emailSchema = z.string().email("E-mail inválido").max(255);
 const nameSchema = z.string().min(2, "Nome deve ter pelo menos 2 caracteres").max(100);
@@ -566,7 +567,8 @@ const Volunteer = () => {
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">
+                <PasswordStrengthIndicator password={formData.password} />
+                <p className="text-xs text-muted-foreground mt-2">
                   Esta senha será usada para acessar sua conta após aprovação.
                 </p>
               </div>
