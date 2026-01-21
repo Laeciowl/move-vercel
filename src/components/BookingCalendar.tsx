@@ -2,9 +2,11 @@ import { useState, useMemo } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { format, addDays, startOfDay, isSameDay, getDay, addMinutes, isWithinInterval, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Clock, Loader2, AlertCircle, Timer } from "lucide-react";
+import { Clock, Loader2, AlertCircle, Timer, GraduationCap, Target } from "lucide-react";
 import { isDateBlocked, getBlockedReason, isHoliday } from "@/lib/brazilianHolidays";
 import { motion } from "framer-motion";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 
 interface Availability {
   day: string;
@@ -27,7 +29,7 @@ interface BookingCalendarProps {
   availability: Availability[];
   blockedPeriods: BlockedPeriod[];
   bookedSessions?: BookedSession[];
-  onConfirm: (date: Date, time: string, duration: number) => Promise<void>;
+  onConfirm: (date: Date, time: string, duration: number, formation: string, objective: string) => Promise<void>;
   loading: boolean;
 }
 
@@ -67,6 +69,8 @@ const BookingCalendar = ({
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [selectedDuration, setSelectedDuration] = useState<number>(30);
+  const [formation, setFormation] = useState<string>("");
+  const [objective, setObjective] = useState<string>("");
 
   // Get available weekdays from mentor's availability
   const availableDayIndices = useMemo(() => {
@@ -146,14 +150,16 @@ const BookingCalendar = ({
   };
 
   const handleConfirm = async () => {
-    if (!selectedDate || !selectedTime) return;
+    if (!selectedDate || !selectedTime || !formation.trim() || !objective.trim()) return;
     
     const [hours, minutes] = selectedTime.split(":").map(Number);
     const bookingDate = new Date(selectedDate);
     bookingDate.setHours(hours, minutes, 0, 0);
     
-    await onConfirm(bookingDate, selectedTime, selectedDuration);
+    await onConfirm(bookingDate, selectedTime, selectedDuration, formation.trim(), objective.trim());
   };
+
+  const isFormComplete = selectedDate && selectedTime && formation.trim() && objective.trim();
 
   return (
     <div className="space-y-6">
@@ -250,6 +256,52 @@ const BookingCalendar = ({
         </motion.div>
       )}
 
+      {/* Formation and Objective fields */}
+      {selectedDate && selectedTime && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
+          className="space-y-4"
+        >
+          {/* Formation */}
+          <div>
+            <label className="flex items-center gap-2 text-sm font-medium text-foreground mb-2">
+              <GraduationCap className="w-4 h-4 text-primary" />
+              Sua formação <span className="text-destructive">*</span>
+            </label>
+            <Input
+              value={formation}
+              onChange={(e) => setFormation(e.target.value)}
+              placeholder="Ex: Graduação em Administração, Técnico em TI..."
+              className="bg-background"
+              maxLength={150}
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Informe seu nível de formação e área (ex: Ensino Médio, Graduação em Marketing)
+            </p>
+          </div>
+
+          {/* Objective */}
+          <div>
+            <label className="flex items-center gap-2 text-sm font-medium text-foreground mb-2">
+              <Target className="w-4 h-4 text-primary" />
+              Objetivo com a mentoria <span className="text-destructive">*</span>
+            </label>
+            <Textarea
+              value={objective}
+              onChange={(e) => setObjective(e.target.value)}
+              placeholder="Descreva brevemente o que você espera da mentoria..."
+              className="bg-background min-h-[80px] resize-none"
+              maxLength={500}
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Isso ajuda o mentor a se preparar melhor para a sessão
+            </p>
+          </div>
+        </motion.div>
+      )}
+
       {/* No times available */}
       {selectedDate && availableTimes.length === 0 && (
         <div className="flex items-center gap-2 text-sm text-muted-foreground p-4 bg-muted rounded-xl">
@@ -261,7 +313,7 @@ const BookingCalendar = ({
       {/* Confirm button */}
       <motion.button
         onClick={handleConfirm}
-        disabled={!selectedDate || !selectedTime || loading}
+        disabled={!isFormComplete || loading}
         whileHover={{ scale: 1.01 }}
         whileTap={{ scale: 0.99 }}
         className="w-full bg-gradient-hero text-primary-foreground py-3.5 rounded-xl font-semibold hover:opacity-90 transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-button"

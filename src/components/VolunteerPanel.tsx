@@ -46,6 +46,8 @@ interface MentorSession {
   duration?: number;
   completed_at?: string;
   mentee_email?: string;
+  mentee_formation?: string | null;
+  mentee_objective?: string | null;
   mentee_profile?: {
     name: string;
     phone: string | null;

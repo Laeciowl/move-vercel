@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, X, Loader2, Calendar, User, MessageSquare, Mail, Phone, Info } from "lucide-react";
+import { Check, X, Loader2, Calendar, User, MessageSquare, Mail, Phone, Info, GraduationCap, Target } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -14,6 +14,8 @@ interface MentorSession {
   mentor_notes: string | null;
   duration?: number;
   mentee_email?: string;
+  mentee_formation?: string | null;
+  mentee_objective?: string | null;
   mentee_profile?: {
     name: string;
     phone: string | null;
@@ -201,6 +203,35 @@ const MentorSessionConfirmation = ({ sessions, mentorName, mentorEmail, onUpdate
                 </p>
               )}
             </div>
+
+            {/* Formation and Objective */}
+            {(session.mentee_formation || session.mentee_objective) && (
+              <div className="bg-blue-50/80 dark:bg-blue-900/20 rounded-lg p-3 space-y-3 border border-blue-200/50 dark:border-blue-700/50">
+                <p className="text-xs font-semibold text-foreground flex items-center gap-1">
+                  📚 Sobre o mentorado:
+                </p>
+                
+                {session.mentee_formation && (
+                  <div className="flex items-start gap-2 text-sm">
+                    <GraduationCap className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                    <div>
+                      <span className="text-xs text-muted-foreground font-medium">Formação:</span>
+                      <p className="text-foreground">{session.mentee_formation}</p>
+                    </div>
+                  </div>
+                )}
+                
+                {session.mentee_objective && (
+                  <div className="flex items-start gap-2 text-sm">
+                    <Target className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                    <div>
+                      <span className="text-xs text-muted-foreground font-medium">Objetivo da mentoria:</span>
+                      <p className="text-foreground italic">"{session.mentee_objective}"</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Disclaimer */}
             <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 text-xs text-muted-foreground space-y-1">

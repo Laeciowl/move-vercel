@@ -470,6 +470,16 @@ const emailTemplates: Record<string, { subject: string; html: (name: string, dat
           <p style="color: ${MOVE_COLORS.text}; margin: 10px 0 0 0;"><strong>Data solicitada:</strong> ${data?.date || "A confirmar"}</p>
           <p style="color: ${MOVE_COLORS.text}; margin: 10px 0 0 0;"><strong>Duração:</strong> ${data?.duration || "30 min"}</p>
         </div>
+        
+        <div style="background-color: #f0f9ff; padding: 20px; border-radius: 12px; margin: 20px 0; border-left: 4px solid ${MOVE_COLORS.secondary};">
+          <p style="color: ${MOVE_COLORS.secondary}; font-size: 14px; margin: 0; font-weight: bold;">📚 Sobre o mentorado:</p>
+          <p style="color: ${MOVE_COLORS.text}; font-size: 14px; margin: 10px 0 0 0;"><strong>Formação:</strong> ${data?.formation || "Não informado"}</p>
+          <p style="color: ${MOVE_COLORS.text}; font-size: 14px; margin: 10px 0 0 0;"><strong>Objetivo da mentoria:</strong></p>
+          <p style="color: ${MOVE_COLORS.text}; font-size: 14px; margin: 5px 0 0 0; padding: 10px; background-color: white; border-radius: 8px; font-style: italic;">
+            "${data?.objective || "Não informado"}"
+          </p>
+        </div>
+
         <div style="background-color: #fff7ed; padding: 15px; border-radius: 12px; margin: 20px 0; border-left: 4px solid ${MOVE_COLORS.warning};">
           <p style="color: ${MOVE_COLORS.primaryDark}; font-size: 14px; margin: 0; font-weight: bold;">📌 Ação necessária:</p>
           <p style="color: ${MOVE_COLORS.text}; font-size: 14px; margin: 10px 0 0 0;">
