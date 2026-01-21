@@ -356,6 +356,27 @@ const MentorPanel = () => {
                 <p className="text-sm text-muted-foreground">
                   📅 {formatSessionDate(session.scheduled_at)}
                 </p>
+
+                {/* Formation and Objective */}
+                {(session.mentee_formation || session.mentee_objective) && (
+                  <div className="bg-blue-50/80 dark:bg-blue-900/20 rounded-lg p-3 space-y-2 border border-blue-200/50 dark:border-blue-700/50">
+                    <p className="text-xs font-semibold text-foreground">📚 Sobre o mentorado:</p>
+                    
+                    {session.mentee_formation && (
+                      <div className="flex items-start gap-2 text-sm">
+                        <span className="text-xs text-muted-foreground font-medium">Formação:</span>
+                        <span className="text-foreground">{session.mentee_formation}</span>
+                      </div>
+                    )}
+                    
+                    {session.mentee_objective && (
+                      <div className="flex items-start gap-2 text-sm">
+                        <span className="text-xs text-muted-foreground font-medium">Objetivo:</span>
+                        <span className="text-foreground italic">"{session.mentee_objective}"</span>
+                      </div>
+                    )}
+                  </div>
+                )}
                 
                 {/* Contact info */}
                 <div className="bg-card/50 rounded-lg p-2 space-y-1 border border-border/50">
