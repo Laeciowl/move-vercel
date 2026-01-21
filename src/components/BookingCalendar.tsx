@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { Calendar } from "@/components/ui/calendar";
-import { format, addDays, startOfDay, isSameDay, getDay } from "date-fns";
+import { format, addDays, startOfDay, isSameDay, getDay, addMinutes, isWithinInterval, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Clock, Loader2, AlertCircle, Timer } from "lucide-react";
 import { isDateBlocked, getBlockedReason, isHoliday } from "@/lib/brazilianHolidays";
@@ -17,9 +17,16 @@ interface BlockedPeriod {
   reason?: string;
 }
 
+interface BookedSession {
+  scheduled_at: string;
+  duration: number;
+  status: string;
+}
+
 interface BookingCalendarProps {
   availability: Availability[];
   blockedPeriods: BlockedPeriod[];
+  bookedSessions?: BookedSession[];
   onConfirm: (date: Date, time: string, duration: number) => Promise<void>;
   loading: boolean;
 }
@@ -52,7 +59,8 @@ const DURATION_OPTIONS = [
 
 const BookingCalendar = ({ 
   availability, 
-  blockedPeriods, 
+  blockedPeriods,
+  bookedSessions = [],
   onConfirm, 
   loading 
 }: BookingCalendarProps) => {
@@ -64,6 +72,33 @@ const BookingCalendar = ({
   const availableDayIndices = useMemo(() => {
     return availability.map(a => dayIndexMap[a.day]);
   }, [availability]);
+
+  // Check if a time slot conflicts with existing sessions
+  const isTimeSlotBooked = (date: Date, time: string): boolean => {
+    const [hours, minutes] = time.split(":").map(Number);
+    const slotStart = new Date(date);
+    slotStart.setHours(hours, minutes, 0, 0);
+    
+    // Check against all booked sessions
+    for (const session of bookedSessions) {
+      const sessionStart = parseISO(session.scheduled_at);
+      const sessionEnd = addMinutes(sessionStart, session.duration || 30);
+      
+      // Check if slot start falls within an existing session
+      if (isWithinInterval(slotStart, { start: sessionStart, end: sessionEnd })) {
+        return true;
+      }
+      
+      // Also check if an existing session starts within a potential new slot
+      // Assuming a default 30-min slot for this check
+      const slotEnd = addMinutes(slotStart, 30);
+      if (isWithinInterval(sessionStart, { start: slotStart, end: slotEnd })) {
+        return true;
+      }
+    }
+    
+    return false;
+  };
 
   // Disable dates function
   const isDateDisabled = (date: Date): boolean => {
@@ -82,7 +117,7 @@ const BookingCalendar = ({
     return false;
   };
 
-  // Get available times for selected date
+  // Get available times for selected date, filtering out already booked slots
   const availableTimes = useMemo(() => {
     if (!selectedDate) return [];
     
@@ -92,8 +127,11 @@ const BookingCalendar = ({
     if (!dayName) return [];
     
     const dayAvailability = availability.find(a => a.day === dayName);
-    return dayAvailability?.times || [];
-  }, [selectedDate, availability]);
+    const allTimes = dayAvailability?.times || [];
+    
+    // Filter out times that are already booked
+    return allTimes.filter(time => !isTimeSlotBooked(selectedDate, time));
+  }, [selectedDate, availability, bookedSessions]);
 
   // Get reason why date is blocked (for tooltip)
   const getDisabledReason = (date: Date): string | undefined => {

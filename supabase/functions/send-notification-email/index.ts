@@ -18,6 +18,7 @@ type EmailType =
   | "session_cancelled" 
   | "session_cancelled_notification"
   | "session_rescheduled"
+  | "session_request_mentor"
   | "content_approved" 
   | "content_rejected" 
   | "mentor_approved" 
@@ -450,6 +451,41 @@ const emailTemplates: Record<string, { subject: string; html: (name: string, dat
             Acessar Painel
           </a>
         </div>
+        ${founderSignature}
+        ${emailFooter}
+      </div>
+    `,
+  },
+  session_request_mentor: {
+    subject: "Novo pedido de mentoria! 🎯",
+    isTransactional: true,
+    html: (name, data) => `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #fffbf7;">
+        <h1 style="color: ${MOVE_COLORS.primary}; text-align: center;">Novo Pedido de Mentoria! 🎯</h1>
+        <p style="color: ${MOVE_COLORS.text}; font-size: 16px; line-height: 1.6;">
+          Olá, ${name}! Você recebeu um novo pedido de mentoria.
+        </p>
+        <div style="background-color: ${MOVE_COLORS.accent}; padding: 20px; border-radius: 12px; margin: 20px 0; border-left: 4px solid ${MOVE_COLORS.primary};">
+          <p style="color: ${MOVE_COLORS.text}; margin: 0;"><strong>Mentorado:</strong> ${data?.menteeName || "Usuário"}</p>
+          <p style="color: ${MOVE_COLORS.text}; margin: 10px 0 0 0;"><strong>Data solicitada:</strong> ${data?.date || "A confirmar"}</p>
+          <p style="color: ${MOVE_COLORS.text}; margin: 10px 0 0 0;"><strong>Duração:</strong> ${data?.duration || "30 min"}</p>
+        </div>
+        <div style="background-color: #fff7ed; padding: 15px; border-radius: 12px; margin: 20px 0; border-left: 4px solid ${MOVE_COLORS.warning};">
+          <p style="color: ${MOVE_COLORS.primaryDark}; font-size: 14px; margin: 0; font-weight: bold;">📌 Ação necessária:</p>
+          <p style="color: ${MOVE_COLORS.text}; font-size: 14px; margin: 10px 0 0 0;">
+            Acesse a plataforma para <strong>confirmar ou recusar</strong> este pedido. 
+            Após confirmado, você receberá os dados de contato do mentorado para combinar os detalhes da sessão.
+          </p>
+        </div>
+        <div style="text-align: center; margin-top: 30px;">
+          <a href="${Deno.env.get("SITE_URL") || "https://movesocial.lovable.app"}/dashboard#mentorship-section" 
+             style="background: linear-gradient(135deg, ${MOVE_COLORS.primary} 0%, #fb923c 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 12px; font-weight: bold; display: inline-block;">
+            Ver Pedido
+          </a>
+        </div>
+        <p style="color: ${MOVE_COLORS.textMuted}; font-size: 14px; text-align: center; margin-top: 20px;">
+          Obrigado por dedicar seu tempo para ajudar alguém em sua jornada profissional! 🧡
+        </p>
         ${founderSignature}
         ${emailFooter}
       </div>
