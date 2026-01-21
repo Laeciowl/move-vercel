@@ -37,6 +37,8 @@ interface MentorSession {
   confirmed_by_mentor: boolean;
   mentor_notes: string | null;
   mentee_email?: string;
+  mentee_formation?: string | null;
+  mentee_objective?: string | null;
   mentee_profile?: {
     name: string;
     phone: string | null;

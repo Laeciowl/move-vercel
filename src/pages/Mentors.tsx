@@ -172,7 +172,7 @@ const Mentors = () => {
     }
   };
 
-  const handleBookSession = async (date: Date, time: string, duration: number) => {
+  const handleBookSession = async (date: Date, time: string, duration: number, formation: string, objective: string) => {
     if (!user) {
       toast.error("Faz login primeiro pra agendar uma mentoria 😊");
       navigate("/auth?cadastro=true");
@@ -199,6 +199,8 @@ const Mentors = () => {
       user_id: user.id,
       scheduled_at: date.toISOString(),
       duration: duration,
+      mentee_formation: formation,
+      mentee_objective: objective,
     });
 
     if (error) {
@@ -235,6 +237,8 @@ const Mentors = () => {
               menteeName: profile?.name || "Mentorado",
               date: formattedDate,
               duration: durationLabel,
+              formation: formation,
+              objective: objective,
             },
           },
         });
