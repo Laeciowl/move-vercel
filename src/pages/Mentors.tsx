@@ -67,6 +67,8 @@ const Mentors = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [reviewsDialogOpen, setReviewsDialogOpen] = useState(false);
   const [selectedMentorForReviews, setSelectedMentorForReviews] = useState<Mentor | null>(null);
+  const [profileDialogOpen, setProfileDialogOpen] = useState(false);
+  const [selectedMentorForProfile, setSelectedMentorForProfile] = useState<Mentor | null>(null);
 
   useEffect(() => {
     const fetchMentors = async () => {
@@ -199,6 +201,16 @@ const Mentors = () => {
     setReviewsDialogOpen(true);
   };
 
+  const openProfileDialog = (mentor: Mentor) => {
+    setSelectedMentorForProfile(mentor);
+    setProfileDialogOpen(true);
+  };
+
+  const handleBookFromProfile = async (mentor: Mentor) => {
+    setProfileDialogOpen(false);
+    await openBookingDialog(mentor);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-warm py-12 px-4">
       <div className="container mx-auto max-w-6xl">
@@ -236,42 +248,51 @@ const Mentors = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-card rounded-2xl shadow-card overflow-hidden"
+                className="bg-card rounded-2xl shadow-card overflow-hidden group"
               >
-                <div className="aspect-square bg-muted relative">
+                <div 
+                  className="aspect-square bg-muted relative cursor-pointer"
+                  onClick={() => openProfileDialog(mentor)}
+                >
                   {mentor.photo_url ? (
                     <img
                       src={mentor.photo_url}
                       alt={mentor.name}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
                       <User className="w-20 h-20 text-muted-foreground" />
                     </div>
                   )}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
                 </div>
 
                 <div className="p-5">
-                  <h3 className="text-xl font-bold text-foreground mb-1">
-                    {mentor.name}
-                  </h3>
-                  <p className="text-primary font-medium text-sm mb-3">
-                    {mentor.area}
-                  </p>
+                  <div 
+                    className="cursor-pointer hover:opacity-80 transition-opacity"
+                    onClick={() => openProfileDialog(mentor)}
+                  >
+                    <h3 className="text-xl font-bold text-foreground mb-1">
+                      {mentor.name}
+                    </h3>
+                    <p className="text-primary font-medium text-sm mb-3">
+                      {mentor.area}
+                    </p>
 
-                  {mentor.education && (
-                    <div className="flex items-start gap-2 mb-3">
-                      <GraduationCap className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {mentor.education}
-                      </p>
-                    </div>
-                  )}
+                    {mentor.education && (
+                      <div className="flex items-start gap-2 mb-3">
+                        <GraduationCap className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                          {mentor.education}
+                        </p>
+                      </div>
+                    )}
 
-                  <p className="text-muted-foreground text-sm mb-3 line-clamp-3">
-                    {mentor.description}
-                  </p>
+                    <p className="text-muted-foreground text-sm mb-3 line-clamp-3">
+                      {mentor.description}
+                    </p>
+                  </div>
 
                   {/* Feedback Display */}
                   <div className="mb-3">
@@ -382,6 +403,101 @@ const Mentors = () => {
                 reviews={selectedMentorForReviews.reviews}
                 maxVisible={10}
               />
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Profile Dialog */}
+        <Dialog open={profileDialogOpen} onOpenChange={setProfileDialogOpen}>
+          <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+            {selectedMentorForProfile && (
+              <>
+                <div className="flex flex-col items-center text-center mb-4">
+                  <div className="w-24 h-24 rounded-full overflow-hidden bg-muted mb-4">
+                    {selectedMentorForProfile.photo_url ? (
+                      <img
+                        src={selectedMentorForProfile.photo_url}
+                        alt={selectedMentorForProfile.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <User className="w-12 h-12 text-muted-foreground" />
+                      </div>
+                    )}
+                  </div>
+                  <h2 className="text-2xl font-bold text-foreground">
+                    {selectedMentorForProfile.name}
+                  </h2>
+                  <p className="text-primary font-medium">
+                    {selectedMentorForProfile.area}
+                  </p>
+                </div>
+
+                {selectedMentorForProfile.education && (
+                  <div className="flex items-start gap-2 mb-4 p-3 bg-muted/50 rounded-lg">
+                    <GraduationCap className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
+                    <p className="text-sm text-muted-foreground">
+                      {selectedMentorForProfile.education}
+                    </p>
+                  </div>
+                )}
+
+                <div className="mb-4">
+                  <h3 className="text-sm font-semibold text-foreground mb-2">Sobre</h3>
+                  <p className="text-muted-foreground text-sm whitespace-pre-wrap">
+                    {selectedMentorForProfile.description}
+                  </p>
+                </div>
+
+                {selectedMentorForProfile.availability && selectedMentorForProfile.availability.length > 0 && (
+                  <div className="mb-4">
+                    <h3 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
+                      <Clock className="w-4 h-4" />
+                      Disponibilidade
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedMentorForProfile.availability.map((a) => (
+                        <span
+                          key={a.day}
+                          className="bg-primary/10 text-primary text-xs px-3 py-1 rounded-full"
+                        >
+                          {dayLabels[a.day]}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="mb-4">
+                  <MentorRatingDisplay
+                    totalReviews={selectedMentorForProfile.totalReviews}
+                    size="md"
+                  />
+                  {selectedMentorForProfile.totalReviews > 0 && (
+                    <Button
+                      variant="link"
+                      size="sm"
+                      className="p-0 h-auto text-sm text-primary"
+                      onClick={() => {
+                        setProfileDialogOpen(false);
+                        openReviewsDialog(selectedMentorForProfile);
+                      }}
+                    >
+                      <MessageSquare className="w-4 h-4 mr-1" />
+                      Ver feedbacks
+                    </Button>
+                  )}
+                </div>
+
+                <button
+                  onClick={() => handleBookFromProfile(selectedMentorForProfile)}
+                  className="w-full bg-gradient-hero text-primary-foreground py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+                >
+                  <Calendar className="w-4 h-4" />
+                  Agendar mentoria
+                </button>
+              </>
             )}
           </DialogContent>
         </Dialog>
