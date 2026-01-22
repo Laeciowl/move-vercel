@@ -1,27 +1,67 @@
-import { motion } from "framer-motion";
-import { TrendingDown, Users, Briefcase, GraduationCap, TrendingUp, Heart, Target } from "lucide-react";
+import { motion, useInView, useSpring, useTransform } from "framer-motion";
+import { TrendingDown, Users, Briefcase, GraduationCap, TrendingUp, Heart, ExternalLink } from "lucide-react";
+import { useRef, useEffect, useState } from "react";
+
+// Animated counter component
+const AnimatedNumber = ({ value, suffix = "", prefix = "" }: { value: number; suffix?: string; prefix?: string }) => {
+  const ref = useRef<HTMLSpanElement>(null);
+  const isInView = useInView(ref, { once: true, margin: "-50px" });
+  const [hasAnimated, setHasAnimated] = useState(false);
+  
+  const spring = useSpring(0, { 
+    mass: 0.8, 
+    stiffness: 50, 
+    damping: 15 
+  });
+  
+  const display = useTransform(spring, (current) => {
+    if (suffix === "%") {
+      return `${prefix}${current.toFixed(1).replace(".", ",")}${suffix}`;
+    }
+    if (suffix === " milhões") {
+      return `${prefix}${current.toFixed(1).replace(".", ",")}${suffix}`;
+    }
+    return `${prefix}${Math.round(current)}${suffix}`;
+  });
+
+  useEffect(() => {
+    if (isInView && !hasAnimated) {
+      spring.set(value);
+      setHasAnimated(true);
+    }
+  }, [isInView, spring, value, hasAnimated]);
+
+  const [displayValue, setDisplayValue] = useState(`${prefix}0${suffix}`);
+  
+  useEffect(() => {
+    const unsubscribe = display.on("change", (v) => setDisplayValue(v));
+    return unsubscribe;
+  }, [display]);
+
+  return <span ref={ref}>{displayValue}</span>;
+};
 
 const WhyMoveSection = () => {
-  const fadeInUp = {
-    hidden: { opacity: 0, y: 30 },
-    visible: { opacity: 1, y: 0 }
-  };
-
+  const containerRef = useRef(null);
+  
   const youthStats = [
     {
-      number: "14,9%",
+      value: 14.9,
+      suffix: "%",
       text: "dos jovens de 18 a 24 anos estão desempregados",
       detail: "(dobro da média nacional)",
       icon: TrendingDown
     },
     {
-      number: "5,3 milhões",
+      value: 5.3,
+      suffix: " milhões",
       text: "de jovens não estudam nem trabalham",
       detail: "",
       icon: Users
     },
     {
-      number: "50%",
+      value: 50,
+      suffix: "%",
       text: "trabalham em apenas 20 ocupações de baixa qualificação",
       detail: "",
       icon: Briefcase
@@ -30,21 +70,24 @@ const WhyMoveSection = () => {
 
   const mentorshipStats = [
     {
-      number: "99%",
+      value: 99,
+      suffix: "%",
       text: "dos jovens mentorados afirmam que o impacto foi alto em suas vidas",
       icon: Heart,
       source: "https://fesagroup.com/blog/jovens-recebem-mentorias-para-aumentar-a-empregabilidade-e-conquistarem-a-tao-sonhada-vaga-no-mercado-de-trabalho/",
       sourceName: "FESA C.R.O.M.A., Brasil 2021-2024"
     },
     {
-      number: "20%",
+      value: 20,
+      suffix: "%",
       text: "de aumento em ganhos entre 20 e 25 anos",
       icon: TrendingUp,
       source: "https://www.prnewswire.com/news-releases/big-brothers-big-sisters-of-america-launches-groundbreaking-research-on-the-long-term-impacts-of-mentorship-302360477.html",
       sourceName: "Big Brothers Big Sisters - Harvard/US Treasury 2025"
     },
     {
-      number: "52%",
+      value: 52,
+      suffix: "%",
       text: "menos ausências escolares comparado a não mentorados",
       icon: GraduationCap,
       source: "https://www.bbbsbroward.org/bbbs-mentor-statistics/",
@@ -52,22 +95,52 @@ const WhyMoveSection = () => {
     }
   ];
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.15,
+        delayChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20, scale: 0.95 },
+    visible: { 
+      opacity: 1, 
+      y: 0, 
+      scale: 1,
+      transition: {
+        type: "spring" as const,
+        stiffness: 100,
+        damping: 12
+      }
+    }
+  };
+
   return (
-    <section className="py-20 md:py-28 bg-muted/30">
-      <div className="container mx-auto px-4 max-w-5xl">
+    <section ref={containerRef} className="py-24 md:py-32 bg-gradient-to-b from-background via-muted/20 to-background overflow-hidden">
+      <div className="container mx-auto px-4 max-w-6xl">
         {/* Section Title */}
         <motion.div
-          initial="hidden"
-          whileInView="visible"
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.6 }}
-          variants={fadeInUp}
-          className="text-center mb-16"
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="text-center mb-20"
         >
-          <span className="text-sm font-medium text-primary uppercase tracking-wider">
+          <motion.span 
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="inline-block text-sm font-semibold text-primary uppercase tracking-widest mb-4 px-4 py-2 bg-primary/10 rounded-full"
+          >
             Por que o Movê existe
-          </span>
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground mt-3">
+          </motion.span>
+          <h2 className="text-3xl md:text-5xl font-bold text-foreground mt-4 leading-tight">
             Os números mostram a necessidade
           </h2>
         </motion.div>
@@ -77,106 +150,143 @@ const WhyMoveSection = () => {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-50px" }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          variants={fadeInUp}
-          className="mb-16"
+          variants={containerVariants}
+          className="mb-20"
         >
-          <h3 className="text-xl md:text-2xl font-semibold text-foreground mb-8 text-center">
+          <motion.h3 
+            variants={itemVariants}
+            className="text-xl md:text-2xl font-semibold text-foreground mb-10 text-center"
+          >
             A realidade dos jovens no Brasil:
-          </h3>
+          </motion.h3>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {youthStats.map((stat, index) => (
               <motion.div
                 key={index}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: 0.1 * index }}
-                variants={fadeInUp}
-                className="bg-background rounded-xl p-6 border border-border/50 hover:border-primary/30 transition-colors"
+                variants={itemVariants}
+                whileHover={{ 
+                  y: -8, 
+                  boxShadow: "0 20px 40px -15px rgba(249, 115, 22, 0.2)",
+                  transition: { duration: 0.3 }
+                }}
+                className="group relative bg-background rounded-2xl p-8 border border-border/50 hover:border-primary/40 transition-all duration-300 text-center"
               >
-                <div className="flex items-start gap-4">
-                  <div className="p-2 rounded-lg bg-primary/10 text-primary shrink-0">
-                    <stat.icon className="w-5 h-5" />
+                {/* Gradient overlay on hover */}
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                
+                <div className="relative z-10">
+                  <motion.div 
+                    className="inline-flex p-4 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 text-primary mb-6"
+                    whileHover={{ rotate: [0, -10, 10, 0], transition: { duration: 0.5 } }}
+                  >
+                    <stat.icon className="w-7 h-7" />
+                  </motion.div>
+                  
+                  <div className="text-5xl md:text-6xl font-bold text-primary mb-3 tracking-tight">
+                    <AnimatedNumber value={stat.value} suffix={stat.suffix} />
                   </div>
-                  <div>
-                    <span className="text-3xl md:text-4xl font-bold text-primary">
-                      {stat.number}
-                    </span>
-                    <p className="text-base text-muted-foreground mt-1">
-                      {stat.text}
-                      {stat.detail && (
-                        <span className="text-sm opacity-75"> {stat.detail}</span>
-                      )}
-                    </p>
-                  </div>
+                  
+                  <p className="text-base text-muted-foreground leading-relaxed">
+                    {stat.text}
+                    {stat.detail && (
+                      <span className="block text-sm text-muted-foreground/70 mt-1">{stat.detail}</span>
+                    )}
+                  </p>
                 </div>
               </motion.div>
             ))}
           </div>
 
-          {/* Sources */}
-          <p className="text-xs text-muted-foreground/70 mt-6 text-center">
+          {/* Source */}
+          <motion.p 
+            variants={itemVariants}
+            className="text-sm text-muted-foreground/70 mt-8 text-center flex items-center justify-center gap-2"
+          >
             Fonte:{" "}
             <a
               href="https://www.gov.br/trabalho-e-emprego/pt-br/noticias-e-conteudo/2025/abril/jovens-ganham-espaco-no-mercado-de-trabalho-e-impulsionam-queda-no-desemprego-e-na-informalidade"
               target="_blank"
               rel="noopener noreferrer"
-              className="underline-offset-2 hover:underline hover:text-primary/70 transition-colors"
+              className="inline-flex items-center gap-1 text-primary/70 hover:text-primary underline underline-offset-4 transition-colors"
             >
               Ministério do Trabalho e Emprego
+              <ExternalLink className="w-3 h-3" />
             </a>
-          </p>
+          </motion.p>
         </motion.div>
 
-        {/* Divider */}
-        <div className="w-24 h-px bg-border mx-auto mb-16" />
+        {/* Animated Divider */}
+        <motion.div 
+          initial={{ scaleX: 0, opacity: 0 }}
+          whileInView={{ scaleX: 1, opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="w-32 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent mx-auto mb-20" 
+        />
 
         {/* Mentorship Impact Block */}
         <motion.div
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-50px" }}
-          transition={{ duration: 0.6 }}
-          variants={fadeInUp}
+          variants={containerVariants}
         >
-          <h3 className="text-xl md:text-2xl font-semibold text-foreground mb-4 text-center">
+          <motion.h3 
+            variants={itemVariants}
+            className="text-xl md:text-2xl font-semibold text-foreground mb-4 text-center"
+          >
             Por que mentoria faz diferença:
-          </h3>
+          </motion.h3>
 
-          <p className="text-muted-foreground text-center max-w-2xl mx-auto mb-10">
+          <motion.p 
+            variants={itemVariants}
+            className="text-muted-foreground text-center max-w-2xl mx-auto mb-12 text-lg"
+          >
             Jovens com acesso a mentores desenvolvem competências, ganham clareza sobre carreira e tomam decisões mais conscientes.
-          </p>
+          </motion.p>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {mentorshipStats.map((stat, index) => (
               <motion.div
                 key={index}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: 0.1 * index }}
-                variants={fadeInUp}
-                className="bg-background rounded-xl p-6 border border-border/50 hover:border-primary/30 transition-colors text-center"
+                variants={itemVariants}
+                whileHover={{ 
+                  y: -8,
+                  boxShadow: "0 20px 40px -15px rgba(249, 115, 22, 0.2)",
+                  transition: { duration: 0.3 }
+                }}
+                className="group relative bg-background rounded-2xl p-8 border border-border/50 hover:border-primary/40 transition-all duration-300 text-center"
               >
-                <div className="inline-flex p-3 rounded-full bg-primary/10 text-primary mb-4">
-                  <stat.icon className="w-6 h-6" />
+                {/* Gradient overlay on hover */}
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                
+                <div className="relative z-10">
+                  <motion.div 
+                    className="inline-flex p-4 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 text-primary mb-6"
+                    whileHover={{ rotate: [0, -10, 10, 0], transition: { duration: 0.5 } }}
+                  >
+                    <stat.icon className="w-7 h-7" />
+                  </motion.div>
+                  
+                  <div className="text-5xl md:text-6xl font-bold text-primary mb-3 tracking-tight">
+                    <AnimatedNumber value={stat.value} suffix={stat.suffix} />
+                  </div>
+                  
+                  <p className="text-base text-muted-foreground leading-relaxed mb-4">
+                    {stat.text}
+                  </p>
+                  
+                  <a
+                    href={stat.source}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs text-primary/60 hover:text-primary underline underline-offset-4 transition-colors group/link"
+                  >
+                    <span>{stat.sourceName}</span>
+                    <ExternalLink className="w-3 h-3 group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5 transition-transform" />
+                  </a>
                 </div>
-                <span className="block text-4xl md:text-5xl font-bold text-primary">
-                  {stat.number}
-                </span>
-                <p className="text-base text-muted-foreground mt-2">
-                  {stat.text}
-                </p>
-                <a
-                  href={stat.source}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block text-xs text-muted-foreground/60 mt-3 underline-offset-2 hover:underline hover:text-primary/70 transition-colors"
-                >
-                  {stat.sourceName}
-                </a>
               </motion.div>
             ))}
           </div>
@@ -184,22 +294,37 @@ const WhyMoveSection = () => {
 
         {/* Closing Text */}
         <motion.div
-          initial="hidden"
-          whileInView="visible"
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-50px" }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          variants={fadeInUp}
-          className="mt-16 text-center max-w-3xl mx-auto"
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="mt-24 text-center max-w-3xl mx-auto"
         >
-          <div className="inline-flex p-3 rounded-full bg-primary/10 text-primary mb-6">
-            <Heart className="w-6 h-6" />
-          </div>
-          <p className="text-lg text-muted-foreground leading-relaxed">
+          <motion.div 
+            className="inline-flex p-4 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 text-primary mb-8"
+            animate={{ 
+              scale: [1, 1.05, 1],
+            }}
+            transition={{ 
+              duration: 3,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          >
+            <Heart className="w-8 h-8" />
+          </motion.div>
+          <p className="text-xl text-muted-foreground leading-relaxed">
             Quando jovens encontram direcionamento, toda a sociedade ganha: redução do desemprego juvenil, melhor qualificação profissional e diminuição da desigualdade de oportunidades.
           </p>
-          <p className="text-xl font-semibold text-primary mt-4">
+          <motion.p 
+            className="text-2xl md:text-3xl font-bold text-primary mt-6"
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+          >
             O Movê democratiza esse acesso.
-          </p>
+          </motion.p>
         </motion.div>
       </div>
     </section>
