@@ -1,5 +1,5 @@
 import { motion, useInView, useSpring, useTransform } from "framer-motion";
-import { TrendingDown, Users, Briefcase, GraduationCap, TrendingUp, Heart, ExternalLink } from "lucide-react";
+import { TrendingDown, Users, Briefcase, TrendingUp, Heart, ExternalLink } from "lucide-react";
 import { useRef, useEffect, useState } from "react";
 
 // Animated counter component
@@ -48,53 +48,43 @@ const WhyMoveSection = () => {
     {
       value: 14.9,
       suffix: "%",
-      text: "dos jovens de 18 a 24 anos estão desempregados",
+      text: "dos jovens de 18 a 24 anos estavam desempregados no 1º trimestre de 2025",
       icon: TrendingDown,
-      source: "https://www.poder360.com.br/poder-economia/taxa-de-desemprego-entre-jovens-atinge-149-no-1o-tri/",
-      sourceName: "IBGE/Poder360 - Maio 2025"
-    },
-    {
-      value: 26.4,
-      suffix: "%",
-      text: "dos adolescentes de 14 a 17 anos estão desempregados",
-      icon: Users,
-      source: "https://agenciabrasil.ebc.com.br/economia/noticia/2025-05/taxa-de-desemprego-cresce-em-12-estados-no-primeiro-trimestre",
-      sourceName: "IBGE/Agência Brasil - Maio 2025"
-    },
-    {
-      value: 5.3,
-      suffix: " milhões",
-      text: "de jovens não estudam nem trabalham",
-      icon: Briefcase,
       source: "https://www.gov.br/trabalho-e-emprego/pt-br/noticias-e-conteudo/2025/abril/jovens-ganham-espaco-no-mercado-de-trabalho-e-impulsionam-queda-no-desemprego-e-na-informalidade",
-      sourceName: "Ministério do Trabalho - Abril 2025"
-    }
-  ];
-
-  const mentorshipStats = [
+      sourceName: "PNAD/Ministério do Trabalho - Abril 2025"
+    },
     {
-      value: 99,
-      suffix: "%",
-      text: "dos jovens mentorados afirmam que o impacto foi alto em suas vidas",
-      icon: Heart,
-      source: "https://fesagroup.com/blog/jovens-recebem-mentorias-para-aumentar-a-empregabilidade-e-conquistarem-a-tao-sonhada-vaga-no-mercado-de-trabalho/",
-      sourceName: "FESA C.R.O.M.A., Brasil 2021-2024"
+      value: 4.6,
+      suffix: " milhões",
+      text: "de jovens de 14 a 24 anos estavam fora do trabalho e da educação (nem estudam nem trabalham)",
+      icon: Users,
+      source: "https://www.gov.br/trabalho-e-emprego/pt-br/noticias-e-conteudo/2024/Maio/pesquisa-aponta-crescimento-no-emprego-para-a-juventude-mas-jovens-mulheres-e-negros-seguem-com-dificuldades-de-insercao",
+      sourceName: "PNAD/Ministério do Trabalho - Maio 2024"
     },
     {
       value: 20,
       suffix: "%",
-      text: "de aumento em ganhos entre 20 e 25 anos",
-      icon: TrendingUp,
-      source: "https://www.prnewswire.com/news-releases/big-brothers-big-sisters-of-america-launches-groundbreaking-research-on-the-long-term-impacts-of-mentorship-302360477.html",
-      sourceName: "Big Brothers Big Sisters - Harvard/US Treasury 2025"
+      text: "dos jovens de 15 a 29 anos não estudavam nem trabalhavam — mostrando persistência do problema",
+      icon: Briefcase,
+      source: "https://epocanegocios.globo.com/brasil/noticia/2023/06/geracao-nem-nem-um-a-cada-cinco-jovens-brasileiros-nao-estuda-nem-trabalha-diz-ibge.ghtml",
+      sourceName: "IBGE/Época Negócios - PNAD Educação 2022"
+    }
+  ];
+
+  const mentorshipDescription = "Programas de mentoria e orientação profissional ajudam jovens a ganhar clareza, desenvolver habilidades, fortalecer redes e apoiar decisões sobre carreira e inserção no mercado de trabalho.";
+
+  const mentorshipStats = [
+    {
+      text: "Evidências de revisões sistemáticas e meta-análises em mentoring mostram que programas estruturados de mentoria causam efeitos positivos em resultados de desenvolvimento juvenil, incluindo aspectos sociais, educacionais e profissionais, quando bem implementados.",
+      icon: Heart,
+      source: "https://www.ojp.gov/library/publications/effects-youth-mentoring-programs-meta-analysis-outcome-studies",
+      sourceName: "Meta-análise sobre programas de mentoring"
     },
     {
-      value: 52,
-      suffix: "%",
-      text: "menos ausências escolares comparado a não mentorados",
-      icon: GraduationCap,
-      source: "https://www.bbbsbroward.org/bbbs-mentor-statistics/",
-      sourceName: "Big Brothers Big Sisters Impact Study"
+      text: "Relatórios de organizações especializadas demonstram que o efeito da mentoria pode apoiar jovens em múltiplas dimensões de vida, com potencial para fortalecer empregabilidade e trajetórias profissionais por meio de conexões, rede e orientação.",
+      icon: TrendingUp,
+      source: "https://www.mentoring.org/resource/the-mentoring-effect/",
+      sourceName: "The Mentoring Effect (MENTOR)"
     }
   ];
 
@@ -234,12 +224,12 @@ const WhyMoveSection = () => {
 
           <motion.p 
             variants={itemVariants}
-            className="text-muted-foreground text-center max-w-2xl mx-auto mb-12 text-lg"
+            className="text-muted-foreground text-center max-w-3xl mx-auto mb-12 text-lg"
           >
-            Jovens com acesso a mentores desenvolvem competências, ganham clareza sobre carreira e tomam decisões mais conscientes.
+            {mentorshipDescription}
           </motion.p>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             {mentorshipStats.map((stat, index) => (
               <motion.div
                 key={index}
@@ -249,7 +239,7 @@ const WhyMoveSection = () => {
                   boxShadow: "0 20px 40px -15px rgba(249, 115, 22, 0.2)",
                   transition: { duration: 0.3 }
                 }}
-                className="group relative bg-background rounded-2xl p-8 border border-border/50 hover:border-primary/40 transition-all duration-300 text-center"
+                className="group relative bg-background rounded-2xl p-8 border border-border/50 hover:border-primary/40 transition-all duration-300"
               >
                 {/* Gradient overlay on hover */}
                 <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -261,10 +251,6 @@ const WhyMoveSection = () => {
                   >
                     <stat.icon className="w-7 h-7" />
                   </motion.div>
-                  
-                  <div className="text-5xl md:text-6xl font-bold text-primary mb-3 tracking-tight">
-                    <AnimatedNumber value={stat.value} suffix={stat.suffix} />
-                  </div>
                   
                   <p className="text-base text-muted-foreground leading-relaxed mb-4">
                     {stat.text}
@@ -307,7 +293,7 @@ const WhyMoveSection = () => {
             <Heart className="w-8 h-8" />
           </motion.div>
           <p className="text-xl text-muted-foreground leading-relaxed">
-            Quando jovens encontram direcionamento, toda a sociedade ganha: redução do desemprego juvenil, melhor qualificação profissional e diminuição da desigualdade de oportunidades.
+            Quando jovens encontram direcionamento e apoio ao longo de sua jornada profissional, toda a sociedade se beneficia: com maior empregabilidade, melhor qualificação profissional e redução das desigualdades no acesso ao trabalho.
           </p>
           <motion.p 
             className="text-2xl md:text-3xl font-bold text-primary mt-6"
@@ -316,7 +302,7 @@ const WhyMoveSection = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.4 }}
           >
-            O Movê democratiza esse acesso.
+            O Movê democratiza esse acesso, conectando conteúdo, orientação e mentoria voluntária para jovens em suas jornadas profissionais.
           </motion.p>
         </motion.div>
       </div>
