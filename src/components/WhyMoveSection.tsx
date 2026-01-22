@@ -21,37 +21,34 @@ const WhyMoveSection = () => {
       icon: Users
     },
     {
-      number: "67%",
-      text: "dos jovens ocupados recebem salários abaixo da média nacional",
-      detail: "",
-      icon: Briefcase
-    },
-    {
       number: "50%",
       text: "trabalham em apenas 20 ocupações de baixa qualificação",
       detail: "",
-      icon: GraduationCap
+      icon: Briefcase
     }
   ];
 
   const mentorshipStats = [
     {
-      number: "15%",
-      text: "de aumento em ganhos ao longo da vida",
+      number: "99%",
+      text: "dos jovens mentorados afirmam que o impacto foi alto em suas vidas",
+      icon: Heart,
+      source: "https://fesagroup.com/blog/jovens-recebem-mentorias-para-aumentar-a-empregabilidade-e-conquistarem-a-tao-sonhada-vaga-no-mercado-de-trabalho/",
+      sourceName: "FESA C.R.O.M.A., Brasil 2021-2024"
+    },
+    {
+      number: "20%",
+      text: "de aumento em ganhos entre 20 e 25 anos",
       icon: TrendingUp,
-      source: "https://www.mentoring.org/resource/the-mentoring-effect/"
+      source: "https://www.prnewswire.com/news-releases/big-brothers-big-sisters-of-america-launches-groundbreaking-research-on-the-long-term-impacts-of-mentorship-302360477.html",
+      sourceName: "Big Brothers Big Sisters - Harvard/US Treasury 2025"
     },
     {
       number: "52%",
-      text: "menos propensos a abandonar os estudos",
+      text: "menos ausências escolares comparado a não mentorados",
       icon: GraduationCap,
-      source: "https://www.mentoring.org/resource/the-mentoring-effect/"
-    },
-    {
-      number: "72%",
-      text: "de taxa de retenção vs. 49% entre não mentorados",
-      icon: Target,
-      source: "https://www.mentoring.org/wp-content/uploads/2023/01/Full_Workplace.pdf"
+      source: "https://www.bbbsbroward.org/bbbs-mentor-statistics/",
+      sourceName: "Big Brothers Big Sisters Impact Study"
     }
   ];
 
@@ -121,16 +118,7 @@ const WhyMoveSection = () => {
 
           {/* Sources */}
           <p className="text-xs text-muted-foreground/70 mt-6 text-center">
-            Fontes:{" "}
-            <a
-              href="https://agenciadenoticias.ibge.gov.br/agencia-noticias/2012-agencia-de-noticias/noticias/42660-desemprego-cai-para-6-1-no-trimestre-encerrado-em-marco-e-atinge-menor-taxa-desde-2014"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline-offset-2 hover:underline hover:text-primary/70 transition-colors"
-            >
-              IBGE/PNAD 2024-2025
-            </a>
-            {" | "}
+            Fonte:{" "}
             <a
               href="https://www.gov.br/trabalho-e-emprego/pt-br/noticias-e-conteudo/2025/abril/jovens-ganham-espaco-no-mercado-de-trabalho-e-impulsionam-queda-no-desemprego-e-na-informalidade"
               target="_blank"
@@ -187,33 +175,11 @@ const WhyMoveSection = () => {
                   rel="noopener noreferrer"
                   className="inline-block text-xs text-muted-foreground/60 mt-3 underline-offset-2 hover:underline hover:text-primary/70 transition-colors"
                 >
-                  Ver fonte
+                  {stat.sourceName}
                 </a>
               </motion.div>
             ))}
           </div>
-
-          {/* Sources */}
-          <p className="text-xs text-muted-foreground/70 mt-6 text-center">
-            Fontes:{" "}
-            <a
-              href="https://www.mentoring.org/resource/the-mentoring-effect/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline-offset-2 hover:underline hover:text-primary/70 transition-colors"
-            >
-              Big Brothers Big Sisters
-            </a>
-            {" | "}
-            <a
-              href="https://www.mentoring.org/mentoring-impact/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline-offset-2 hover:underline hover:text-primary/70 transition-colors"
-            >
-              MENTOR National Partnership
-            </a>
-          </p>
         </motion.div>
 
         {/* Closing Text */}
