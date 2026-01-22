@@ -4,10 +4,10 @@ import { ArrowRight } from "lucide-react";
 
 const AboutSection = () => {
   return (
-    <section id="sobre" className="py-24 md:py-32 bg-background overflow-hidden">
+    <section id="sobre" className="pt-24 md:pt-32 pb-12 md:pb-16 bg-background overflow-hidden">
       <div className="container mx-auto px-4">
         {/* Manifesto - clean, flowing layout */}
-        <div className="max-w-3xl mb-32">
+        <div className="max-w-3xl">
           <motion.p
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}

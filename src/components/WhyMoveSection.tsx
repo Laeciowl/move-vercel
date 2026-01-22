@@ -124,7 +124,7 @@ const WhyMoveSection = () => {
   };
 
   return (
-    <section ref={containerRef} className="py-24 md:py-32 bg-gradient-to-b from-background via-muted/20 to-background overflow-hidden">
+    <section ref={containerRef} className="pt-12 md:pt-16 pb-24 md:pb-32 bg-gradient-to-b from-background via-muted/20 to-background overflow-hidden">
       <div className="container mx-auto px-4 max-w-6xl">
         {/* Section Title */}
         <motion.div
