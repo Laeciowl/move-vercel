@@ -139,9 +139,9 @@ const WhyMoveSection = () => {
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-primary font-bold text-sm uppercase tracking-widest mb-4 text-center"
+            className="text-primary font-black text-lg md:text-xl tracking-widest uppercase text-center mb-8"
           >
-            ✦ Por que o Movê existe
+            Por que o Movê existe
           </motion.p>
           <h2 className="text-3xl md:text-5xl font-bold text-foreground mt-4 leading-tight">
             Os números mostram a necessidade
