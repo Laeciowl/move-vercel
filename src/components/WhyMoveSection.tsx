@@ -49,22 +49,25 @@ const WhyMoveSection = () => {
       value: 14.9,
       suffix: "%",
       text: "dos jovens de 18 a 24 anos estão desempregados",
-      detail: "(dobro da média nacional)",
-      icon: TrendingDown
+      icon: TrendingDown,
+      source: "https://www.poder360.com.br/poder-economia/taxa-de-desemprego-entre-jovens-atinge-149-no-1o-tri/",
+      sourceName: "IBGE/Poder360 - Maio 2025"
+    },
+    {
+      value: 26.4,
+      suffix: "%",
+      text: "dos adolescentes de 14 a 17 anos estão desempregados",
+      icon: Users,
+      source: "https://agenciabrasil.ebc.com.br/economia/noticia/2025-05/taxa-de-desemprego-cresce-em-12-estados-no-primeiro-trimestre",
+      sourceName: "IBGE/Agência Brasil - Maio 2025"
     },
     {
       value: 5.3,
       suffix: " milhões",
       text: "de jovens não estudam nem trabalham",
-      detail: "",
-      icon: Users
-    },
-    {
-      value: 50,
-      suffix: "%",
-      text: "trabalham em apenas 20 ocupações de baixa qualificação",
-      detail: "",
-      icon: Briefcase
+      icon: Briefcase,
+      source: "https://www.gov.br/trabalho-e-emprego/pt-br/noticias-e-conteudo/2025/abril/jovens-ganham-espaco-no-mercado-de-trabalho-e-impulsionam-queda-no-desemprego-e-na-informalidade",
+      sourceName: "Ministério do Trabalho - Abril 2025"
     }
   ];
 
@@ -131,15 +134,15 @@ const WhyMoveSection = () => {
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="text-center mb-20"
         >
-          <motion.span 
+          <motion.p 
             initial={{ opacity: 0, scale: 0.9 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="inline-block text-sm font-semibold text-primary uppercase tracking-widest mb-4 px-4 py-2 bg-primary/10 rounded-full"
+            className="text-primary font-medium text-sm mb-4 tracking-wide"
           >
-            Por que o Movê existe
-          </motion.span>
+            ✦ Por que o Movê existe
+          </motion.p>
           <h2 className="text-3xl md:text-5xl font-bold text-foreground mt-4 leading-tight">
             Os números mostram a necessidade
           </h2>
@@ -187,33 +190,23 @@ const WhyMoveSection = () => {
                     <AnimatedNumber value={stat.value} suffix={stat.suffix} />
                   </div>
                   
-                  <p className="text-base text-muted-foreground leading-relaxed">
+                  <p className="text-base text-muted-foreground leading-relaxed mb-4">
                     {stat.text}
-                    {stat.detail && (
-                      <span className="block text-sm text-muted-foreground/70 mt-1">{stat.detail}</span>
-                    )}
                   </p>
+                  
+                  <a
+                    href={stat.source}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs text-primary/60 hover:text-primary underline underline-offset-4 transition-colors group/link"
+                  >
+                    <span>{stat.sourceName}</span>
+                    <ExternalLink className="w-3 h-3 group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5 transition-transform" />
+                  </a>
                 </div>
               </motion.div>
             ))}
           </div>
-
-          {/* Source */}
-          <motion.p 
-            variants={itemVariants}
-            className="text-sm text-muted-foreground/70 mt-8 text-center flex items-center justify-center gap-2"
-          >
-            Fonte:{" "}
-            <a
-              href="https://www.gov.br/trabalho-e-emprego/pt-br/noticias-e-conteudo/2025/abril/jovens-ganham-espaco-no-mercado-de-trabalho-e-impulsionam-queda-no-desemprego-e-na-informalidade"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-primary/70 hover:text-primary underline underline-offset-4 transition-colors"
-            >
-              Ministério do Trabalho e Emprego
-              <ExternalLink className="w-3 h-3" />
-            </a>
-          </motion.p>
         </motion.div>
 
         {/* Animated Divider */}
