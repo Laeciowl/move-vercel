@@ -139,7 +139,7 @@ const WhyMoveSection = () => {
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-primary font-medium text-sm mb-4 tracking-wide text-center"
+            className="text-primary font-bold text-sm uppercase tracking-widest mb-4 text-center"
           >
             ✦ Por que o Movê existe
           </motion.p>
