@@ -74,45 +74,17 @@ const AdminMentorsPanel = () => {
         console.error("Error sending mentor approval email:", emailError);
       }
 
-      // Try to find user by email and add volunteer role
+      // Try to add volunteer role to existing user by email
       try {
-        // Check if user exists with this email by querying profiles
-        const { data: authData } = await supabase.auth.admin?.listUsers?.() || { data: null };
-        
-        // Alternative approach: Check if mentor email exists as a user by looking up profiles
-        // We can't directly query auth.users, but we can try to find if there's a matching profile
-        const { data: profileData } = await supabase
-          .from("profiles")
-          .select("user_id")
-          .limit(1);
-        
-        // Since we can't query auth.users directly from client, we'll rely on the mentor 
-        // having created an account during the volunteer flow. If they exist, add the role.
-        // The email matching happens on the backend.
-        
-        // Check if there's already a voluntario role for a user with this email
-        // by looking for volunteer_applications with this email that have a user_id
-        const { data: volunteerApp } = await supabase
-          .from("volunteer_applications")
-          .select("user_id")
-          .eq("email", mentor.email)
-          .not("user_id", "is", null)
-          .maybeSingle();
+        const { data: roleAdded, error: roleError } = await supabase
+          .rpc("add_volunteer_role_by_email", { mentor_email: mentor.email });
 
-        if (volunteerApp?.user_id) {
-          // Add voluntario role if not already present
-          const { error: roleError } = await supabase
-            .from("user_roles")
-            .upsert(
-              { user_id: volunteerApp.user_id, role: "voluntario" },
-              { onConflict: "user_id,role", ignoreDuplicates: true }
-            );
-
-          if (roleError && !roleError.message.includes("duplicate")) {
-            console.error("Error adding volunteer role:", roleError);
-          } else {
-            console.log("Volunteer role added for user:", volunteerApp.user_id);
-          }
+        if (roleError) {
+          console.error("Error adding volunteer role:", roleError);
+        } else if (roleAdded) {
+          console.log("Volunteer role added for existing user with email:", mentor.email);
+        } else {
+          console.log("No existing user found with email:", mentor.email);
         }
       } catch (roleError) {
         console.error("Error processing volunteer role:", roleError);
