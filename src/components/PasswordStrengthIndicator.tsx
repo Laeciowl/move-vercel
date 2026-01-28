@@ -55,6 +55,12 @@ const PasswordStrengthIndicator = ({ password }: PasswordStrengthIndicatorProps)
           </li>
         ))}
       </ul>
+      {metCount === 5 && (
+        <p className="text-xs text-amber-600 mt-2 flex items-start gap-1">
+          <span>⚠️</span>
+          <span>Evite senhas comuns como nomes de times, datas ou sequências conhecidas — elas podem ser rejeitadas por segurança.</span>
+        </p>
+      )}
     </div>
   );
 };

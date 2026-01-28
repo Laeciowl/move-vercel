@@ -169,6 +169,8 @@ const Auth = () => {
       if (authError) {
         if (authError.message.includes("already registered")) {
           toast.error("Este e-mail já está cadastrado. Faça login.");
+        } else if (authError.message.includes("weak") || authError.message.includes("easy to guess")) {
+          toast.error("Esta senha foi encontrada em vazamentos de dados e não pode ser usada. Por favor, crie uma senha mais única e pessoal.");
         } else if (authError.message.includes("fetch") || authError.message.includes("network")) {
           toast.error("Erro de conexão. Verifique sua internet e tente novamente.");
         } else {
