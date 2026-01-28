@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Calendar, Clock, User, Loader2, CheckCircle, XCircle, Users, Timer, Star } from "lucide-react";
+import { Calendar, Clock, User, Loader2, CheckCircle, XCircle, Users, Timer, Star, Heart, ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useVolunteerCheck } from "@/hooks/useVolunteerCheck";
+import { useMentorCheck } from "@/hooks/useMentorCheck";
 import SessionManagement from "./SessionManagement";
 import SessionReviewModal from "./SessionReviewModal";
 import { Badge } from "@/components/ui/badge";
@@ -49,10 +51,15 @@ const statusLabels: Record<string, { label: string; color: string; icon: React.R
 const MentorshipSection = () => {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
+  const { isVolunteer } = useVolunteerCheck();
+  const { isMentor } = useMentorCheck();
   const [sessions, setSessions] = useState<MentorSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const [sessionToReview, setSessionToReview] = useState<MentorSession | null>(null);
+
+  // Show CTA to become mentor only for mentees (not volunteers and not mentors)
+  const showBecomeMentorCta = !isVolunteer && !isMentor;
 
   const fetchSessions = async () => {
     if (!user) return;
@@ -155,18 +162,60 @@ const MentorshipSection = () => {
       transition={{ delay: 0.15, ease: [0.25, 0.46, 0.45, 0.94] }}
       className="space-y-4"
     >
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <Users className="w-5 h-5 text-primary" />
           <h3 className="text-xl font-bold text-foreground">Suas Mentorias</h3>
         </div>
-        <button
-          onClick={() => navigate("/mentores")}
-          className="text-sm text-primary font-medium hover:underline"
+        <motion.div 
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
         >
-          Encontrar mentor →
-        </button>
+          <Button
+            onClick={() => navigate("/mentores")}
+            className="bg-gradient-hero text-primary-foreground shadow-button hover:shadow-lg transition-all duration-300 gap-2"
+          >
+            <Users className="w-4 h-4" />
+            Encontrar mentor
+            <ArrowRight className="w-4 h-4" />
+          </Button>
+        </motion.div>
       </div>
+
+      {/* CTA to become a mentor - only for mentees */}
+      {showBecomeMentorCta && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-2xl p-5 border border-amber-200/50 dark:border-amber-700/30"
+        >
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl flex items-center justify-center shrink-0">
+                <Heart className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h4 className="font-semibold text-foreground">Quer ajudar outros jovens?</h4>
+                <p className="text-sm text-muted-foreground">Compartilhe sua experiência e vire um mentor voluntário</p>
+              </div>
+            </div>
+            <motion.div 
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <Button
+                onClick={() => navigate("/voluntario")}
+                variant="outline"
+                className="border-amber-400 text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/30 gap-2 whitespace-nowrap"
+              >
+                <Heart className="w-4 h-4" />
+                Vire um mentor voluntário
+              </Button>
+            </motion.div>
+          </div>
+        </motion.div>
+      )}
 
       {loading ? (
         <div className="flex items-center justify-center py-8">
