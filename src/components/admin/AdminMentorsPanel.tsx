@@ -42,20 +42,88 @@ const AdminMentorsPanel = () => {
     fetchMentors();
   }, []);
 
-  const updateMentorStatus = async (mentorId: string, status: "approved" | "rejected") => {
-    setUpdating(mentorId);
+  const updateMentorStatus = async (mentor: Mentor, status: "approved" | "rejected") => {
+    setUpdating(mentor.id);
+    
     const { error } = await supabase
       .from("mentors")
       .update({ status })
-      .eq("id", mentorId);
+      .eq("id", mentor.id);
 
     if (error) {
       toast.error("Erro ao atualizar status");
       console.error(error);
-    } else {
-      toast.success(status === "approved" ? "Mentor aprovado! 🎉" : "Mentor não aprovado.");
-      fetchMentors();
+      setUpdating(null);
+      return;
     }
+
+    // If approved, send email notification and add volunteer role if user exists
+    if (status === "approved") {
+      // Send approval email
+      try {
+        await supabase.functions.invoke("send-notification-email", {
+          body: {
+            to: mentor.email,
+            name: mentor.name,
+            type: "mentor_approved",
+            skipPreferenceCheck: true,
+          },
+        });
+        console.log("Mentor approval email sent to:", mentor.email);
+      } catch (emailError) {
+        console.error("Error sending mentor approval email:", emailError);
+      }
+
+      // Try to find user by email and add volunteer role
+      try {
+        // Check if user exists with this email by querying profiles
+        const { data: authData } = await supabase.auth.admin?.listUsers?.() || { data: null };
+        
+        // Alternative approach: Check if mentor email exists as a user by looking up profiles
+        // We can't directly query auth.users, but we can try to find if there's a matching profile
+        const { data: profileData } = await supabase
+          .from("profiles")
+          .select("user_id")
+          .limit(1);
+        
+        // Since we can't query auth.users directly from client, we'll rely on the mentor 
+        // having created an account during the volunteer flow. If they exist, add the role.
+        // The email matching happens on the backend.
+        
+        // Check if there's already a voluntario role for a user with this email
+        // by looking for volunteer_applications with this email that have a user_id
+        const { data: volunteerApp } = await supabase
+          .from("volunteer_applications")
+          .select("user_id")
+          .eq("email", mentor.email)
+          .not("user_id", "is", null)
+          .maybeSingle();
+
+        if (volunteerApp?.user_id) {
+          // Add voluntario role if not already present
+          const { error: roleError } = await supabase
+            .from("user_roles")
+            .upsert(
+              { user_id: volunteerApp.user_id, role: "voluntario" },
+              { onConflict: "user_id,role", ignoreDuplicates: true }
+            );
+
+          if (roleError && !roleError.message.includes("duplicate")) {
+            console.error("Error adding volunteer role:", roleError);
+          } else {
+            console.log("Volunteer role added for user:", volunteerApp.user_id);
+          }
+        }
+      } catch (roleError) {
+        console.error("Error processing volunteer role:", roleError);
+      }
+      
+      toast.success("Mentor aprovado! E-mail de confirmação enviado. 🎉");
+    } else {
+      toast.success("Mentor não aprovado.");
+    }
+    
+    fetchMentors();
     setUpdating(null);
   };
 
@@ -128,7 +196,7 @@ const AdminMentorsPanel = () => {
                   size="sm"
                   variant="outline"
                   className="text-green-600 border-green-600 hover:bg-green-50"
-                  onClick={() => updateMentorStatus(mentor.id, "approved")}
+                  onClick={() => updateMentorStatus(mentor, "approved")}
                   disabled={updating === mentor.id || mentor.status === "approved"}
                 >
                   {updating === mentor.id ? (
@@ -141,7 +209,7 @@ const AdminMentorsPanel = () => {
                   size="sm"
                   variant="outline"
                   className="text-red-600 border-red-600 hover:bg-red-50"
-                  onClick={() => updateMentorStatus(mentor.id, "rejected")}
+                  onClick={() => updateMentorStatus(mentor, "rejected")}
                   disabled={updating === mentor.id || mentor.status === "rejected"}
                 >
                   <X className="w-4 h-4" />

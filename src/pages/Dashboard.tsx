@@ -8,6 +8,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
 import { useVolunteerCheck } from "@/hooks/useVolunteerCheck";
+import { useMentorCheck } from "@/hooks/useMentorCheck";
 import MentorshipSection from "@/components/MentorshipSection";
 import NotificationBell from "@/components/NotificationBell";
 import ProfileEditModal from "@/components/ProfileEditModal";
@@ -50,6 +51,7 @@ const Dashboard = () => {
   const { user, profile, loading: authLoading, signOut, refreshProfile } = useAuth();
   const { isAdmin } = useAdminCheck();
   const { isVolunteer } = useVolunteerCheck();
+  const { isMentor } = useMentorCheck();
   const navigate = useNavigate();
   const location = useLocation();
   const [impactHistory, setImpactHistory] = useState<ImpactHistory[]>([]);
@@ -380,11 +382,11 @@ const Dashboard = () => {
             {/* Volunteer Panel */}
             <VolunteerPanel />
 
-            {/* Mentor Panel - only for non-volunteers */}
-            {!isVolunteer && <MentorPanel />}
+            {/* Mentor Panel - only for non-volunteers who are also not mentors */}
+            {!isVolunteer && !isMentor && <MentorPanel />}
 
-            {/* Mentorship Section - only for non-volunteers */}
-            {!isVolunteer && <MentorshipSection />}
+            {/* Mentorship Section - for non-volunteers OR approved mentors (so mentors can also book sessions) */}
+            {(!isVolunteer || isMentor) && <MentorshipSection />}
 
             {/* Content Library */}
             <ContentLibrary />

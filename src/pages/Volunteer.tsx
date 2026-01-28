@@ -344,19 +344,22 @@ const Volunteer = () => {
         }
       }
 
-      // Send welcome email to volunteer
+      // Send mentor application email (since all volunteers are now mentors)
       try {
         await supabase.functions.invoke("send-notification-email", {
           body: {
             to: formData.email.trim(),
             name: formData.name.trim(),
-            type: "volunteer_application_received",
+            type: "mentor_application_received",
+            data: {
+              area: formData.area.trim(),
+            },
             skipPreferenceCheck: true,
           },
         });
-        console.log("Volunteer welcome email sent to:", formData.email);
+        console.log("Mentor application email sent to:", formData.email);
       } catch (emailError) {
-        console.error("Error sending volunteer welcome email:", emailError);
+        console.error("Error sending mentor application email:", emailError);
       }
 
       setSubmitted(true);

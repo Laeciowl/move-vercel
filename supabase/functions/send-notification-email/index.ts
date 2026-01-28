@@ -22,6 +22,7 @@ type EmailType =
   | "content_approved" 
   | "content_rejected" 
   | "mentor_approved" 
+  | "mentor_application_received"
   | "welcome"
   | "registration_confirmation"
   | "volunteer_approved"
@@ -438,19 +439,52 @@ const emailTemplates: Record<string, { subject: string; html: (name: string, dat
           Olá, ${name}! Parabéns! Sua candidatura como mentor foi aprovada!
         </p>
         <p style="color: ${MOVE_COLORS.text}; font-size: 16px; line-height: 1.6;">
+          Seu perfil de mentor já está ativo na plataforma e você pode começar a receber agendamentos de mentorias.
+        </p>
+        <p style="color: ${MOVE_COLORS.text}; font-size: 16px; line-height: 1.6;">
           Agora você pode:
         </p>
         <ul style="color: ${MOVE_COLORS.text}; font-size: 16px; line-height: 1.8;">
-          <li>🗓️ Definir sua disponibilidade</li>
-          <li>👥 Receber agendamentos de mentorias</li>
+          <li>🗓️ Gerenciar sua disponibilidade</li>
+          <li>👥 Receber e confirmar agendamentos de mentorias</li>
           <li>💬 Ajudar pessoas em sua jornada profissional</li>
+          <li>📚 Se você também quiser agendar mentorias como mentorado, pode fazer isso na área de mentores!</li>
         </ul>
         <div style="text-align: center; margin-top: 30px;">
           <a href="${Deno.env.get("SITE_URL") || "https://movesocial.lovable.app"}/dashboard" 
              style="background: linear-gradient(135deg, ${MOVE_COLORS.primary} 0%, #fb923c 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 12px; font-weight: bold; display: inline-block;">
-            Acessar Painel
+            Acessar Painel de Mentor
           </a>
         </div>
+        ${founderSignature}
+        ${emailFooter}
+      </div>
+    `,
+  },
+  mentor_application_received: {
+    subject: "Recebemos sua inscrição como Mentor! 🎯",
+    isTransactional: true,
+    html: (name, data) => `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #fffbf7;">
+        <h1 style="color: ${MOVE_COLORS.primary}; text-align: center;">Obrigado por se inscrever! 🎯</h1>
+        <p style="color: ${MOVE_COLORS.text}; font-size: 16px; line-height: 1.6;">
+          Olá, ${name}! Recebemos sua inscrição como mentor no Movê.
+        </p>
+        <div style="background-color: ${MOVE_COLORS.accent}; padding: 20px; border-radius: 12px; margin: 20px 0; border-left: 4px solid ${MOVE_COLORS.primary};">
+          <p style="color: ${MOVE_COLORS.text}; margin: 0;"><strong>Área de atuação:</strong> ${data?.area || "N/A"}</p>
+        </div>
+        <p style="color: ${MOVE_COLORS.text}; font-size: 16px; line-height: 1.6;">
+          <strong>O que acontece agora?</strong>
+        </p>
+        <ul style="color: ${MOVE_COLORS.text}; font-size: 16px; line-height: 1.8;">
+          <li>📋 Nossa equipe vai analisar sua inscrição</li>
+          <li>✅ Quando aprovado, seu perfil será criado automaticamente</li>
+          <li>📧 Você receberá um e-mail confirmando a aprovação</li>
+          <li>🚀 Aí é só acessar e começar a transformar vidas!</li>
+        </ul>
+        <p style="color: ${MOVE_COLORS.text}; font-size: 16px; line-height: 1.6;">
+          Obrigado por querer fazer parte dessa missão de conectar pessoas e transformar trajetórias profissionais!
+        </p>
         ${founderSignature}
         ${emailFooter}
       </div>
