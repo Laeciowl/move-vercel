@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import MentorBlockedPeriodsManager from "./MentorBlockedPeriodsManager";
 import MentorSessionConfirmation from "./MentorSessionConfirmation";
 import MentorAvailabilityEditor from "./MentorAvailabilityEditor";
+import MentorProfileEditor from "./MentorProfileEditor";
 import SessionManagement from "./SessionManagement";
 import ContentSubmissionModal from "./ContentSubmissionModal";
 import { format, isPast } from "date-fns";
@@ -31,6 +32,8 @@ interface MentorData {
   name: string;
   email: string;
   area: string;
+  description: string;
+  education: string | null;
   status: string;
   availability: any[];
 }
@@ -154,6 +157,8 @@ const VolunteerPanel = () => {
     if (mentor) {
       setMentorData({
         ...mentor,
+        description: mentor.description || "",
+        education: mentor.education || null,
         availability: (mentor.availability as any[]) || [],
       });
 
@@ -486,6 +491,22 @@ const VolunteerPanel = () => {
               <MentorAvailabilityEditor
                 mentorId={mentorData.id}
                 initialAvailability={mentorData.availability}
+                onUpdate={fetchData}
+              />
+            </motion.div>
+
+            {/* Mentor Profile Editor */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+            >
+              <MentorProfileEditor
+                mentorId={mentorData.id}
+                name={mentorData.name}
+                area={mentorData.area}
+                description={mentorData.description}
+                education={mentorData.education}
                 onUpdate={fetchData}
               />
             </motion.div>
