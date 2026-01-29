@@ -176,7 +176,7 @@ const MentorshipSection = () => {
             className="bg-gradient-hero text-primary-foreground shadow-button hover:shadow-lg transition-all duration-300 gap-2"
           >
             <Users className="w-4 h-4" />
-            Encontrar mentor
+            {isMentor ? "Ir para área de mentoria" : "Encontrar mentor"}
             <ArrowRight className="w-4 h-4" />
           </Button>
         </motion.div>
