@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Calendar, Clock, User, Loader2, GraduationCap, MessageSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useMentorCheck } from "@/hooks/useMentorCheck";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -15,6 +16,7 @@ import {
 import BookingCalendar from "@/components/BookingCalendar";
 import MentorRatingDisplay from "@/components/MentorRatingDisplay";
 import MentorReviewsList from "@/components/MentorReviewsList";
+import MentorShareButton from "@/components/MentorShareButton";
 import { Button } from "@/components/ui/button";
 
 interface Availability {
@@ -65,6 +67,7 @@ interface BookedSession {
 const Mentors = () => {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
+  const { isMentor, mentorId: currentUserMentorId } = useMentorCheck();
   const [mentors, setMentors] = useState<Mentor[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedMentor, setSelectedMentor] = useState<Mentor | null>(null);
@@ -397,6 +400,18 @@ const Mentors = () => {
                     </div>
                   )}
 
+                  {/* Share button for mentor's own card */}
+                  {isMentor && currentUserMentorId === mentor.id && (
+                    <div className="mb-3">
+                      <MentorShareButton
+                        mentorId={mentor.id}
+                        mentorName={mentor.name}
+                        mentorArea={mentor.area}
+                        mentorPhotoUrl={mentor.photo_url}
+                      />
+                    </div>
+                  )}
+
                   <button
                     onClick={() => openBookingDialog(mentor)}
                     className="w-full bg-gradient-hero text-primary-foreground py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
@@ -561,6 +576,18 @@ const Mentors = () => {
                     </Button>
                   )}
                 </div>
+
+                {/* Share button - only visible to the mentor themselves */}
+                {isMentor && currentUserMentorId === selectedMentorForProfile.id && (
+                  <div className="mb-4">
+                    <MentorShareButton
+                      mentorId={selectedMentorForProfile.id}
+                      mentorName={selectedMentorForProfile.name}
+                      mentorArea={selectedMentorForProfile.area}
+                      mentorPhotoUrl={selectedMentorForProfile.photo_url}
+                    />
+                  </div>
+                )}
 
                 <button
                   onClick={() => handleBookFromProfile(selectedMentorForProfile)}
