@@ -8,6 +8,7 @@ import MentorBlockedPeriodsManager from "./MentorBlockedPeriodsManager";
 import MentorDisclaimerModal from "./MentorDisclaimerModal";
 import MentorSessionConfirmation from "./MentorSessionConfirmation";
 import MentorAvailabilityEditor from "./MentorAvailabilityEditor";
+import MentorProfileEditor from "./MentorProfileEditor";
 import SessionManagement from "./SessionManagement";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -22,6 +23,7 @@ interface MentorData {
   email: string;
   area: string;
   description: string;
+  education: string | null;
   status: string;
   availability: Availability[];
   disclaimer_accepted: boolean;
@@ -88,6 +90,7 @@ const MentorPanel = () => {
     if (mentor && !error) {
       setMentorData({
         ...mentor,
+        education: mentor.education || null,
         availability: (mentor.availability as unknown as Availability[]) || [],
       });
 
@@ -233,6 +236,22 @@ const MentorPanel = () => {
           <span>Termos aceitos em {format(new Date(mentorData.disclaimer_accepted_at!), "dd/MM/yyyy", { locale: ptBR })}</span>
         </motion.div>
       )}
+
+      {/* Mentor Profile Editor */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.18 }}
+      >
+        <MentorProfileEditor
+          mentorId={mentorData.id}
+          name={mentorData.name}
+          area={mentorData.area}
+          description={mentorData.description}
+          education={mentorData.education}
+          onUpdate={fetchMentorData}
+        />
+      </motion.div>
 
       {/* Availability summary */}
       <motion.div
