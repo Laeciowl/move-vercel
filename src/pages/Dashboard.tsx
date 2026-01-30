@@ -16,6 +16,8 @@ import MentorPanel from "@/components/MentorPanel";
 import VolunteerPanel from "@/components/VolunteerPanel";
 import BugReportButton from "@/components/BugReportButton";
 import ContentLibrary from "@/components/ContentLibrary";
+import OnboardingTour from "@/components/OnboardingTour";
+import FirstMentorshipMission from "@/components/FirstMentorshipMission";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -57,6 +59,7 @@ const Dashboard = () => {
   const [impactHistory, setImpactHistory] = useState<ImpactHistory[]>([]);
   const [showUpdateForm, setShowUpdateForm] = useState(false);
   const [showProfileEdit, setShowProfileEdit] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [updating, setUpdating] = useState(false);
   const [updateData, setUpdateData] = useState({
     professionalStatus: "",
@@ -90,8 +93,14 @@ const Dashboard = () => {
       setUpdateData({
         professionalStatus: profile.professional_status,
       });
+      
+      // Show onboarding for new users who haven't completed it
+      // Only show for non-volunteers (mentorados)
+      if (!profile.onboarding_completed && !isVolunteer) {
+        setShowOnboarding(true);
+      }
     }
-  }, [profile]);
+  }, [profile, isVolunteer]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -379,6 +388,11 @@ const Dashboard = () => {
         >
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
+            {/* First Mentorship Mission - Only for non-volunteers */}
+            {!isVolunteer && (
+              <FirstMentorshipMission isCompleted={profile?.first_mentorship_booked || false} />
+            )}
+
             {/* Volunteer Panel */}
             <VolunteerPanel />
 
@@ -584,6 +598,16 @@ const Dashboard = () => {
         profile={profile}
         onProfileUpdated={refreshProfile}
       />
+
+      {/* Onboarding Tour */}
+      {showOnboarding && (
+        <OnboardingTour 
+          onComplete={() => {
+            setShowOnboarding(false);
+            refreshProfile();
+          }} 
+        />
+      )}
     </div>
   );
 };
