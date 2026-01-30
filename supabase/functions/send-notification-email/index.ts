@@ -606,9 +606,69 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const { to, name, type, data, skipPreferenceCheck }: NotificationEmailRequest = await req.json();
 
+    console.log(`Processing email request: type=${type}, to=${to}, name=${name}`);
+
     const template = emailTemplates[type];
     if (!template) {
       throw new Error(`Template '${type}' not found`);
+    }
+
+    // Use verified custom domain
+    const fromEmail = "Movê <noreply@movecarreiras.org>";
+
+    // Handle admin notification emails - send to all admins
+    if (type === "new_user_admin_notification") {
+      const adminEmails = await getAdminEmails();
+      console.log("Sending admin notification to:", adminEmails);
+      
+      if (adminEmails.length === 0) {
+        console.log("No admin emails found, skipping admin notification");
+        return new Response(JSON.stringify({ 
+          success: true, 
+          skipped: true,
+          reason: "No admin emails configured" 
+        }), {
+          status: 200,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+      }
+
+      const results = [];
+      for (const adminEmail of adminEmails) {
+        try {
+          const res = await fetch("https://api.resend.com/emails", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${RESEND_API_KEY}`,
+            },
+            body: JSON.stringify({
+              from: fromEmail,
+              to: [adminEmail],
+              subject: template.subject,
+              html: template.html(name, data),
+            }),
+          });
+
+          if (res.ok) {
+            const emailResponse = await res.json();
+            console.log(`Admin notification sent to ${adminEmail}:`, emailResponse);
+            results.push({ email: adminEmail, success: true });
+          } else {
+            const errorData = await res.json();
+            console.error(`Failed to send admin notification to ${adminEmail}:`, errorData);
+            results.push({ email: adminEmail, success: false, error: errorData });
+          }
+        } catch (err) {
+          console.error(`Error sending to ${adminEmail}:`, err);
+          results.push({ email: adminEmail, success: false, error: String(err) });
+        }
+      }
+
+      return new Response(JSON.stringify({ success: true, results }), {
+        status: 200,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
     }
 
     // Check if this is a transactional email (must always be sent)
@@ -630,9 +690,6 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
-    // Use verified custom domain
-    const fromEmail = "Movê <noreply@movecarreiras.org>";
-
     // Use Resend API directly via fetch
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -650,11 +707,12 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (!res.ok) {
       const errorData = await res.json();
+      console.error("Resend API error:", errorData);
       throw new Error(`Resend API error: ${JSON.stringify(errorData)}`);
     }
 
     const emailResponse = await res.json();
-    console.log("Email sent successfully:", emailResponse);
+    console.log("Email sent successfully to", to, ":", emailResponse);
 
     return new Response(JSON.stringify(emailResponse), {
       status: 200,
