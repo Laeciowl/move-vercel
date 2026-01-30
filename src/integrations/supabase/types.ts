@@ -309,11 +309,13 @@ export type Database = {
           created_at: string
           description: string | null
           email_notifications: boolean
+          first_mentorship_booked: boolean
           id: string
           income_range: Database["public"]["Enums"]["income_range"]
           lgpd_consent: boolean
           lgpd_consent_at: string | null
           name: string
+          onboarding_completed: boolean
           phone: string | null
           photo_url: string | null
           professional_status: Database["public"]["Enums"]["professional_status"]
@@ -327,11 +329,13 @@ export type Database = {
           created_at?: string
           description?: string | null
           email_notifications?: boolean
+          first_mentorship_booked?: boolean
           id?: string
           income_range: Database["public"]["Enums"]["income_range"]
           lgpd_consent?: boolean
           lgpd_consent_at?: string | null
           name: string
+          onboarding_completed?: boolean
           phone?: string | null
           photo_url?: string | null
           professional_status: Database["public"]["Enums"]["professional_status"]
@@ -345,11 +349,13 @@ export type Database = {
           created_at?: string
           description?: string | null
           email_notifications?: boolean
+          first_mentorship_booked?: boolean
           id?: string
           income_range?: Database["public"]["Enums"]["income_range"]
           lgpd_consent?: boolean
           lgpd_consent_at?: string | null
           name?: string
+          onboarding_completed?: boolean
           phone?: string | null
           photo_url?: string | null
           professional_status?: Database["public"]["Enums"]["professional_status"]

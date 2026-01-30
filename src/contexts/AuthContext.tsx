@@ -16,6 +16,8 @@ interface Profile {
   photo_url: string | null;
   description: string | null;
   phone: string | null;
+  onboarding_completed: boolean;
+  first_mentorship_booked: boolean;
 }
 
 interface AuthContextType {
