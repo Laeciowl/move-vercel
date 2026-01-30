@@ -184,6 +184,42 @@ const Auth = () => {
         // Wait a moment for the trigger to create the profile
         await new Promise(resolve => setTimeout(resolve, 500));
         
+        // Send welcome email to new user
+        try {
+          await supabase.functions.invoke("send-notification-email", {
+            body: {
+              to: signupData.email,
+              name: signupData.name.trim(),
+              type: "registration_confirmation",
+              skipPreferenceCheck: true,
+            },
+          });
+          console.log("Welcome email sent to:", signupData.email);
+        } catch (emailError) {
+          console.error("Error sending welcome email:", emailError);
+          // Don't block registration if email fails
+        }
+
+        // Send admin notification about new user
+        try {
+          await supabase.functions.invoke("send-notification-email", {
+            body: {
+              to: "admin@movecarreiras.org", // This will be ignored, the function sends to all admins
+              name: signupData.name.trim(),
+              type: "new_user_admin_notification",
+              data: {
+                email: signupData.email,
+                city: "N/A",
+                state: "N/A",
+              },
+              skipPreferenceCheck: true,
+            },
+          });
+          console.log("Admin notification sent");
+        } catch (emailError) {
+          console.error("Error sending admin notification:", emailError);
+        }
+        
         toast.success("Pronto! Sua conta foi criada 🎉");
         navigate("/dashboard");
       }
