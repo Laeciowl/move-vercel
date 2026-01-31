@@ -12,6 +12,8 @@ import VolunteerOnboarding from "./pages/VolunteerOnboarding";
 import Mentors from "./pages/Mentors";
 import Admin from "./pages/Admin";
 import Terms from "./pages/Terms";
+import ForMentees from "./pages/ForMentees";
+import ForMentors from "./pages/ForMentors";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +34,8 @@ const App = () => (
             <Route path="/mentores" element={<Mentors />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/termos" element={<Terms />} />
+            <Route path="/para-mentorados" element={<ForMentees />} />
+            <Route path="/para-mentores" element={<ForMentors />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
