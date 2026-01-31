@@ -151,12 +151,15 @@ const MentorShareButton = ({
             <DialogTitle>Arte para compartilhar</DialogTitle>
           </DialogHeader>
           
-          {/* Share Card Art - Larger and more creative */}
+          {/* Share Card Art - Square aspect ratio for social media */}
           <div 
             ref={cardRef}
-            className="relative rounded-3xl p-8 text-white overflow-hidden min-h-[400px] flex flex-col"
+            className="relative rounded-3xl p-8 text-white overflow-hidden flex flex-col"
             style={{
-              background: "linear-gradient(135deg, hsl(24.6, 95%, 53.1%) 0%, hsl(30, 90%, 55%) 50%, hsl(38, 92%, 50%) 100%)"
+              background: "linear-gradient(135deg, hsl(24.6, 95%, 53.1%) 0%, hsl(30, 90%, 55%) 50%, hsl(38, 92%, 50%) 100%)",
+              width: "400px",
+              height: "400px",
+              aspectRatio: "1 / 1"
             }}
           >
             {/* Decorative elements */}
@@ -196,10 +199,10 @@ const MentorShareButton = ({
             
             <div className="relative z-10 flex flex-col h-full">
               {/* Header with emoji and brand */}
-              <div className="flex items-center justify-between mb-6">
-                <span className="text-3xl">🧡</span>
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-2xl">🧡</span>
                 <div 
-                  className="px-4 py-1.5 rounded-full text-sm font-semibold"
+                  className="px-3 py-1 rounded-full text-xs font-semibold"
                   style={{ backgroundColor: "rgba(255,255,255,0.2)", backdropFilter: "blur(8px)" }}
                 >
                   Mentor Movê
@@ -207,9 +210,9 @@ const MentorShareButton = ({
               </div>
               
               {/* Mentor photo and info */}
-              <div className="flex items-center gap-5 mb-6">
+              <div className="flex items-center gap-4 mb-4">
                 <div 
-                  className="w-20 h-20 rounded-2xl overflow-hidden shrink-0"
+                  className="w-16 h-16 rounded-2xl overflow-hidden shrink-0"
                   style={{ 
                     backgroundColor: "rgba(255,255,255,0.2)", 
                     border: "3px solid rgba(255,255,255,0.4)",
@@ -224,31 +227,31 @@ const MentorShareButton = ({
                       crossOrigin="anonymous"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-white text-2xl font-bold">
+                    <div className="w-full h-full flex items-center justify-center text-white text-xl font-bold">
                       {mentorName.charAt(0)}
                     </div>
                   )}
                 </div>
                 <div>
-                  <h3 className="font-bold text-2xl leading-tight">{mentorName}</h3>
-                  <p style={{ color: "rgba(255,255,255,0.8)" }} className="text-base">{mentorArea}</p>
+                  <h3 className="font-bold text-xl leading-tight">{mentorName}</h3>
+                  <p style={{ color: "rgba(255,255,255,0.8)" }} className="text-sm">{mentorArea}</p>
                 </div>
               </div>
               
-              {/* Main message - larger and more impactful */}
+              {/* Main message */}
               <div className="flex-1 flex flex-col justify-center">
                 <div 
-                  className="rounded-2xl p-5"
+                  className="rounded-xl p-4"
                   style={{ 
                     backgroundColor: "rgba(255,255,255,0.15)", 
                     backdropFilter: "blur(8px)",
                     border: "1px solid rgba(255,255,255,0.2)"
                   }}
                 >
-                  <p className="text-2xl font-bold leading-snug mb-3">
+                  <p className="text-lg font-bold leading-snug mb-2">
                     Venha agendar uma sessão de mentoria comigo sobre {mentorArea},
                   </p>
-                  <p className="text-xl font-semibold" style={{ color: "#FDE68A" }}>
+                  <p className="text-base font-semibold" style={{ color: "#FDE68A" }}>
                     e coloque sua carreira em movimento! 🚀
                   </p>
                 </div>
@@ -256,14 +259,14 @@ const MentorShareButton = ({
               
               {/* Footer with URL and brand */}
               <div 
-                className="flex items-center justify-between mt-6 pt-4"
+                className="flex items-center justify-between mt-4 pt-3"
                 style={{ borderTop: "1px solid rgba(255,255,255,0.2)" }}
               >
-                <div className="text-sm font-medium" style={{ color: "rgba(255,255,255,0.7)" }}>
+                <div className="text-xs font-medium" style={{ color: "rgba(255,255,255,0.7)" }}>
                   movecarreiras.org
                 </div>
                 <div 
-                  className="font-bold px-4 py-1.5 rounded-full text-sm"
+                  className="font-bold px-3 py-1 rounded-full text-xs"
                   style={{ 
                     backgroundColor: "white", 
                     color: "hsl(24.6, 95%, 53.1%)",

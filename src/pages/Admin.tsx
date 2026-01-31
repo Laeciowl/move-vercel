@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Shield, Users, BookOpen, Loader2, FileCheck, Bug } from "lucide-react";
+import { ArrowLeft, Shield, Users, BookOpen, Loader2, FileCheck, Bug, Calendar, Image } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,6 +9,8 @@ import AdminContentPanel from "@/components/admin/AdminContentPanel";
 import AdminVolunteersPanel from "@/components/admin/AdminVolunteersPanel";
 import AdminSubmissionsPanel from "@/components/admin/AdminSubmissionsPanel";
 import AdminBugReportsPanel from "@/components/admin/AdminBugReportsPanel";
+import AdminSessionsPanel from "@/components/admin/AdminSessionsPanel";
+import AdminMentorCardsPanel from "@/components/admin/AdminMentorCardsPanel";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -73,7 +75,7 @@ const Admin = () => {
       <div className="absolute bottom-0 left-0 w-80 h-80 bg-accent/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
 
       <motion.div 
-        className="container mx-auto max-w-4xl relative z-10"
+        className="container mx-auto max-w-5xl relative z-10"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
@@ -103,13 +105,27 @@ const Admin = () => {
 
         <motion.div variants={itemVariants}>
           <Tabs defaultValue="volunteers" className="w-full">
-            <TabsList className="grid w-full grid-cols-4 mb-6 bg-card/80 backdrop-blur-sm border border-border/50 p-1 rounded-2xl h-auto">
+            <TabsList className="grid w-full grid-cols-6 mb-6 bg-card/80 backdrop-blur-sm border border-border/50 p-1 rounded-2xl h-auto">
               <TabsTrigger 
                 value="volunteers" 
                 className="gap-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-button transition-all duration-300"
               >
                 <Users className="w-4 h-4" />
                 <span className="hidden sm:inline">Voluntários</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="sessions" 
+                className="gap-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-button transition-all duration-300"
+              >
+                <Calendar className="w-4 h-4" />
+                <span className="hidden sm:inline">Sessões</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="cards" 
+                className="gap-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-button transition-all duration-300"
+              >
+                <Image className="w-4 h-4" />
+                <span className="hidden sm:inline">Cards</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="submissions" 
@@ -145,6 +161,12 @@ const Admin = () => {
               >
                 <TabsContent value="volunteers" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
                   <AdminVolunteersPanel />
+                </TabsContent>
+                <TabsContent value="sessions" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+                  <AdminSessionsPanel />
+                </TabsContent>
+                <TabsContent value="cards" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+                  <AdminMentorCardsPanel />
                 </TabsContent>
                 <TabsContent value="submissions" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
                   <AdminSubmissionsPanel />
