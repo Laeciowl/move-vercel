@@ -415,6 +415,13 @@ export type Database = {
             referencedRelation: "mentor_sessions"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "session_reviews_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: true
+            referencedRelation: "mentor_sessions_with_names"
+            referencedColumns: ["id"]
+          },
         ]
       }
       user_roles: {
@@ -541,6 +548,42 @@ export type Database = {
       }
     }
     Views: {
+      mentor_sessions_with_names: {
+        Row: {
+          completed_at: string | null
+          confirmed_at: string | null
+          confirmed_by_mentor: boolean | null
+          created_at: string | null
+          duration: number | null
+          id: string | null
+          mentee_formation: string | null
+          mentee_name: string | null
+          mentee_objective: string | null
+          mentor_id: string | null
+          mentor_name: string | null
+          mentor_notes: string | null
+          notes: string | null
+          scheduled_at: string | null
+          status: Database["public"]["Enums"]["session_status"] | null
+          user_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mentor_sessions_mentor_id_fkey"
+            columns: ["mentor_id"]
+            isOneToOne: false
+            referencedRelation: "mentors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mentor_sessions_mentor_id_fkey"
+            columns: ["mentor_id"]
+            isOneToOne: false
+            referencedRelation: "mentors_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mentors_public: {
         Row: {
           area: string | null
