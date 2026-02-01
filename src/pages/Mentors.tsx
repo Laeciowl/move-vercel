@@ -322,7 +322,7 @@ const Mentors = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-card rounded-2xl shadow-card overflow-hidden group"
+                className="bg-card rounded-2xl shadow-card overflow-hidden group flex flex-col"
               >
                 <div 
                   className="aspect-square bg-muted relative cursor-pointer"
@@ -342,9 +342,9 @@ const Mentors = () => {
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
                 </div>
 
-                <div className="p-5">
+                <div className="p-5 flex flex-col h-auto">
                   <div 
-                    className="cursor-pointer hover:opacity-80 transition-opacity"
+                    className="cursor-pointer hover:opacity-80 transition-opacity flex-1"
                     onClick={() => openProfileDialog(mentor)}
                   >
                     <h3 className="text-xl font-bold text-foreground mb-1">
@@ -388,7 +388,7 @@ const Mentors = () => {
                   </div>
 
                   {mentor.availability && mentor.availability.length > 0 && (
-                    <div className="flex items-center gap-2 mb-4 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2 mb-3 text-sm text-muted-foreground">
                       <Clock className="w-4 h-4" />
                       <span>
                         {mentor.availability
@@ -412,13 +412,16 @@ const Mentors = () => {
                     </div>
                   )}
 
-                  <button
-                    onClick={() => openBookingDialog(mentor)}
-                    className="w-full bg-gradient-hero text-primary-foreground py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
-                  >
-                    <Calendar className="w-4 h-4" />
-                    Agendar mentoria
-                  </button>
+                  {/* Booking button always at bottom */}
+                  <div className="mt-auto pt-2">
+                    <button
+                      onClick={() => openBookingDialog(mentor)}
+                      className="w-full bg-gradient-hero text-primary-foreground py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+                    >
+                      <Calendar className="w-4 h-4" />
+                      Agendar mentoria
+                    </button>
+                  </div>
                 </div>
               </motion.div>
             ))}

@@ -151,128 +151,153 @@ const MentorShareButton = ({
             <DialogTitle>Arte para compartilhar</DialogTitle>
           </DialogHeader>
           
-          {/* Share Card Art - Square aspect ratio for social media */}
+          {/* Share Card Art - Fixed square for PNG export */}
           <div 
             ref={cardRef}
-            className="relative rounded-3xl p-8 text-white overflow-hidden flex flex-col"
             style={{
-              background: "linear-gradient(135deg, hsl(24.6, 95%, 53.1%) 0%, hsl(30, 90%, 55%) 50%, hsl(38, 92%, 50%) 100%)",
-              width: "400px",
-              height: "400px",
-              aspectRatio: "1 / 1"
+              background: "linear-gradient(135deg, #f97316 0%, #fb923c 50%, #f59e0b 100%)",
+              width: "500px",
+              height: "500px",
+              padding: "32px",
+              borderRadius: "24px",
+              position: "relative",
+              overflow: "hidden",
+              display: "flex",
+              flexDirection: "column",
+              color: "white",
+              fontFamily: "system-ui, -apple-system, sans-serif"
             }}
           >
-            {/* Decorative elements */}
-            <div className="absolute inset-0 overflow-hidden">
-              {/* Large circles */}
-              <div 
-                className="absolute -top-10 -right-10 w-40 h-40 rounded-full"
-                style={{ border: "6px solid rgba(255,255,255,0.2)" }}
-              />
-              <div 
-                className="absolute -bottom-16 -left-16 w-56 h-56 rounded-full"
-                style={{ border: "6px solid rgba(255,255,255,0.15)" }}
-              />
-              <div 
-                className="absolute top-1/3 -right-8 w-24 h-24 rounded-full"
-                style={{ backgroundColor: "rgba(255,255,255,0.1)", filter: "blur(20px)" }}
-              />
-              {/* Sparkle dots */}
-              <div 
-                className="absolute top-8 left-8 w-2 h-2 rounded-full"
-                style={{ backgroundColor: "white" }}
-              />
-              <div 
-                className="absolute top-16 right-16 w-3 h-3 rounded-full"
-                style={{ backgroundColor: "rgba(255,255,255,0.8)" }}
-              />
-              <div 
-                className="absolute bottom-24 left-1/4 w-2 h-2 rounded-full"
-                style={{ backgroundColor: "white" }}
-              />
-              {/* Gradient overlay */}
-              <div 
-                className="absolute inset-0"
-                style={{ background: "linear-gradient(to top, rgba(0,0,0,0.2), transparent)" }}
-              />
-            </div>
+            {/* Decorative circles */}
+            <div style={{
+              position: "absolute",
+              top: "-40px",
+              right: "-40px",
+              width: "160px",
+              height: "160px",
+              borderRadius: "50%",
+              border: "6px solid rgba(255,255,255,0.2)"
+            }} />
+            <div style={{
+              position: "absolute",
+              bottom: "-60px",
+              left: "-60px",
+              width: "200px",
+              height: "200px",
+              borderRadius: "50%",
+              border: "6px solid rgba(255,255,255,0.15)"
+            }} />
+            {/* Sparkle dots */}
+            <div style={{
+              position: "absolute",
+              top: "32px",
+              left: "32px",
+              width: "8px",
+              height: "8px",
+              borderRadius: "50%",
+              backgroundColor: "white"
+            }} />
+            <div style={{
+              position: "absolute",
+              top: "64px",
+              right: "64px",
+              width: "12px",
+              height: "12px",
+              borderRadius: "50%",
+              backgroundColor: "rgba(255,255,255,0.8)"
+            }} />
             
-            <div className="relative z-10 flex flex-col h-full">
-              {/* Header with emoji and brand */}
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-2xl">🧡</span>
-                <div 
-                  className="px-3 py-1 rounded-full text-xs font-semibold"
-                  style={{ backgroundColor: "rgba(255,255,255,0.2)", backdropFilter: "blur(8px)" }}
-                >
+            {/* Content */}
+            <div style={{ position: "relative", zIndex: 10, display: "flex", flexDirection: "column", height: "100%" }}>
+              {/* Header */}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
+                <span style={{ fontSize: "28px" }}>🧡</span>
+                <div style={{
+                  backgroundColor: "rgba(255,255,255,0.2)",
+                  padding: "6px 16px",
+                  borderRadius: "20px",
+                  fontSize: "14px",
+                  fontWeight: 600
+                }}>
                   Mentor Movê
                 </div>
               </div>
               
-              {/* Mentor photo and info */}
-              <div className="flex items-center gap-4 mb-4">
-                <div 
-                  className="w-16 h-16 rounded-2xl overflow-hidden shrink-0"
-                  style={{ 
-                    backgroundColor: "rgba(255,255,255,0.2)", 
-                    border: "3px solid rgba(255,255,255,0.4)",
-                    boxShadow: "0 10px 25px rgba(0,0,0,0.2)"
-                  }}
-                >
+              {/* Mentor info */}
+              <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "20px" }}>
+                <div style={{
+                  width: "72px",
+                  height: "72px",
+                  borderRadius: "16px",
+                  overflow: "hidden",
+                  backgroundColor: "rgba(255,255,255,0.2)",
+                  border: "3px solid rgba(255,255,255,0.4)",
+                  flexShrink: 0
+                }}>
                   {mentorPhotoUrl ? (
                     <img
                       src={mentorPhotoUrl}
                       alt={mentorName}
-                      className="w-full h-full object-cover"
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
                       crossOrigin="anonymous"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-white text-xl font-bold">
+                    <div style={{ 
+                      width: "100%", 
+                      height: "100%", 
+                      display: "flex", 
+                      alignItems: "center", 
+                      justifyContent: "center",
+                      fontSize: "28px",
+                      fontWeight: "bold"
+                    }}>
                       {mentorName.charAt(0)}
                     </div>
                   )}
                 </div>
                 <div>
-                  <h3 className="font-bold text-xl leading-tight">{mentorName}</h3>
-                  <p style={{ color: "rgba(255,255,255,0.8)" }} className="text-sm">{mentorArea}</p>
+                  <h3 style={{ fontWeight: "bold", fontSize: "24px", lineHeight: 1.2, margin: 0 }}>{mentorName}</h3>
+                  <p style={{ color: "rgba(255,255,255,0.85)", fontSize: "16px", margin: "4px 0 0 0" }}>{mentorArea}</p>
                 </div>
               </div>
               
-              {/* Main message */}
-              <div className="flex-1 flex flex-col justify-center">
-                <div 
-                  className="rounded-xl p-4"
-                  style={{ 
-                    backgroundColor: "rgba(255,255,255,0.15)", 
-                    backdropFilter: "blur(8px)",
-                    border: "1px solid rgba(255,255,255,0.2)"
-                  }}
-                >
-                  <p className="text-lg font-bold leading-snug mb-2">
+              {/* Message box */}
+              <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                <div style={{
+                  backgroundColor: "rgba(255,255,255,0.15)",
+                  borderRadius: "16px",
+                  padding: "20px",
+                  border: "1px solid rgba(255,255,255,0.2)"
+                }}>
+                  <p style={{ fontSize: "20px", fontWeight: "bold", lineHeight: 1.4, margin: "0 0 8px 0" }}>
                     Venha agendar uma sessão de mentoria comigo sobre {mentorArea},
                   </p>
-                  <p className="text-base font-semibold" style={{ color: "#FDE68A" }}>
+                  <p style={{ fontSize: "18px", fontWeight: 600, color: "#FDE68A", margin: 0 }}>
                     e coloque sua carreira em movimento! 🚀
                   </p>
                 </div>
               </div>
               
-              {/* Footer with URL and brand */}
-              <div 
-                className="flex items-center justify-between mt-4 pt-3"
-                style={{ borderTop: "1px solid rgba(255,255,255,0.2)" }}
-              >
-                <div className="text-xs font-medium" style={{ color: "rgba(255,255,255,0.7)" }}>
+              {/* Footer */}
+              <div style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginTop: "16px",
+                paddingTop: "16px",
+                borderTop: "1px solid rgba(255,255,255,0.2)"
+              }}>
+                <span style={{ fontSize: "14px", fontWeight: 500, color: "rgba(255,255,255,0.8)" }}>
                   movecarreiras.org
-                </div>
-                <div 
-                  className="font-bold px-3 py-1 rounded-full text-xs"
-                  style={{ 
-                    backgroundColor: "white", 
-                    color: "hsl(24.6, 95%, 53.1%)",
-                    boxShadow: "0 4px 15px rgba(0,0,0,0.2)"
-                  }}
-                >
+                </span>
+                <div style={{
+                  backgroundColor: "white",
+                  color: "#f97316",
+                  fontWeight: "bold",
+                  padding: "8px 16px",
+                  borderRadius: "20px",
+                  fontSize: "14px"
+                }}>
                   O Movê
                 </div>
               </div>
