@@ -64,15 +64,16 @@ const MentorShareButton = ({
     setDownloading(true);
     try {
       const canvas = await html2canvas(cardRef.current, {
-        scale: 2, // Higher resolution
+        scale: 4, // Higher resolution for crisp PNG (2000x2000 output)
         backgroundColor: null,
         useCORS: true,
         allowTaint: true,
+        logging: false,
       });
       
       const link = document.createElement("a");
       link.download = `mentor-move-${mentorName.toLowerCase().replace(/\s+/g, "-")}.png`;
-      link.href = canvas.toDataURL("image/png");
+      link.href = canvas.toDataURL("image/png", 1.0); // Maximum quality
       link.click();
       
       toast.success("Imagem baixada com sucesso!");

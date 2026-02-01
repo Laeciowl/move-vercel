@@ -227,15 +227,16 @@ const AdminMentorCardsPanel = () => {
   const handleDownload = async (mentor: Mentor, element: HTMLDivElement) => {
     try {
       const canvas = await html2canvas(element, {
-        scale: 2,
+        scale: 4, // Higher resolution for crisp PNG (800x800 output)
         backgroundColor: null,
         useCORS: true,
         allowTaint: true,
+        logging: false,
       });
       
       const link = document.createElement("a");
       link.download = `mentor-move-${mentor.name.toLowerCase().replace(/\s+/g, "-")}.png`;
-      link.href = canvas.toDataURL("image/png");
+      link.href = canvas.toDataURL("image/png", 1.0); // Maximum quality
       link.click();
       
       toast.success(`Card de ${mentor.name} baixado!`);
