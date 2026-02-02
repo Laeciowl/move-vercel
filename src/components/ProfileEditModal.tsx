@@ -167,19 +167,14 @@ const ProfileEditModal = ({ isOpen, onClose, profile, onProfileUpdated }: Profil
             className="fixed inset-0 bg-black/60 z-[99]"
           />
           
-          {/* Modal */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            style={{
-              position: 'fixed',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-            }}
-            className="w-[calc(100%-2rem)] max-w-lg bg-card rounded-2xl shadow-xl z-[100] overflow-hidden flex flex-col max-h-[calc(100vh-2rem)]"
-          >
+          {/* Modal Container - Flex centering */}
+          <div className="fixed inset-0 z-[100] flex items-center justify-center pointer-events-none p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-lg bg-card rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[calc(100vh-2rem)] pointer-events-auto"
+            >
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-border shrink-0">
               <h2 className="text-xl font-bold text-foreground">Editar Perfil</h2>
@@ -353,7 +348,8 @@ const ProfileEditModal = ({ isOpen, onClose, profile, onProfileUpdated }: Profil
                 </button>
               </div>
             </form>
-          </motion.div>
+            </motion.div>
+          </div>
         </>
       )}
 
