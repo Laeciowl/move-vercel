@@ -56,16 +56,17 @@ const DeleteAccountModal = ({ isOpen, onClose, userName, onDeleted }: DeleteAcco
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/50 z-50"
+            className="fixed inset-0 bg-black/60 z-[99]"
           />
 
-          {/* Modal */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="fixed inset-4 sm:inset-auto sm:left-1/2 sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-full sm:max-w-md bg-card rounded-2xl shadow-xl z-50 overflow-hidden flex flex-col max-h-[calc(100vh-2rem)] sm:max-h-[85vh]"
-          >
+          {/* Modal Container - Flex centering */}
+          <div className="fixed inset-0 z-[100] flex items-center justify-center pointer-events-none p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-md bg-card rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[calc(100vh-2rem)] pointer-events-auto"
+            >
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-border bg-destructive/5">
               <div className="flex items-center gap-3">
@@ -142,7 +143,8 @@ const DeleteAccountModal = ({ isOpen, onClose, userName, onDeleted }: DeleteAcco
                 </Button>
               </div>
             </div>
-          </motion.div>
+            </motion.div>
+          </div>
         </>
       )}
     </AnimatePresence>
