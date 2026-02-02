@@ -172,7 +172,7 @@ const ProfileEditModal = ({ isOpen, onClose, profile, onProfileUpdated }: Profil
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="fixed inset-4 sm:inset-auto sm:left-1/2 sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-full sm:max-w-lg bg-card rounded-2xl shadow-xl z-50 overflow-hidden flex flex-col max-h-[calc(100vh-2rem)] sm:max-h-[85vh]"
+            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-lg bg-card rounded-2xl shadow-xl z-50 overflow-hidden flex flex-col max-h-[calc(100vh-2rem)]"
           >
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-border shrink-0">
