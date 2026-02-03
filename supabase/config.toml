@@ -1,1 +1,4 @@
 project_id = "yvrbnaqzvbfgarilcqaf"
+
+[functions.send-mentorship-reminder]
+verify_jwt = false
