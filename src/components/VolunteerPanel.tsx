@@ -1,22 +1,16 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, FileText, Video, Users, Loader2, ExternalLink, Clock, CheckCircle, XCircle, Calendar, Settings, Award, Mail, Phone, User } from "lucide-react";
+import { Heart, FileText, Video, Loader2, ExternalLink, Clock, CheckCircle, XCircle, Calendar, Award, ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useVolunteerCheck } from "@/hooks/useVolunteerCheck";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import MentorBlockedPeriodsManager from "./MentorBlockedPeriodsManager";
 import MentorSessionConfirmation from "./MentorSessionConfirmation";
-import MentorAvailabilityEditor from "./MentorAvailabilityEditor";
 import MentorProfileEditor from "./MentorProfileEditor";
-import MentorAdvanceNoticeEditor from "./MentorAdvanceNoticeEditor";
-import SessionManagement from "./SessionManagement";
 import ContentSubmissionModal from "./ContentSubmissionModal";
-import WhatsAppTemplates from "./WhatsAppTemplates";
-import { format, isPast } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { toast } from "sonner";
+import { isPast } from "date-fns";
 
 interface Submission {
   id: string;
