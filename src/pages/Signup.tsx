@@ -179,6 +179,19 @@ const Signup = () => {
       }
     }
 
+    // Validate email confirmation
+    if (formData.email.trim().toLowerCase() !== formData.emailConfirm.trim().toLowerCase()) {
+      toast.error("Os e-mails não coincidem. Por favor, verifique.");
+      return false;
+    }
+
+    // Validate phone confirmation
+    const normalizePhone = (phone: string) => phone.replace(/\D/g, '');
+    if (normalizePhone(formData.phone) !== normalizePhone(formData.phoneConfirm)) {
+      toast.error("Os telefones não coincidem. Por favor, verifique.");
+      return false;
+    }
+
     const userAge = parseInt(menteeData.age);
     if (isNaN(userAge) || userAge < 18 || userAge > 100) {
       toast.error("Idade deve estar entre 18 e 100 anos");
