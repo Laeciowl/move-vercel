@@ -84,8 +84,10 @@ const Signup = () => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    emailConfirm: "",
     password: "",
     phone: "",
+    phoneConfirm: "",
   });
 
   // Mentee specific fields
