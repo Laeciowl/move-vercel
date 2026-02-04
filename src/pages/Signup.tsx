@@ -109,10 +109,11 @@ const Signup = () => {
   const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
 
   useEffect(() => {
-    if (!authLoading && user) {
+    // Don't redirect if we're in the middle of a mentor signup flow
+    if (!authLoading && user && !submitted && userType !== "mentor") {
       navigate("/dashboard");
     }
-  }, [user, authLoading, navigate]);
+  }, [user, authLoading, navigate, submitted, userType]);
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
