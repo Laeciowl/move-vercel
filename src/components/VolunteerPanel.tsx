@@ -99,7 +99,7 @@ const VolunteerPanel = () => {
   const [stats, setStats] = useState<MentorStats>({ totalSessions: 0, completedSessions: 0, upcomingSessions: 0, uniqueMentees: 0 });
   const [loading, setLoading] = useState(true);
   const [showBlockedPeriods, setShowBlockedPeriods] = useState(false);
-  const [activeTab, setActiveTab] = useState<"overview" | "agenda" | "content">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "profile" | "agenda" | "content">("overview");
   const [submissionModal, setSubmissionModal] = useState<{ isOpen: boolean; category: "aulas_lives" | "templates_arquivos" }>({
     isOpen: false,
     category: "aulas_lives",
@@ -314,6 +314,7 @@ const VolunteerPanel = () => {
       <div className="flex gap-1 p-1 bg-muted/30 rounded-xl relative">
         {[
           { id: "overview", label: "Geral" },
+          ...(mentorData ? [{ id: "profile", label: "Perfil" }] : []),
           ...(mentorData ? [{ id: "agenda", label: "Agenda" }] : []),
           { id: "content", label: "Conteúdos" },
         ].map((tab) => (
@@ -447,19 +448,17 @@ const VolunteerPanel = () => {
         category={submissionModal.category}
       />
 
-      {/* Agenda Tab */}
+      {/* Profile Tab */}
       <AnimatePresence mode="wait">
-        {activeTab === "agenda" && mentorData && (
+        {activeTab === "profile" && mentorData && (
           <motion.div 
-            key="agenda"
+            key="profile"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
             className="space-y-6"
           >
-            {/* Current availability */}
-            {/* Perfil (mentor) */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -477,6 +476,21 @@ const VolunteerPanel = () => {
                 onUpdate={fetchData}
               />
             </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Agenda Tab */}
+      <AnimatePresence mode="wait">
+        {activeTab === "agenda" && mentorData && (
+          <motion.div 
+            key="agenda"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="space-y-6"
+          >
 
             {/* Agenda (mentor) */}
             <motion.div
@@ -599,7 +613,7 @@ const VolunteerPanel = () => {
                                 <CheckCircle className="w-3 h-3 mr-1" />
                                 Realizada
                               </Badge>
-                              <Badge variant="secondary" className="text-xs bg-muted/60">
+                              <Badge className="text-xs bg-primary/15 text-primary border border-primary/30 font-semibold">
                                 <Clock className="w-3 h-3 mr-1" />
                                 {sessionDuration} min
                               </Badge>
@@ -664,7 +678,7 @@ const VolunteerPanel = () => {
                                   Confirmado
                                 </Badge>
                               )}
-                              <Badge variant="secondary" className="text-xs bg-muted/60">
+                              <Badge className="text-xs bg-primary/15 text-primary border border-primary/30 font-semibold">
                                 <Clock className="w-3 h-3 mr-1" />
                                 {sessionDuration} min
                               </Badge>
@@ -674,6 +688,24 @@ const VolunteerPanel = () => {
                         <p className="text-sm text-muted-foreground">
                           📅 {format(new Date(session.scheduled_at), "EEEE, d 'de' MMMM 'às' HH:mm", { locale: ptBR })}
                         </p>
+
+                        {/* Mentee objective and formation */}
+                        {(session.mentee_objective || session.mentee_formation) && (
+                          <div className="bg-primary/5 rounded-xl p-3 space-y-2 border border-primary/20">
+                            {session.mentee_formation && (
+                              <div className="text-sm">
+                                <span className="font-medium text-foreground">Formação:</span>{" "}
+                                <span className="text-muted-foreground">{session.mentee_formation}</span>
+                              </div>
+                            )}
+                            {session.mentee_objective && (
+                              <div className="text-sm">
+                                <span className="font-medium text-foreground">Objetivo:</span>{" "}
+                                <span className="text-muted-foreground">{session.mentee_objective}</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
 
                         {/* Contact info */}
                         <div className="bg-card/50 rounded-lg p-2 space-y-1 border border-border/50">
