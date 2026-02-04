@@ -6,7 +6,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { z } from "zod";
-import type { Enums } from "@/integrations/supabase/types";
 import PasswordStrengthIndicator from "@/components/PasswordStrengthIndicator";
 
 const emailSchema = z.string().email("E-mail inválido").max(255);
@@ -20,22 +19,6 @@ const passwordSchema = z
   .regex(/[a-z]/, "Senha deve conter pelo menos uma letra minúscula")
   .regex(/[0-9]/, "Senha deve conter pelo menos um número")
   .regex(/[^A-Za-z0-9]/, "Senha deve conter pelo menos um caractere especial (!@#$%^&*)");
-const phoneSchema = z
-  .string()
-  .min(10, "Telefone deve ter pelo menos 10 dígitos")
-  .max(20, "Telefone muito longo")
-  .regex(/^[\d\s()+-]+$/, "Telefone inválido");
-
-type ProfessionalStatus = Enums<"professional_status">;
-type IncomeRange = Enums<"income_range">;
-
-const professionalStatusOptions = [
-  { value: "desempregado", label: "Desempregado" },
-  { value: "estudante", label: "Estudante" },
-  { value: "estagiario", label: "Estagiário" },
-  { value: "empregado", label: "Empregado" },
-  { value: "freelancer_pj", label: "Freelancer / PJ" },
-];
 
 type AuthView = "login" | "forgot-password" | "reset-password";
 
