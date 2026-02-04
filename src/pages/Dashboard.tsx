@@ -403,9 +403,6 @@ const Dashboard = () => {
             {/* Mentorship Section - for non-volunteers OR approved mentors (so mentors can also book sessions) */}
             {(!isVolunteer || isMentor) && <MentorshipSection />}
 
-            {/* Platform Guide */}
-            <PlatformGuide userType={isVolunteer ? "mentor" : "mentee"} />
-
             {/* Content Library */}
             <ContentLibrary />
           </div>
@@ -582,6 +579,9 @@ const Dashboard = () => {
                 </a>
               </motion.div>
             )}
+
+            {/* Platform Guide - Above About Section */}
+            <PlatformGuide userType={isVolunteer ? "mentor" : "mentee"} />
 
             {/* About Section - Compact */}
             <motion.div
