@@ -32,8 +32,8 @@ const AdminMetricsPanel = () => {
         supabase.from("profiles").select("id", { count: "exact", head: true }),
         // Total approved mentors
         supabase.from("mentors").select("id", { count: "exact", head: true }).eq("status", "approved"),
-        // Total mentees (users who have booked at least one session)
-        supabase.from("mentor_sessions").select("user_id"),
+        // Total mentees (all registered users are potential mentees)
+        supabase.from("profiles").select("id", { count: "exact", head: true }),
         // Future scheduled sessions (using RPC for accurate count)
         supabase.rpc("get_future_scheduled_sessions"),
         // Completed sessions (sessions past their end time, using RPC)
@@ -42,12 +42,12 @@ const AdminMetricsPanel = () => {
         supabase.rpc("get_lives_impacted"),
       ]);
 
-      const uniqueMenteeCount = new Set(uniqueMenteesResult.data?.map(m => m.user_id) || []).size;
+      const totalMenteesCount = uniqueMenteesResult.count || 0;
 
       setMetrics({
         totalUsers: profilesResult.count || 0,
         totalMentors: mentorsResult.count || 0,
-        totalMentees: uniqueMenteeCount,
+        totalMentees: totalMenteesCount,
         scheduledSessions: futureScheduledResult.data ?? 0,
         completedSessions: completedResult.data ?? 0,
         livesImpacted: livesImpactedResult.data ?? 0,
@@ -94,7 +94,7 @@ const AdminMetricsPanel = () => {
       bgColor: "bg-green-500/10",
     },
     {
-      title: "Mentorados Ativos",
+      title: "Mentorados",
       value: metrics.totalMentees,
       icon: GraduationCap,
       color: "text-purple-500",
@@ -152,8 +152,7 @@ const AdminMetricsPanel = () => {
         </CardHeader>
         <CardContent className="space-y-2 text-sm text-muted-foreground">
           <p>
-            A plataforma conta com <strong className="text-foreground">{metrics.totalUsers}</strong> usuários registrados, 
-            dos quais <strong className="text-foreground">{metrics.totalMentees}</strong> já agendaram pelo menos uma mentoria.
+            A plataforma conta com <strong className="text-foreground">{metrics.totalMentees}</strong> mentorados cadastrados.
           </p>
           <p>
             Temos <strong className="text-foreground">{metrics.totalMentors}</strong> mentores aprovados 
