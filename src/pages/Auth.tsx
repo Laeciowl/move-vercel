@@ -73,6 +73,13 @@ const Auth = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
+  // Redirect to unified signup if cadastro=true
+  useEffect(() => {
+    if (shouldShowSignup) {
+      navigate("/cadastro");
+    }
+  }, [shouldShowSignup, navigate]);
+
   useEffect(() => {
     if (!authLoading && user && view !== "reset-password") {
       navigate("/dashboard");
