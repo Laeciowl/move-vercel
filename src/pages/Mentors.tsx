@@ -315,11 +315,11 @@ const Mentors = () => {
     <div className="min-h-screen bg-gradient-warm py-12 px-4">
       <div className="container mx-auto max-w-6xl">
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate("/")}
           className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
-          Voltar
+          Voltar para a página inicial
         </button>
 
         <motion.div
