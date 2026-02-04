@@ -392,19 +392,19 @@ const Dashboard = () => {
         >
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Pending Mentor Banner - Show for users who applied as mentors but aren't approved yet */}
-            {isPendingMentor && !isVolunteer && <PendingMentorBanner />}
-
             {/* First Mentorship Mission - Only for non-volunteers who are NOT pending mentors */}
             {!isVolunteer && !isPendingMentor && (
               <FirstMentorshipMission isCompleted={profile?.first_mentorship_booked || false} />
             )}
 
+            {/* Pending Mentor Banner - Show for users who applied as mentors but aren't approved yet */}
+            {isPendingMentor && !isVolunteer && <PendingMentorBanner />}
+
             {/* Volunteer Panel */}
             <VolunteerPanel />
 
-            {/* Mentor Panel - only for non-volunteers who are also not mentors */}
-            {!isVolunteer && !isMentor && <MentorPanel />}
+            {/* Mentor Panel - only for non-volunteers who are also not mentors and not pending mentors */}
+            {!isVolunteer && !isMentor && !isPendingMentor && <MentorPanel />}
 
             {/* Mentorship Section - for non-volunteers OR approved mentors (so mentors can also book sessions) */}
             {(!isVolunteer || isMentor) && <MentorshipSection />}
