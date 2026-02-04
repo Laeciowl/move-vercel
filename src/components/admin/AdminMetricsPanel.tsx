@@ -22,8 +22,8 @@ const AdminMetricsPanel = () => {
       const [
         profilesResult,
         mentorsResult,
-        menteesResult,
-        scheduledResult,
+        uniqueMenteesResult,
+        futureScheduledResult,
         completedResult
       ] = await Promise.all([
         // Total registered users (profiles)
@@ -31,26 +31,21 @@ const AdminMetricsPanel = () => {
         // Total approved mentors
         supabase.from("mentors").select("id", { count: "exact", head: true }).eq("status", "approved"),
         // Total mentees (users who have booked at least one session)
-        supabase.from("mentor_sessions").select("user_id", { count: "exact", head: true }),
-        // Scheduled sessions
-        supabase.from("mentor_sessions").select("id", { count: "exact", head: true }).eq("status", "scheduled"),
-        // Completed sessions
-        supabase.from("mentor_sessions").select("id", { count: "exact", head: true }).eq("status", "completed"),
+        supabase.from("mentor_sessions").select("user_id"),
+        // Future scheduled sessions (using RPC for accurate count)
+        supabase.rpc("get_future_scheduled_sessions"),
+        // Completed sessions (sessions past their end time, using RPC)
+        supabase.rpc("get_total_completed_sessions"),
       ]);
 
-      // Get unique mentees count
-      const { data: uniqueMentees } = await supabase
-        .from("mentor_sessions")
-        .select("user_id");
-      
-      const uniqueMenteeCount = new Set(uniqueMentees?.map(m => m.user_id) || []).size;
+      const uniqueMenteeCount = new Set(uniqueMenteesResult.data?.map(m => m.user_id) || []).size;
 
       setMetrics({
         totalUsers: profilesResult.count || 0,
         totalMentors: mentorsResult.count || 0,
         totalMentees: uniqueMenteeCount,
-        scheduledSessions: scheduledResult.count || 0,
-        completedSessions: completedResult.count || 0,
+        scheduledSessions: futureScheduledResult.data ?? 0,
+        completedSessions: completedResult.data ?? 0,
       });
     } catch (error) {
       console.error("Error fetching metrics:", error);
