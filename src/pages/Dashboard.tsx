@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
   LogOut, RefreshCw, User, 
-  Loader2, History, Edit, Shield, Heart, Sparkles, ExternalLink, MessageCircle, Settings
+  Loader2, History, Edit, Shield, Heart, Sparkles, ExternalLink, MessageCircle, Settings, Briefcase
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
@@ -521,6 +521,35 @@ const Dashboard = () => {
               </a>
             </motion.div>
 
+            {/* TEM VAGA? WhatsApp Community Card - Only for non-volunteers */}
+            {!isVolunteer && (
+              <motion.div
+                initial={{ opacity: 0, x: 16 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.35 }}
+                className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/30 p-5 group hover:border-blue-500/30 transition-colors"
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-9 h-9 rounded-xl bg-blue-500/10 flex items-center justify-center group-hover:bg-blue-500/20 transition-colors">
+                    <Briefcase className="w-4 h-4 text-blue-600" />
+                  </div>
+                  <h3 className="font-semibold text-foreground">TEM VAGA?</h3>
+                </div>
+                <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
+                  Comunidade com vagas de estágio até analista para jovens talentos! 🚀
+                </p>
+                <a 
+                  href="https://chat.whatsapp.com/JugF130879CH7Lgo2Ycs1b"
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="w-full inline-flex items-center justify-center gap-2 bg-blue-600 text-white py-2.5 rounded-xl font-medium text-sm hover:bg-blue-700 transition-colors"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  Entrar no grupo
+                </a>
+              </motion.div>
+            )}
+
             {/* WhatsApp Mentors Card - Only for Volunteers */}
             {isVolunteer && (
               <motion.div
@@ -554,7 +583,7 @@ const Dashboard = () => {
             <motion.div
               initial={{ opacity: 0, x: 16 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: isVolunteer ? 0.4 : 0.35 }}
+              transition={{ delay: isVolunteer ? 0.45 : 0.4 }}
               className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/30 p-5"
             >
               <div className="flex items-center gap-3 mb-3">
