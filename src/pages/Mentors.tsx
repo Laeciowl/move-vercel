@@ -375,33 +375,28 @@ const Mentors = () => {
                     </p>
                   </div>
 
-                  {/* Feedback Display */}
-                  <div className="mb-3">
-                    <MentorRatingDisplay
-                      totalReviews={mentor.totalReviews}
-                      size="sm"
-                    />
-                    {mentor.totalReviews > 0 && (
+                  {/* Session count + Reviews */}
+                  <div className="flex items-center gap-2 mb-3 text-sm">
+                    <span className="flex items-center gap-1 text-muted-foreground">
+                      <Award className="w-4 h-4 text-green-600" />
+                      {mentor.sessions_completed_count} {mentor.sessions_completed_count === 1 ? 'sessão' : 'sessões'}
+                    </span>
+                    {mentor.totalReviews > 0 ? (
                       <Button
                         variant="link"
                         size="sm"
                         className="p-0 h-auto text-xs text-primary"
                         onClick={() => openReviewsDialog(mentor)}
                       >
-                        <MessageSquare className="w-3 h-3 mr-1" />
-                        Ver feedbacks
+                        ({mentor.totalReviews} {mentor.totalReviews === 1 ? 'review' : 'reviews'}) ver
                       </Button>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">(0 reviews)</span>
                     )}
                   </div>
 
-                  {/* Stats bar: sessions + advance notice */}
+                  {/* Stats bar: advance notice + LinkedIn */}
                   <div className="flex flex-wrap items-center gap-3 mb-3 text-xs text-muted-foreground">
-                    {mentor.sessions_completed_count > 0 && (
-                      <span className="flex items-center gap-1">
-                        <Award className="w-3 h-3 text-green-600" />
-                        {mentor.sessions_completed_count} sessões
-                      </span>
-                    )}
                     <span className="flex items-center gap-1">
                       <Clock className="w-3 h-3" />
                       {mentor.min_advance_hours}h de antecedência
@@ -411,11 +406,11 @@ const Mentors = () => {
                         href={mentor.linkedin_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-1 text-[#0A66C2] hover:underline"
+                        className="flex items-center gap-1 text-[#0A66C2] hover:opacity-70 transition-opacity"
                         onClick={(e) => e.stopPropagation()}
+                        title="Ver perfil no LinkedIn"
                       >
-                        <Linkedin className="w-3 h-3" />
-                        LinkedIn
+                        <Linkedin className="w-4 h-4" />
                       </a>
                     )}
                   </div>
