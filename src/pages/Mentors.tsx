@@ -359,7 +359,7 @@ const Mentors = () => {
                     <img
                       src={mentor.photo_url}
                       alt={mentor.name}
-                      className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
+                      className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
