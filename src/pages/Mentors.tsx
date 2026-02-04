@@ -348,17 +348,18 @@ const Mentors = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-card rounded-2xl shadow-card overflow-hidden group flex flex-col"
+                className="bg-card rounded-2xl shadow-card overflow-hidden group flex flex-col h-full"
               >
+                {/* Fixed aspect ratio photo container */}
                 <div 
-                  className="aspect-square bg-muted relative cursor-pointer"
+                  className="aspect-[4/3] bg-muted relative cursor-pointer overflow-hidden"
                   onClick={() => openProfileDialog(mentor)}
                 >
                   {mentor.photo_url ? (
                     <img
                       src={mentor.photo_url}
                       alt={mentor.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
@@ -368,9 +369,10 @@ const Mentors = () => {
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
                 </div>
 
-                <div className="p-5 flex flex-col h-auto">
+                {/* Content area with flex-grow to fill remaining space */}
+                <div className="p-5 flex flex-col flex-1">
                   <div 
-                    className="cursor-pointer hover:opacity-80 transition-opacity flex-1"
+                    className="cursor-pointer hover:opacity-80 transition-opacity"
                     onClick={() => openProfileDialog(mentor)}
                   >
                     <h3 className="text-xl font-bold text-foreground mb-1">
@@ -394,23 +396,25 @@ const Mentors = () => {
                     </p>
                   </div>
 
-                  {/* Session count + Reviews */}
-                  <div className="flex items-center gap-2 mb-3 text-sm">
+                  {/* Session count + Reviews - separated clearly */}
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-3 text-sm">
                     <span className="flex items-center gap-1 text-muted-foreground">
                       <Award className="w-4 h-4 text-green-600" />
                       {mentor.sessions_completed_count} {mentor.sessions_completed_count === 1 ? 'sessão realizada' : 'sessões realizadas'}
                     </span>
+                    <span className="text-muted-foreground/50">•</span>
                     {mentor.totalReviews > 0 ? (
                       <Button
                         variant="link"
                         size="sm"
-                        className="p-0 h-auto text-xs text-primary"
+                        className="p-0 h-auto text-xs text-primary gap-1"
                         onClick={() => openReviewsDialog(mentor)}
                       >
-                        ({mentor.totalReviews} {mentor.totalReviews === 1 ? 'review' : 'reviews'}) ver
+                        {mentor.totalReviews} {mentor.totalReviews === 1 ? 'review' : 'reviews'}
+                        <span className="underline">ver</span>
                       </Button>
                     ) : (
-                      <span className="text-xs text-muted-foreground">(0 reviews)</span>
+                      <span className="text-xs text-muted-foreground">0 reviews</span>
                     )}
                   </div>
 
@@ -447,6 +451,9 @@ const Mentors = () => {
                     </div>
                   )}
 
+                  {/* Spacer to push content below to bottom */}
+                  <div className="flex-1" />
+
                   {/* Share button for mentor's own card */}
                   {isMentor && currentUserMentorId === mentor.id && (
                     <div className="mb-3">
@@ -460,7 +467,7 @@ const Mentors = () => {
                   )}
 
                   {/* Booking button always at bottom */}
-                  <div className="mt-auto pt-2">
+                  <div className="pt-2">
                     <button
                       onClick={() => openBookingDialog(mentor)}
                       className="w-full bg-gradient-hero text-primary-foreground py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
