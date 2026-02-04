@@ -415,8 +415,8 @@ const Dashboard = () => {
 
           {/* Sidebar */}
           <div className="space-y-4">
-            {/* Evolution - Only for students */}
-            {!isVolunteer && (
+          {/* Evolution - Only for students (not for pending mentors either) */}
+            {!isVolunteer && !isPendingMentor && (
               <motion.div
                 initial={{ opacity: 0, x: 16 }}
                 animate={{ opacity: 1, x: 0 }}
