@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import WhatsAppTemplates from "./WhatsAppTemplates";
 
 interface MentorSession {
   id: string;
@@ -231,6 +232,17 @@ const MentorSessionConfirmation = ({ sessions, mentorName, mentorEmail, onUpdate
                   </div>
                 )}
               </div>
+            )}
+
+            {/* WhatsApp Templates */}
+            {session.confirmed_by_mentor && (
+              <WhatsAppTemplates
+                menteeName={session.mentee_profile?.name || "Mentorado"}
+                menteePhone={session.mentee_profile?.phone || null}
+                scheduledAt={session.scheduled_at}
+                duration={session.duration || 30}
+                objective={session.mentee_objective || null}
+              />
             )}
 
             {/* Disclaimer */}
