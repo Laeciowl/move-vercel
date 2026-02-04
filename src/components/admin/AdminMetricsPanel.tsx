@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Users, UserCheck, GraduationCap, Calendar, CheckCircle } from "lucide-react";
+import { Loader2, Users, UserCheck, GraduationCap, Calendar, CheckCircle, Heart } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface Metrics {
@@ -25,7 +25,8 @@ const AdminMetricsPanel = () => {
         mentorsResult,
         uniqueMenteesResult,
         futureScheduledResult,
-        completedResult
+        completedResult,
+        livesImpactedResult
       ] = await Promise.all([
         // Total registered users (profiles)
         supabase.from("profiles").select("id", { count: "exact", head: true }),
@@ -37,6 +38,8 @@ const AdminMetricsPanel = () => {
         supabase.rpc("get_future_scheduled_sessions"),
         // Completed sessions (sessions past their end time, using RPC)
         supabase.rpc("get_total_completed_sessions"),
+        // Lives impacted (unique mentees with completed sessions)
+        supabase.rpc("get_lives_impacted"),
       ]);
 
       const uniqueMenteeCount = new Set(uniqueMenteesResult.data?.map(m => m.user_id) || []).size;
@@ -47,6 +50,7 @@ const AdminMetricsPanel = () => {
         totalMentees: uniqueMenteeCount,
         scheduledSessions: futureScheduledResult.data ?? 0,
         completedSessions: completedResult.data ?? 0,
+        livesImpacted: livesImpactedResult.data ?? 0,
       });
     } catch (error) {
       console.error("Error fetching metrics:", error);
@@ -110,6 +114,13 @@ const AdminMetricsPanel = () => {
       color: "text-emerald-500",
       bgColor: "bg-emerald-500/10",
     },
+    {
+      title: "Vidas Impactadas",
+      value: metrics.livesImpacted,
+      icon: Heart,
+      color: "text-pink-500",
+      bgColor: "bg-pink-500/10",
+    },
   ];
 
   return (
@@ -146,7 +157,8 @@ const AdminMetricsPanel = () => {
           </p>
           <p>
             Temos <strong className="text-foreground">{metrics.totalMentors}</strong> mentores aprovados 
-            que já realizaram <strong className="text-foreground">{metrics.completedSessions}</strong> sessões de mentoria.
+            que já realizaram <strong className="text-foreground">{metrics.completedSessions}</strong> sessões de mentoria, 
+            impactando <strong className="text-foreground">{metrics.livesImpacted}</strong> vidas únicas.
           </p>
           {metrics.scheduledSessions > 0 && (
             <p>
