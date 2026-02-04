@@ -336,6 +336,31 @@ const Mentors = () => {
           </p>
         </motion.div>
 
+        {/* CTA Banner for non-logged users */}
+        {!user && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/20 rounded-2xl p-6 mb-10 flex flex-col sm:flex-row items-center justify-between gap-4"
+          >
+            <div>
+              <h3 className="text-lg font-semibold text-foreground mb-1">
+                Quer agendar uma mentoria?
+              </h3>
+              <p className="text-muted-foreground text-sm">
+                Crie sua conta gratuita e comece a receber orientação de profissionais experientes.
+              </p>
+            </div>
+            <button
+              onClick={() => navigate("/cadastro")}
+              className="bg-gradient-hero text-primary-foreground px-6 py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity whitespace-nowrap"
+            >
+              Criar conta grátis
+            </button>
+          </motion.div>
+        )}
+
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
