@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Calendar, X, Loader2, RefreshCw, MessageSquare, Clock, AlertCircle, Info } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { format, getDay, startOfDay, addMinutes, addHours, isWithinInterval, parseISO, isBefore, isSameDay } from "date-fns";
+import { format, getDay, startOfDay, addMinutes, addHours, isWithinInterval, parseISO, isBefore, isSameDay, isAfter } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
@@ -102,13 +102,15 @@ const RescheduleWithAvailability = ({
       }
 
       // Fetch mentor's booked sessions (scheduled or completed, excluding current session being rescheduled)
+      // Note: Don't filter by date - let the calendar logic handle it
       const { data: sessions } = await supabase
         .from("mentor_sessions")
         .select("id, scheduled_at, duration, status")
         .eq("mentor_id", mentorId)
         .in("status", ["scheduled", "completed"])
-        .neq("id", sessionId)
-        .gte("scheduled_at", new Date().toISOString());
+        .neq("id", sessionId);
+
+      
 
       if (sessions) {
         setBookedSessions(sessions);
@@ -137,35 +139,18 @@ const RescheduleWithAvailability = ({
     const [hours, minutes] = time.split(":").map(Number);
     const slotStart = new Date(date);
     slotStart.setHours(hours, minutes, 0, 0);
+    const slotEnd = addMinutes(slotStart, 30);
     
     for (const session of bookedSessions) {
       const sessionStart = parseISO(session.scheduled_at);
-      const sessionEnd = addMinutes(sessionStart, session.duration || 30);
+      const sessionDuration = session.duration || 30;
+      const sessionEnd = addMinutes(sessionStart, sessionDuration);
       
-      // Check if same day and overlapping times
-      if (isSameDay(slotStart, sessionStart)) {
-        const sessionHour = sessionStart.getHours();
-        const sessionMinute = sessionStart.getMinutes();
-        
-        if (sessionHour === hours && sessionMinute === minutes) {
-          return true;
-        }
-        
-        const sessionEndTime = sessionHour * 60 + sessionMinute + (session.duration || 30);
-        const slotStartTime = hours * 60 + minutes;
-        const slotEndTime = slotStartTime + 30;
-        
-        if (slotStartTime < sessionEndTime && slotEndTime > (sessionHour * 60 + sessionMinute)) {
-          return true;
-        }
-      }
+      // Check if the slot overlaps with this session
+      // Two time ranges overlap if: start1 < end2 AND end1 > start2
+      const slotsOverlap = isBefore(slotStart, sessionEnd) && isAfter(slotEnd, sessionStart);
       
-      if (isWithinInterval(slotStart, { start: sessionStart, end: sessionEnd })) {
-        return true;
-      }
-      
-      const slotEnd = addMinutes(slotStart, 30);
-      if (isWithinInterval(sessionStart, { start: slotStart, end: slotEnd })) {
+      if (slotsOverlap) {
         return true;
       }
     }

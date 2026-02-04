@@ -98,42 +98,19 @@ const BookingCalendar = ({
     const [hours, minutes] = time.split(":").map(Number);
     const slotStart = new Date(date);
     slotStart.setHours(hours, minutes, 0, 0);
+    const slotEnd = addMinutes(slotStart, 30);
     
     // Check against all booked sessions
     for (const session of bookedSessions) {
       const sessionStart = parseISO(session.scheduled_at);
-      const sessionEnd = addMinutes(sessionStart, session.duration || 30);
+      const sessionDuration = session.duration || 30;
+      const sessionEnd = addMinutes(sessionStart, sessionDuration);
       
-      // Normalize both dates to compare just the time on the same day
-      // This handles timezone issues where stored UTC doesn't match local display
-      if (isSameDay(slotStart, sessionStart)) {
-        // Same day - check if the hours/minutes overlap
-        const sessionHour = sessionStart.getHours();
-        const sessionMinute = sessionStart.getMinutes();
-        
-        // If session is at this exact time, it's booked
-        if (sessionHour === hours && sessionMinute === minutes) {
-          return true;
-        }
-        
-        // Check for overlap considering duration
-        const sessionEndTime = sessionHour * 60 + sessionMinute + (session.duration || 30);
-        const slotStartTime = hours * 60 + minutes;
-        const slotEndTime = slotStartTime + 30; // Default 30 min slot
-        
-        // Overlap check: slot starts before session ends AND slot ends after session starts
-        if (slotStartTime < sessionEndTime && slotEndTime > (sessionHour * 60 + sessionMinute)) {
-          return true;
-        }
-      }
+      // Check if the slot overlaps with this session
+      // Two time ranges overlap if: start1 < end2 AND end1 > start2
+      const slotsOverlap = isBefore(slotStart, sessionEnd) && isAfter(slotEnd, sessionStart);
       
-      // Also do the original interval check for edge cases
-      if (isWithinInterval(slotStart, { start: sessionStart, end: sessionEnd })) {
-        return true;
-      }
-      
-      const slotEnd = addMinutes(slotStart, 30);
-      if (isWithinInterval(sessionStart, { start: slotStart, end: slotEnd })) {
+      if (slotsOverlap) {
         return true;
       }
     }
