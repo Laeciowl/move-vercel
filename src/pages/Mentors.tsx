@@ -126,8 +126,10 @@ const Mentors = () => {
 
       const formattedMentors = data.map((m) => {
         const mentorReviews = reviewsByMentor.get(m.id!) || [];
-        // Only count reviews that have comments
-        const totalReviews = mentorReviews.filter(r => r.comment?.trim()).length;
+        // Only count reviews that have comments for display
+        const reviewsWithComments = mentorReviews.filter(r => r.comment?.trim()).length;
+        // Total reviews = sessions that were reviewed (confirmed completed)
+        const sessionsFromReviews = mentorReviews.length;
 
         return {
           ...m,
@@ -137,9 +139,9 @@ const Mentors = () => {
           description: m.description!,
           availability: (m.availability as unknown as Availability[]) || [],
           reviews: mentorReviews,
-          totalReviews,
+          totalReviews: reviewsWithComments,
           min_advance_hours: (m as any).min_advance_hours ?? 24,
-          sessions_completed_count: (m as any).sessions_completed_count ?? 0,
+          sessions_completed_count: sessionsFromReviews, // Use reviews as proof of completed sessions
           linkedin_url: (m as any).linkedin_url ?? null,
         };
       });
