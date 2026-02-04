@@ -139,45 +139,43 @@ Confirma presença? 🚀`;
                 {templates.map((template) => (
                   <div
                     key={template.id}
-                    className="bg-card rounded-lg p-3 border border-border/50 space-y-2"
+                    className="bg-card rounded-xl p-4 border border-border/50 space-y-3"
                   >
-                    <div className="flex items-start gap-2">
-                      <span className="text-base">{template.icon}</span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-xl">{template.icon}</span>
                       <div className="flex-1">
-                        <h5 className="font-medium text-foreground text-sm">{template.title}</h5>
-                        <p className="text-xs text-muted-foreground">{template.description}</p>
+                        <h5 className="font-semibold text-foreground">{template.title}</h5>
+                        <p className="text-sm text-muted-foreground">{template.description}</p>
                       </div>
                     </div>
 
-                    <div className="bg-muted/50 rounded-lg p-2 text-xs text-muted-foreground whitespace-pre-wrap max-h-24 overflow-y-auto">
+                    <div className="bg-muted/50 rounded-xl p-4 text-sm text-foreground whitespace-pre-wrap leading-relaxed border border-border/30">
                       {template.message}
                     </div>
 
-                    <div className="flex gap-2">
+                    <div className="flex gap-3">
                       <Button
                         onClick={() => openWhatsApp(template.message)}
                         disabled={!menteePhone}
-                        className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-                        size="sm"
+                        className="flex-1 bg-green-600 hover:bg-green-700 text-white h-11"
                       >
-                        <Send className="w-3 h-3 mr-1.5" />
-                        Enviar
+                        <Send className="w-4 h-4 mr-2" />
+                        Enviar no WhatsApp
                       </Button>
                       
                       <Button
                         onClick={() => copyToClipboard(template.message, template.id)}
                         variant="outline"
-                        size="sm"
-                        className="border-green-300 hover:bg-green-50 dark:hover:bg-green-900/30"
+                        className="border-green-300 hover:bg-green-50 dark:hover:bg-green-900/30 h-11 px-4"
                       >
                         {copiedTemplate === template.id ? (
                           <>
-                            <Check className="w-3 h-3 mr-1 text-green-600" />
+                            <Check className="w-4 h-4 mr-2 text-green-600" />
                             Copiado!
                           </>
                         ) : (
                           <>
-                            <Copy className="w-3 h-3 mr-1" />
+                            <Copy className="w-4 h-4 mr-2" />
                             Copiar
                           </>
                         )}
