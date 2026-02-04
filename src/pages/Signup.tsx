@@ -224,6 +224,19 @@ const Signup = () => {
       }
     }
 
+    // Validate email confirmation
+    if (formData.email.trim().toLowerCase() !== formData.emailConfirm.trim().toLowerCase()) {
+      toast.error("Os e-mails não coincidem. Por favor, verifique.");
+      return false;
+    }
+
+    // Validate phone confirmation
+    const normalizePhone = (phone: string) => phone.replace(/\D/g, '');
+    if (normalizePhone(formData.phone) !== normalizePhone(formData.phoneConfirm)) {
+      toast.error("Os telefones não coincidem. Por favor, verifique.");
+      return false;
+    }
+
     if (!mentorData.area.trim()) {
       toast.error("Conta pra gente qual é sua área de atuação!");
       return false;
