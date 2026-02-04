@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Edit, Save, X, Loader2, User, Briefcase, GraduationCap, FileText, Clock, Linkedin } from "lucide-react";
+import { Edit, Save, X, Loader2, User, Briefcase, GraduationCap, FileText, Camera, Linkedin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -11,11 +11,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 interface MentorProfileEditorProps {
   mentorId: string;
+  photoUrl?: string | null;
   name: string;
   area: string;
   description: string;
   education: string | null;
-  minAdvanceHours?: number;
   linkedinUrl?: string | null;
   onUpdate: () => void;
 }
@@ -35,33 +35,78 @@ const areaOptions = [
   "Outro",
 ];
 
-const advanceHoursOptions = [
-  { value: 12, label: "12 horas" },
-  { value: 24, label: "24 horas (padrão)" },
-  { value: 48, label: "48 horas" },
-  { value: 72, label: "72 horas" },
-];
-
 const MentorProfileEditor = ({
   mentorId,
+  photoUrl = null,
   name,
   area,
   description,
   education,
-  minAdvanceHours = 24,
   linkedinUrl = null,
   onUpdate,
 }: MentorProfileEditorProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
+    photoUrl: photoUrl || "",
     name,
     area,
     description,
     education: education || "",
-    minAdvanceHours,
     linkedinUrl: linkedinUrl || "",
   });
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Por favor, selecione uma imagem válida.");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("A imagem deve ter no máximo 5MB.");
+      return;
+    }
+
+    setUploadingPhoto(true);
+    try {
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${mentorId}/${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("mentor-photos")
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("mentor-photos").getPublicUrl(fileName);
+
+      const urlWithCacheBuster = `${publicUrl}?t=${Date.now()}`;
+
+      setFormData((prev) => ({ ...prev, photoUrl: urlWithCacheBuster }));
+
+      const { error: updateError } = await supabase
+        .from("mentors")
+        .update({ photo_url: urlWithCacheBuster, updated_at: new Date().toISOString() })
+        .eq("id", mentorId);
+
+      if (updateError) throw updateError;
+
+      toast.success("Foto do mentor atualizada!");
+      onUpdate();
+    } catch (error: any) {
+      toast.error("Erro ao salvar foto: " + (error?.message || "tente novamente"));
+    } finally {
+      setUploadingPhoto(false);
+      if (e.target) e.target.value = "";
+    }
+  };
 
   const handleSave = async () => {
     if (!formData.name.trim() || !formData.area.trim() || !formData.description.trim()) {
@@ -80,11 +125,11 @@ const MentorProfileEditor = ({
     const { error } = await supabase
       .from("mentors")
       .update({
+        photo_url: formData.photoUrl.trim() || null,
         name: formData.name.trim(),
         area: formData.area.trim(),
         description: formData.description.trim(),
         education: formData.education.trim() || null,
-        min_advance_hours: formData.minAdvanceHours,
         linkedin_url: formData.linkedinUrl.trim() || null,
         updated_at: new Date().toISOString(),
       })
@@ -103,11 +148,11 @@ const MentorProfileEditor = ({
 
   const handleCancel = () => {
     setFormData({ 
+      photoUrl: photoUrl || "",
       name, 
       area, 
       description, 
       education: education || "",
-      minAdvanceHours,
       linkedinUrl: linkedinUrl || "",
     });
     setIsEditing(false);
@@ -118,7 +163,7 @@ const MentorProfileEditor = ({
       <div className="flex items-center justify-between">
         <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
           <User className="w-4 h-4 text-primary" />
-          Seu perfil de mentor
+          Perfil
         </h4>
         {!isEditing && (
           <Button
@@ -142,6 +187,45 @@ const MentorProfileEditor = ({
             exit={{ opacity: 0, height: 0 }}
             className="space-y-4 bg-accent/30 rounded-xl p-4 border border-border/50"
           >
+            <div className="space-y-2">
+              <Label className="flex items-center gap-1.5 text-sm">
+                <Camera className="w-3.5 h-3.5 text-muted-foreground" />
+                Foto (opcional)
+              </Label>
+
+              <div className="flex items-center gap-3">
+                <div className="w-16 h-16 rounded-full bg-muted overflow-hidden border border-border/50 flex items-center justify-center">
+                  {formData.photoUrl ? (
+                    <img src={formData.photoUrl} alt="Foto do mentor" className="w-full h-full object-cover" />
+                  ) : (
+                    <User className="w-8 h-8 text-muted-foreground" />
+                  )}
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadingPhoto}
+                    className="gap-2"
+                  >
+                    {uploadingPhoto ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
+                    Alterar foto
+                  </Button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handlePhotoUpload}
+                    className="hidden"
+                  />
+                  <p className="text-xs text-muted-foreground">JPG/PNG até 5MB.</p>
+                </div>
+              </div>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="mentor-name" className="flex items-center gap-1.5 text-sm">
                 <User className="w-3.5 h-3.5 text-muted-foreground" />
@@ -206,32 +290,6 @@ const MentorProfileEditor = ({
               </p>
             </div>
 
-            {/* Antecedência mínima */}
-            <div className="space-y-2">
-              <Label htmlFor="mentor-advance" className="flex items-center gap-1.5 text-sm">
-                <Clock className="w-3.5 h-3.5 text-muted-foreground" />
-                Antecedência mínima para agendamentos
-              </Label>
-              <Select
-                value={String(formData.minAdvanceHours)}
-                onValueChange={(v) => setFormData({ ...formData, minAdvanceHours: Number(v) })}
-              >
-                <SelectTrigger className="bg-background">
-                  <SelectValue placeholder="Selecione" />
-                </SelectTrigger>
-                <SelectContent>
-                  {advanceHoursOptions.map((opt) => (
-                    <SelectItem key={opt.value} value={String(opt.value)}>
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground">
-                Mentorados só poderão agendar com você respeitando esse tempo mínimo.
-              </p>
-            </div>
-
             {/* LinkedIn */}
             <div className="space-y-2">
               <Label htmlFor="mentor-linkedin" className="flex items-center gap-1.5 text-sm">
@@ -280,31 +338,35 @@ const MentorProfileEditor = ({
             animate={{ opacity: 1 }}
             className="space-y-3 bg-muted/30 rounded-xl p-4 border border-border/50"
           >
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <p className="text-xs text-muted-foreground font-medium">Nome</p>
-                <p className="text-sm text-foreground">{name}</p>
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-muted overflow-hidden border border-border/50 flex items-center justify-center shrink-0">
+                {photoUrl ? (
+                  <img src={photoUrl} alt="Foto do mentor" className="w-full h-full object-cover" />
+                ) : (
+                  <User className="w-6 h-6 text-muted-foreground" />
+                )}
               </div>
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground font-medium">Nome</p>
+                <p className="text-sm text-foreground truncate">{name}</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
               <div>
                 <p className="text-xs text-muted-foreground font-medium">Área</p>
                 <p className="text-sm text-foreground">{area}</p>
               </div>
-            </div>
-            {education && (
               <div>
                 <p className="text-xs text-muted-foreground font-medium">Formação</p>
-                <p className="text-sm text-foreground">{education}</p>
+                <p className="text-sm text-foreground">{education || "—"}</p>
               </div>
-            )}
+            </div>
             <div>
               <p className="text-xs text-muted-foreground font-medium">Descrição</p>
               <p className="text-sm text-foreground line-clamp-3">{description}</p>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <div>
-                <p className="text-xs text-muted-foreground font-medium">Antecedência</p>
-                <p className="text-sm text-foreground">{minAdvanceHours}h</p>
-              </div>
               {linkedinUrl && (
                 <div>
                   <p className="text-xs text-muted-foreground font-medium">LinkedIn</p>

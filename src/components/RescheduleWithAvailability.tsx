@@ -101,19 +101,26 @@ const RescheduleWithAvailability = ({
         setBlockedPeriods(blocked);
       }
 
-      // Fetch mentor's booked sessions (scheduled or completed, excluding current session being rescheduled)
-      // Note: Don't filter by date - let the calendar logic handle it
-      const { data: sessions } = await supabase
-        .from("mentor_sessions")
-        .select("id, scheduled_at, duration, status")
-        .eq("mentor_id", mentorId)
-        .in("status", ["scheduled", "completed"])
-        .neq("id", sessionId);
+      // Important: use safe backend function so mentees can also see occupied slots
+      // without exposing any user-identifying data.
+      const { data: slots, error: slotsError } = await supabase.rpc(
+        "get_mentor_booked_slots",
+        { _mentor_id: mentorId }
+      );
 
-      
-
-      if (sessions) {
-        setBookedSessions(sessions);
+      if (!slotsError) {
+        const currentStartMs = parseISO(scheduledAt).getTime();
+        const filtered = (slots || []).filter((s: any) => {
+          try {
+            return parseISO(s.scheduled_at).getTime() !== currentStartMs;
+          } catch {
+            return true;
+          }
+        });
+        setBookedSessions(filtered as unknown as BookedSession[]);
+      } else {
+        console.error("Error fetching booked slots:", slotsError);
+        setBookedSessions([]);
       }
 
       setLoadingMentor(false);
@@ -163,6 +170,25 @@ const RescheduleWithAvailability = ({
     return availability.map((a) => dayIndexMap[a.day]);
   }, [availability]);
 
+  const getDayName = (date: Date): string | undefined => {
+    const dayIndex = getDay(date);
+    return Object.entries(dayIndexMap).find(([_, idx]) => idx === dayIndex)?.[0];
+  };
+
+  const getAvailableTimesForDate = (date: Date): string[] => {
+    const dayName = getDayName(date);
+    if (!dayName) return [];
+
+    const dayAvailability = availability.find((a) => a.day === dayName);
+    const allTimes = dayAvailability?.times || [];
+
+    return allTimes.filter((time) => {
+      if (isTimeSlotInPastOrTooSoon(date, time)) return false;
+      if (isTimeSlotBooked(date, time)) return false;
+      return true;
+    });
+  };
+
   // Disable dates function
   const isDateDisabled = (date: Date): boolean => {
     const today = startOfDay(new Date());
@@ -177,32 +203,17 @@ const RescheduleWithAvailability = ({
     // Check holidays and blocked periods
     if (isDateBlocked(date, blockedPeriods)) return true;
 
+    // If the mentor has no actual free slots on this date, show it as unavailable (disabled)
+    if (getAvailableTimesForDate(date).length === 0) return true;
+
     return false;
   };
 
   // Get available times for selected date, filtering out already booked slots and past times
   const availableTimes = useMemo(() => {
     if (!selectedDate) return [];
-
-    const dayIndex = getDay(selectedDate);
-    const dayName = Object.entries(dayIndexMap).find(([_, idx]) => idx === dayIndex)?.[0];
-
-    if (!dayName) return [];
-
-    const dayAvailability = availability.find((a) => a.day === dayName);
-    const allTimes = dayAvailability?.times || [];
-    
-    // Filter out times that are past, too soon, or already booked
-    return allTimes.filter(time => {
-      if (isTimeSlotInPastOrTooSoon(selectedDate, time)) {
-        return false;
-      }
-      if (isTimeSlotBooked(selectedDate, time)) {
-        return false;
-      }
-      return true;
-    });
-  }, [selectedDate, availability, bookedSessions]);
+    return getAvailableTimesForDate(selectedDate);
+  }, [selectedDate, availability, bookedSessions, minAdvanceHours]);
 
   const handleReschedule = async () => {
     if (!selectedDate || !selectedTime) {

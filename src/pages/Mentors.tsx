@@ -166,23 +166,20 @@ const Mentors = () => {
   };
 
   const fetchBookedSessions = async (mentorId: string) => {
-    // Fetch all scheduled or confirmed sessions for this mentor (not cancelled)
-    // Note: Don't filter by date here - let the calendar logic handle it
-    // This ensures we catch all sessions that might overlap with selected slots
-    const { data, error } = await supabase
-      .from("mentor_sessions")
-      .select("scheduled_at, duration, status")
-      .eq("mentor_id", mentorId)
-      .in("status", ["scheduled", "completed"]);
+    // Important: do NOT query mentor_sessions directly here.
+    // Regular users don't have permission to see other users' sessions, which would
+    // make occupied slots look available. Use the safe backend function instead.
+    const { data, error } = await supabase.rpc("get_mentor_booked_slots", {
+      _mentor_id: mentorId,
+    });
 
-    
-
-    if (data && !error) {
-      setBookedSessions(data);
-    } else {
-      console.error('Error fetching booked sessions:', error);
+    if (error) {
+      console.error("Error fetching booked sessions:", error);
       setBookedSessions([]);
+      return;
     }
+
+    setBookedSessions((data || []) as unknown as BookedSession[]);
   };
 
   const handleBookSession = async (date: Date, time: string, duration: number, formation: string, objective: string) => {

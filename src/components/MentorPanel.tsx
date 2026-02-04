@@ -9,6 +9,7 @@ import MentorDisclaimerModal from "./MentorDisclaimerModal";
 import MentorSessionConfirmation from "./MentorSessionConfirmation";
 import MentorAvailabilityEditor from "./MentorAvailabilityEditor";
 import MentorProfileEditor from "./MentorProfileEditor";
+import MentorAdvanceNoticeEditor from "./MentorAdvanceNoticeEditor";
 import SessionManagement from "./SessionManagement";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -24,6 +25,7 @@ interface MentorData {
   area: string;
   description: string;
   education: string | null;
+  photo_url?: string | null;
   status: string;
   availability: Availability[];
   disclaimer_accepted: boolean;
@@ -241,89 +243,94 @@ const MentorPanel = () => {
         </motion.div>
       )}
 
-      {/* Mentor Profile Editor */}
+      {/* Perfil */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.18 }}
+        className="bg-card/60 rounded-2xl border border-border/50 p-4 space-y-4"
       >
         <MentorProfileEditor
           mentorId={mentorData.id}
+          photoUrl={mentorData.photo_url ?? null}
           name={mentorData.name}
           area={mentorData.area}
           description={mentorData.description}
           education={mentorData.education}
-          minAdvanceHours={mentorData.min_advance_hours}
           linkedinUrl={mentorData.linkedin_url}
           onUpdate={fetchMentorData}
         />
       </motion.div>
 
-      {/* Availability summary */}
+      {/* Agenda */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
+        className="bg-card/60 rounded-2xl border border-border/50 p-4 space-y-4"
       >
-        <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-          <Clock className="w-4 h-4 text-primary" />
-          Sua disponibilidade
+        <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+          <Calendar className="w-4 h-4 text-primary" />
+          Agenda
         </h4>
-        <div className="flex flex-wrap gap-2">
-          {mentorData.availability.map((avail, index) => (
-            <motion.div
-              key={avail.day}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.25 + index * 0.05 }}
-              className="bg-muted/50 px-3 py-2 rounded-xl text-xs text-foreground border border-border/50 hover:border-primary/30 transition-colors"
-            >
-              <span className="font-medium">{dayLabels[avail.day]}:</span> {avail.times.join(", ")}
-            </motion.div>
-          ))}
-        </div>
-      </motion.div>
 
-      {/* Availability Editor */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.25 }}
-      >
+        <MentorAdvanceNoticeEditor
+          mentorId={mentorData.id}
+          minAdvanceHours={mentorData.min_advance_hours ?? 24}
+          onUpdate={fetchMentorData}
+        />
+
+        {/* Availability summary */}
+        <div>
+          <h5 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+            <Clock className="w-4 h-4 text-primary" />
+            Sua disponibilidade
+          </h5>
+          <div className="flex flex-wrap gap-2">
+            {mentorData.availability.map((avail, index) => (
+              <motion.div
+                key={avail.day}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.25 + index * 0.05 }}
+                className="bg-muted/50 px-3 py-2 rounded-xl text-xs text-foreground border border-border/50 hover:border-primary/30 transition-colors"
+              >
+                <span className="font-medium">{dayLabels[avail.day]}:</span> {avail.times.join(", ")}
+              </motion.div>
+            ))}
+          </div>
+        </div>
+
         <MentorAvailabilityEditor
           mentorId={mentorData.id}
           initialAvailability={mentorData.availability}
           onUpdate={fetchMentorData}
         />
-      </motion.div>
 
-      {/* Blocked periods toggle */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.3 }}
-      >
-        <button
-          onClick={() => setShowBlockedPeriods(!showBlockedPeriods)}
-          className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors group"
-        >
-          <Settings className="w-4 h-4 transition-transform group-hover:rotate-90 duration-300" />
-          {showBlockedPeriods ? "Ocultar" : "Gerenciar"} períodos bloqueados
-        </button>
-        
-        <AnimatePresence>
-          {showBlockedPeriods && (
-            <motion.div 
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3 }}
-              className="mt-4 overflow-hidden"
-            >
-              <MentorBlockedPeriodsManager mentorId={mentorData.id} />
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* Blocked periods toggle */}
+        <div>
+          <button
+            onClick={() => setShowBlockedPeriods(!showBlockedPeriods)}
+            className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors group"
+          >
+            <Settings className="w-4 h-4 transition-transform group-hover:rotate-90 duration-300" />
+            {showBlockedPeriods ? "Ocultar" : "Gerenciar"} períodos bloqueados
+          </button>
+
+          <AnimatePresence>
+            {showBlockedPeriods && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+                className="mt-4 overflow-hidden"
+              >
+                <MentorBlockedPeriodsManager mentorId={mentorData.id} />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </motion.div>
 
       {/* Session Confirmation */}
