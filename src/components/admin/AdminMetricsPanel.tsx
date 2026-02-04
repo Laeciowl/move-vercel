@@ -23,7 +23,6 @@ const AdminMetricsPanel = () => {
       const [
         profilesResult,
         mentorsResult,
-        uniqueMenteesResult,
         futureScheduledResult,
         completedResult,
         livesImpactedResult
@@ -32,8 +31,6 @@ const AdminMetricsPanel = () => {
         supabase.from("profiles").select("id", { count: "exact", head: true }),
         // Total approved mentors
         supabase.from("mentors").select("id", { count: "exact", head: true }).eq("status", "approved"),
-        // Total mentees (all registered users are potential mentees)
-        supabase.from("profiles").select("id", { count: "exact", head: true }),
         // Future scheduled sessions (using RPC for accurate count)
         supabase.rpc("get_future_scheduled_sessions"),
         // Completed sessions (sessions past their end time, using RPC)
@@ -42,12 +39,15 @@ const AdminMetricsPanel = () => {
         supabase.rpc("get_lives_impacted"),
       ]);
 
-      const totalMenteesCount = uniqueMenteesResult.count || 0;
+      const totalUsers = profilesResult.count || 0;
+      const totalMentors = mentorsResult.count || 0;
+      // Mentorados = total users minus approved mentors
+      const totalMentees = totalUsers - totalMentors;
 
       setMetrics({
-        totalUsers: profilesResult.count || 0,
-        totalMentors: mentorsResult.count || 0,
-        totalMentees: totalMenteesCount,
+        totalUsers,
+        totalMentors,
+        totalMentees,
         scheduledSessions: futureScheduledResult.data ?? 0,
         completedSessions: completedResult.data ?? 0,
         livesImpacted: livesImpactedResult.data ?? 0,
