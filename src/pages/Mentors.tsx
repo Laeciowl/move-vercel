@@ -161,16 +161,20 @@ const Mentors = () => {
 
   const fetchBookedSessions = async (mentorId: string) => {
     // Fetch all scheduled or confirmed sessions for this mentor (not cancelled)
+    // Note: Don't filter by date here - let the calendar logic handle it
+    // This ensures we catch all sessions that might overlap with selected slots
     const { data, error } = await supabase
       .from("mentor_sessions")
       .select("scheduled_at, duration, status")
       .eq("mentor_id", mentorId)
-      .in("status", ["scheduled", "completed"])
-      .gte("scheduled_at", new Date().toISOString());
+      .in("status", ["scheduled", "completed"]);
+
+    
 
     if (data && !error) {
       setBookedSessions(data);
     } else {
+      console.error('Error fetching booked sessions:', error);
       setBookedSessions([]);
     }
   };
