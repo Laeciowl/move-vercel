@@ -6,8 +6,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { z } from "zod";
-import type { Enums } from "@/integrations/supabase/types";
-import PasswordStrengthIndicator from "@/components/PasswordStrengthIndicator";
 
 const emailSchema = z.string().email("E-mail inválido").max(255);
 
@@ -20,24 +18,8 @@ const passwordSchema = z
   .regex(/[a-z]/, "Senha deve conter pelo menos uma letra minúscula")
   .regex(/[0-9]/, "Senha deve conter pelo menos um número")
   .regex(/[^A-Za-z0-9]/, "Senha deve conter pelo menos um caractere especial (!@#$%^&*)");
-const phoneSchema = z
-  .string()
-  .min(10, "Telefone deve ter pelo menos 10 dígitos")
-  .max(20, "Telefone muito longo")
-  .regex(/^[\d\s()+-]+$/, "Telefone inválido");
 
-type ProfessionalStatus = Enums<"professional_status">;
-type IncomeRange = Enums<"income_range">;
-
-const professionalStatusOptions = [
-  { value: "desempregado", label: "Desempregado" },
-  { value: "estudante", label: "Estudante" },
-  { value: "estagiario", label: "Estagiário" },
-  { value: "empregado", label: "Empregado" },
-  { value: "freelancer_pj", label: "Freelancer / PJ" },
-];
-
-type AuthView = "login" | "signup" | "forgot-password" | "reset-password";
+type AuthView = "login" | "forgot-password" | "reset-password";
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
@@ -45,7 +27,7 @@ const Auth = () => {
   const isPasswordReset = searchParams.get("type") === "recovery";
   
   const [view, setView] = useState<AuthView>(
-    isPasswordReset ? "reset-password" : shouldShowSignup ? "signup" : "login"
+    isPasswordReset ? "reset-password" : "login"
   );
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -55,16 +37,6 @@ const Auth = () => {
   // Login form
   const [loginData, setLoginData] = useState({ email: "", password: "" });
 
-  // Signup form
-  const [signupData, setSignupData] = useState({
-    email: "",
-    password: "",
-    name: "",
-    age: "",
-    phone: "",
-    professionalStatus: "",
-    lgpdConsent: false,
-  });
 
   // Forgot password
   const [forgotEmail, setForgotEmail] = useState("");
@@ -72,6 +44,13 @@ const Auth = () => {
   // Reset password
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+
+  // Redirect to unified signup if cadastro=true
+  useEffect(() => {
+    if (shouldShowSignup) {
+      navigate("/cadastro");
+    }
+  }, [shouldShowSignup, navigate]);
 
   useEffect(() => {
     if (!authLoading && user && view !== "reset-password") {
@@ -111,129 +90,6 @@ const Auth = () => {
     setLoading(false);
   };
 
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    try {
-      emailSchema.parse(signupData.email);
-      passwordSchema.parse(signupData.password);
-      phoneSchema.parse(signupData.phone);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        toast.error(error.errors[0].message);
-        return;
-      }
-    }
-
-    if (!signupData.name.trim() || !signupData.professionalStatus) {
-      toast.error("Por favor, preencha todos os campos obrigatórios");
-      return;
-    }
-
-    const userAge = parseInt(signupData.age);
-    if (isNaN(userAge) || userAge < 18 || userAge > 100) {
-      toast.error("Idade deve estar entre 18 e 100 anos");
-      return;
-    }
-
-    if (!signupData.lgpdConsent) {
-      toast.error("Você precisa consentir com o uso dos dados para prosseguir");
-      return;
-    }
-
-    const cleanPhone = signupData.phone.trim();
-
-    setLoading(true);
-    
-    const redirectUrl = `${window.location.origin}/dashboard`;
-    
-    try {
-      // Sign up with user metadata - profile will be created by database trigger
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: signupData.email,
-        password: signupData.password,
-        options: {
-          emailRedirectTo: redirectUrl,
-          data: {
-            name: signupData.name.trim(),
-            age: userAge,
-            city: "N/A",
-            state: "N/A",
-            professional_status: signupData.professionalStatus,
-            income_range: "sem_renda",
-            phone: cleanPhone,
-          },
-        },
-      });
-
-      if (authError) {
-        if (authError.message.includes("already registered")) {
-          toast.error("Este e-mail já está cadastrado. Faça login.");
-        } else if (authError.message.includes("weak") || authError.message.includes("easy to guess")) {
-          toast.error("Esta senha foi encontrada em vazamentos de dados e não pode ser usada. Por favor, crie uma senha mais única e pessoal.");
-        } else if (authError.message.includes("fetch") || authError.message.includes("network")) {
-          toast.error("Erro de conexão. Verifique sua internet e tente novamente.");
-        } else {
-          toast.error(authError.message);
-        }
-        setLoading(false);
-        return;
-      }
-
-      if (authData.user) {
-        // Wait a moment for the trigger to create the profile
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        // Send welcome email to new user
-        try {
-          await supabase.functions.invoke("send-notification-email", {
-            body: {
-              to: signupData.email,
-              name: signupData.name.trim(),
-              type: "registration_confirmation",
-              skipPreferenceCheck: true,
-            },
-          });
-          console.log("Welcome email sent to:", signupData.email);
-        } catch (emailError) {
-          console.error("Error sending welcome email:", emailError);
-          // Don't block registration if email fails
-        }
-
-        // Send admin notification about new user
-        try {
-          await supabase.functions.invoke("send-notification-email", {
-            body: {
-              to: "admin@movecarreiras.org", // This will be ignored, the function sends to all admins
-              name: signupData.name.trim(),
-              type: "new_user_admin_notification",
-              data: {
-                email: signupData.email,
-                city: "N/A",
-                state: "N/A",
-              },
-              skipPreferenceCheck: true,
-            },
-          });
-          console.log("Admin notification sent");
-        } catch (emailError) {
-          console.error("Error sending admin notification:", emailError);
-        }
-        
-        toast.success("Pronto! Sua conta foi criada 🎉");
-        navigate("/dashboard");
-      }
-    } catch (error: any) {
-      console.error("Signup error:", error);
-      if (error.message?.includes("fetch") || error.name === "TypeError") {
-        toast.error("Erro de conexão. Verifique sua internet e tente novamente.");
-      } else {
-        toast.error("Ocorreu um erro ao criar sua conta. Tente novamente.");
-      }
-    }
-    
-    setLoading(false);
-  };
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -308,8 +164,6 @@ const Auth = () => {
     switch (view) {
       case "login":
         return "Entre na sua conta";
-      case "signup":
-        return "Crie sua conta";
       case "forgot-password":
         return "Recuperar senha";
       case "reset-password":
@@ -339,22 +193,18 @@ const Auth = () => {
           </div>
 
           {/* Tab Toggle - only show for login/signup */}
-          {(view === "login" || view === "signup") && (
+          {view === "login" && (
             <div className="flex bg-muted rounded-xl p-1 mb-6">
               <button
                 onClick={() => setView("login")}
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg font-medium transition-all ${
-                  view === "login" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground"
-                }`}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg font-medium transition-all bg-card shadow-sm text-foreground"
               >
                 <LogIn className="w-4 h-4" />
                 Entrar
               </button>
               <button
-                onClick={() => setView("signup")}
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg font-medium transition-all ${
-                  view === "signup" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground"
-                }`}
+                onClick={() => navigate("/cadastro")}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg font-medium transition-all text-muted-foreground"
               >
                 <UserPlus className="w-4 h-4" />
                 Cadastrar
@@ -422,140 +272,6 @@ const Auth = () => {
             </form>
           )}
 
-          {view === "signup" && (
-            <form onSubmit={handleSignup} className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Nome completo *
-                </label>
-                <input
-                  type="text"
-                  value={signupData.name}
-                  onChange={(e) => setSignupData({ ...signupData, name: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  placeholder="Seu nome completo"
-                  required
-                  maxLength={100}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  E-mail *
-                </label>
-                <input
-                  type="email"
-                  value={signupData.email}
-                  onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  placeholder="seu@email.com"
-                  required
-                  maxLength={255}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Senha *
-                </label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    value={signupData.password}
-                    onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 pr-12"
-                    placeholder="Mín. 8 caracteres, maiúscula, número e especial"
-                    required
-                    minLength={8}
-                    maxLength={72}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  >
-                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
-                </div>
-                <PasswordStrengthIndicator password={signupData.password} />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Telefone (WhatsApp) *
-                </label>
-                <input
-                  type="tel"
-                  value={signupData.phone}
-                  onChange={(e) => setSignupData({ ...signupData, phone: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  placeholder="(11) 99999-9999"
-                  required
-                  maxLength={20}
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Será usado para mentores entrarem em contato com você.
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Idade *
-                </label>
-                <input
-                  type="number"
-                  value={signupData.age}
-                  onChange={(e) => setSignupData({ ...signupData, age: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  placeholder="Ex: 25"
-                  min={18}
-                  max={100}
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Situação profissional atual *
-                </label>
-                <select
-                  value={signupData.professionalStatus}
-                  onChange={(e) => setSignupData({ ...signupData, professionalStatus: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  required
-                >
-                  <option value="">Selecione</option>
-                  {professionalStatusOptions.map((option) => (
-                    <option key={option.value} value={option.value}>{option.label}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex items-start gap-3 p-4 bg-accent rounded-xl">
-                <input
-                  type="checkbox"
-                  id="lgpd"
-                  checked={signupData.lgpdConsent}
-                  onChange={(e) => setSignupData({ ...signupData, lgpdConsent: e.target.checked })}
-                  className="mt-1"
-                  required
-                />
-                <label htmlFor="lgpd" className="text-sm text-accent-foreground">
-                  Aceito que meus dados sejam usados de forma anônima pra gente medir o impacto 
-                  do projeto e melhorar cada vez mais. Prometemos cuidar bem! *
-                </label>
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-gradient-hero text-primary-foreground py-3 rounded-xl font-bold shadow-button hover:opacity-90 transition-opacity disabled:opacity-70 flex items-center justify-center gap-2"
-              >
-                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
-                {loading ? "Cadastrando..." : "Criar conta"}
-              </button>
-            </form>
-          )}
 
           {view === "forgot-password" && (
             <form onSubmit={handleForgotPassword} className="space-y-4">
