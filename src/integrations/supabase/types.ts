@@ -235,8 +235,11 @@ export type Database = {
           education: string | null
           email: string
           id: string
+          linkedin_url: string | null
+          min_advance_hours: number
           name: string
           photo_url: string | null
+          sessions_completed_count: number
           status: Database["public"]["Enums"]["mentor_status"]
           updated_at: string
         }
@@ -250,8 +253,11 @@ export type Database = {
           education?: string | null
           email: string
           id?: string
+          linkedin_url?: string | null
+          min_advance_hours?: number
           name: string
           photo_url?: string | null
+          sessions_completed_count?: number
           status?: Database["public"]["Enums"]["mentor_status"]
           updated_at?: string
         }
@@ -265,8 +271,11 @@ export type Database = {
           education?: string | null
           email?: string
           id?: string
+          linkedin_url?: string | null
+          min_advance_hours?: number
           name?: string
           photo_url?: string | null
+          sessions_completed_count?: number
           status?: Database["public"]["Enums"]["mentor_status"]
           updated_at?: string
         }
@@ -594,8 +603,11 @@ export type Database = {
           disclaimer_accepted_at: string | null
           education: string | null
           id: string | null
+          linkedin_url: string | null
+          min_advance_hours: number | null
           name: string | null
           photo_url: string | null
+          sessions_completed_count: number | null
           status: Database["public"]["Enums"]["mentor_status"] | null
         }
         Insert: {
@@ -607,8 +619,11 @@ export type Database = {
           disclaimer_accepted_at?: string | null
           education?: string | null
           id?: string | null
+          linkedin_url?: string | null
+          min_advance_hours?: number | null
           name?: string | null
           photo_url?: string | null
+          sessions_completed_count?: number | null
           status?: Database["public"]["Enums"]["mentor_status"] | null
         }
         Update: {
@@ -620,8 +635,11 @@ export type Database = {
           disclaimer_accepted_at?: string | null
           education?: string | null
           id?: string | null
+          linkedin_url?: string | null
+          min_advance_hours?: number | null
           name?: string | null
           photo_url?: string | null
+          sessions_completed_count?: number | null
           status?: Database["public"]["Enums"]["mentor_status"] | null
         }
         Relationships: []
@@ -648,6 +666,14 @@ export type Database = {
         Returns: {
           email: string
           user_id: string
+        }[]
+      }
+      get_mentor_booked_slots: {
+        Args: { _mentor_id: string }
+        Returns: {
+          duration: number
+          scheduled_at: string
+          status: string
         }[]
       }
       has_role: {
