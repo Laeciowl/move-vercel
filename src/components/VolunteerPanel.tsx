@@ -695,6 +695,7 @@ const VolunteerPanel = () => {
                             menteeEmail={session.mentee_email}
                             mentorEmail={mentorData.email}
                             userRole="mentor"
+                            confirmedByMentor={session.confirmed_by_mentor || false}
                             onUpdate={fetchData}
                           />
                         </div>

@@ -285,6 +285,7 @@ const MentorshipSection = () => {
                         menteeEmail={user?.email}
                         mentorEmail={session.mentor?.email}
                         userRole="mentee"
+                        confirmedByMentor={session.confirmed_by_mentor || false}
                         onUpdate={fetchSessions}
                       />
                     </div>
