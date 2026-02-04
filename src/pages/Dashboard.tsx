@@ -57,6 +57,7 @@ const Dashboard = () => {
   const { isAdmin } = useAdminCheck();
   const { isVolunteer } = useVolunteerCheck();
   const { isMentor } = useMentorCheck();
+  const { isPendingMentor } = usePendingMentorCheck();
   const navigate = useNavigate();
   const location = useLocation();
   const [impactHistory, setImpactHistory] = useState<ImpactHistory[]>([]);
