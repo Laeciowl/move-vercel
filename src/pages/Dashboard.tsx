@@ -415,8 +415,8 @@ const Dashboard = () => {
 
           {/* Sidebar */}
           <div className="space-y-4">
-            {/* Evolution - Only for students */}
-            {!isVolunteer && (
+          {/* Evolution - Only for students (not for pending mentors either) */}
+            {!isVolunteer && !isPendingMentor && (
               <motion.div
                 initial={{ opacity: 0, x: 16 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -528,8 +528,8 @@ const Dashboard = () => {
               </a>
             </motion.div>
 
-            {/* TEM VAGA? WhatsApp Community Card - Only for non-volunteers */}
-            {!isVolunteer && (
+            {/* TEM VAGA? WhatsApp Community Card - Only for non-volunteers and non-pending mentors */}
+            {!isVolunteer && !isPendingMentor && (
               <motion.div
                 initial={{ opacity: 0, x: 16 }}
                 animate={{ opacity: 1, x: 0 }}
