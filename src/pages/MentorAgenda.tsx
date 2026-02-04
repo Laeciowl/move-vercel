@@ -277,97 +277,11 @@ const MentorAgenda = () => {
         )}
 
         <div className="grid lg:grid-cols-2 gap-6">
-          {/* Left Column - Availability */}
+          {/* Left Column - Sessions (main focus) */}
           <motion.div
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.15 }}
-            className="space-y-6"
-          >
-            {/* Advance Notice */}
-            <div className="bg-card rounded-2xl border border-border p-6 shadow-soft">
-              <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-                <Clock className="w-5 h-5 text-primary" />
-                Antecedência Mínima
-              </h3>
-              <MentorAdvanceNoticeEditor
-                mentorId={mentorData.id}
-                minAdvanceHours={mentorData.min_advance_hours ?? 24}
-                onUpdate={fetchData}
-              />
-            </div>
-
-            {/* Current Availability */}
-            <div className="bg-card rounded-2xl border border-border p-6 shadow-soft">
-              <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-                <Calendar className="w-5 h-5 text-primary" />
-                Disponibilidade Atual
-              </h3>
-              <div className="space-y-3 mb-6">
-                {mentorData.availability.length > 0 ? (
-                  mentorData.availability.map((avail: any, index: number) => (
-                    <div
-                      key={avail.day}
-                      className="bg-muted/50 px-4 py-3 rounded-xl border border-border/50"
-                    >
-                      <span className="font-medium text-foreground">{dayLabels[avail.day]}</span>
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {avail.times?.map((time: string) => (
-                          <Badge key={time} variant="secondary" className="text-xs">
-                            {time}
-                          </Badge>
-                        )) || <span className="text-muted-foreground text-sm">Sem horários</span>}
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-muted-foreground text-sm bg-muted/30 px-4 py-3 rounded-xl">
-                    Nenhuma disponibilidade configurada
-                  </p>
-                )}
-              </div>
-
-              <MentorAvailabilityEditor
-                mentorId={mentorData.id}
-                initialAvailability={mentorData.availability}
-                onUpdate={fetchData}
-              />
-            </div>
-
-            {/* Blocked Periods */}
-            <div className="bg-card rounded-2xl border border-border p-6 shadow-soft">
-              <button
-                onClick={() => setShowBlockedPeriods(!showBlockedPeriods)}
-                className="flex items-center gap-2 text-foreground hover:text-primary transition-colors w-full"
-              >
-                <Settings className="w-5 h-5" />
-                <span className="font-semibold">Períodos Bloqueados</span>
-                <span className="text-sm text-muted-foreground ml-auto">
-                  {showBlockedPeriods ? "Ocultar" : "Gerenciar"}
-                </span>
-              </button>
-
-              <AnimatePresence>
-                {showBlockedPeriods && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="mt-4 overflow-hidden"
-                  >
-                    <MentorBlockedPeriodsManager mentorId={mentorData.id} />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          </motion.div>
-
-          {/* Right Column - Sessions */}
-          <motion.div
-            initial={{ opacity: 0, x: 10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 }}
             className="space-y-6"
           >
             {/* Upcoming Sessions */}
@@ -551,6 +465,92 @@ const MentorAgenda = () => {
                   Nenhuma sessão realizada ainda
                 </p>
               )}
+            </div>
+          </motion.div>
+
+          {/* Right Column - Availability Settings */}
+          <motion.div
+            initial={{ opacity: 0, x: 10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
+            className="space-y-6"
+          >
+            {/* Advance Notice */}
+            <div className="bg-card rounded-2xl border border-border p-6 shadow-soft">
+              <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                <Clock className="w-5 h-5 text-primary" />
+                Antecedência Mínima
+              </h3>
+              <MentorAdvanceNoticeEditor
+                mentorId={mentorData.id}
+                minAdvanceHours={mentorData.min_advance_hours ?? 24}
+                onUpdate={fetchData}
+              />
+            </div>
+
+            {/* Current Availability */}
+            <div className="bg-card rounded-2xl border border-border p-6 shadow-soft">
+              <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-primary" />
+                Disponibilidade Atual
+              </h3>
+              <div className="space-y-3 mb-6">
+                {mentorData.availability.length > 0 ? (
+                  mentorData.availability.map((avail: any) => (
+                    <div
+                      key={avail.day}
+                      className="bg-muted/50 px-4 py-3 rounded-xl border border-border/50"
+                    >
+                      <span className="font-medium text-foreground">{dayLabels[avail.day]}</span>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {avail.times?.map((time: string) => (
+                          <Badge key={time} variant="secondary" className="text-xs">
+                            {time}
+                          </Badge>
+                        )) || <span className="text-muted-foreground text-sm">Sem horários</span>}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-muted-foreground text-sm bg-muted/30 px-4 py-3 rounded-xl">
+                    Nenhuma disponibilidade configurada
+                  </p>
+                )}
+              </div>
+
+              <MentorAvailabilityEditor
+                mentorId={mentorData.id}
+                initialAvailability={mentorData.availability}
+                onUpdate={fetchData}
+              />
+            </div>
+
+            {/* Blocked Periods */}
+            <div className="bg-card rounded-2xl border border-border p-6 shadow-soft">
+              <button
+                onClick={() => setShowBlockedPeriods(!showBlockedPeriods)}
+                className="flex items-center gap-2 text-foreground hover:text-primary transition-colors w-full"
+              >
+                <Settings className="w-5 h-5" />
+                <span className="font-semibold">Períodos Bloqueados</span>
+                <span className="text-sm text-muted-foreground ml-auto">
+                  {showBlockedPeriods ? "Ocultar" : "Gerenciar"}
+                </span>
+              </button>
+
+              <AnimatePresence>
+                {showBlockedPeriods && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="mt-4 overflow-hidden"
+                  >
+                    <MentorBlockedPeriodsManager mentorId={mentorData.id} />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </motion.div>
         </div>
