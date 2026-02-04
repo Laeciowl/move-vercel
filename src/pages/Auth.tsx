@@ -339,22 +339,18 @@ const Auth = () => {
           </div>
 
           {/* Tab Toggle - only show for login/signup */}
-          {(view === "login" || view === "signup") && (
+          {view === "login" && (
             <div className="flex bg-muted rounded-xl p-1 mb-6">
               <button
                 onClick={() => setView("login")}
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg font-medium transition-all ${
-                  view === "login" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground"
-                }`}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg font-medium transition-all bg-card shadow-sm text-foreground"
               >
                 <LogIn className="w-4 h-4" />
                 Entrar
               </button>
               <button
-                onClick={() => setView("signup")}
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg font-medium transition-all ${
-                  view === "signup" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground"
-                }`}
+                onClick={() => navigate("/cadastro")}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg font-medium transition-all text-muted-foreground"
               >
                 <UserPlus className="w-4 h-4" />
                 Cadastrar
