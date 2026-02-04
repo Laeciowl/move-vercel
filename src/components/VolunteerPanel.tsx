@@ -36,6 +36,8 @@ interface MentorData {
   education: string | null;
   status: string;
   availability: any[];
+  min_advance_hours?: number;
+  linkedin_url?: string | null;
 }
 
 interface MentorSession {
@@ -160,6 +162,8 @@ const VolunteerPanel = () => {
         description: mentor.description || "",
         education: mentor.education || null,
         availability: (mentor.availability as any[]) || [],
+        min_advance_hours: (mentor as any).min_advance_hours ?? 24,
+        linkedin_url: (mentor as any).linkedin_url ?? null,
       });
 
       // Fetch sessions
@@ -507,6 +511,8 @@ const VolunteerPanel = () => {
                 area={mentorData.area}
                 description={mentorData.description}
                 education={mentorData.education}
+                minAdvanceHours={mentorData.min_advance_hours}
+                linkedinUrl={mentorData.linkedin_url}
                 onUpdate={fetchData}
               />
             </motion.div>

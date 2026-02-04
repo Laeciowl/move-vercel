@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Edit, Save, X, Loader2, User, Briefcase, GraduationCap, FileText } from "lucide-react";
+import { Edit, Save, X, Loader2, User, Briefcase, GraduationCap, FileText, Clock, Linkedin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface MentorProfileEditorProps {
   mentorId: string;
@@ -14,6 +15,8 @@ interface MentorProfileEditorProps {
   area: string;
   description: string;
   education: string | null;
+  minAdvanceHours?: number;
+  linkedinUrl?: string | null;
   onUpdate: () => void;
 }
 
@@ -22,6 +25,7 @@ const areaOptions = [
   "Marketing",
   "Design",
   "Finanças",
+  "Operações",
   "RH / Gestão de Pessoas",
   "Vendas",
   "Empreendedorismo",
@@ -31,12 +35,21 @@ const areaOptions = [
   "Outro",
 ];
 
+const advanceHoursOptions = [
+  { value: 12, label: "12 horas" },
+  { value: 24, label: "24 horas (padrão)" },
+  { value: 48, label: "48 horas" },
+  { value: 72, label: "72 horas" },
+];
+
 const MentorProfileEditor = ({
   mentorId,
   name,
   area,
   description,
   education,
+  minAdvanceHours = 24,
+  linkedinUrl = null,
   onUpdate,
 }: MentorProfileEditorProps) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -46,11 +59,19 @@ const MentorProfileEditor = ({
     area,
     description,
     education: education || "",
+    minAdvanceHours,
+    linkedinUrl: linkedinUrl || "",
   });
 
   const handleSave = async () => {
     if (!formData.name.trim() || !formData.area.trim() || !formData.description.trim()) {
       toast.error("Preencha todos os campos obrigatórios");
+      return;
+    }
+
+    // Validate LinkedIn URL if provided
+    if (formData.linkedinUrl && !formData.linkedinUrl.includes("linkedin.com")) {
+      toast.error("Informe uma URL válida do LinkedIn");
       return;
     }
 
@@ -63,6 +84,8 @@ const MentorProfileEditor = ({
         area: formData.area.trim(),
         description: formData.description.trim(),
         education: formData.education.trim() || null,
+        min_advance_hours: formData.minAdvanceHours,
+        linkedin_url: formData.linkedinUrl.trim() || null,
         updated_at: new Date().toISOString(),
       })
       .eq("id", mentorId);
@@ -79,7 +102,14 @@ const MentorProfileEditor = ({
   };
 
   const handleCancel = () => {
-    setFormData({ name, area, description, education: education || "" });
+    setFormData({ 
+      name, 
+      area, 
+      description, 
+      education: education || "",
+      minAdvanceHours,
+      linkedinUrl: linkedinUrl || "",
+    });
     setIsEditing(false);
   };
 
@@ -176,6 +206,47 @@ const MentorProfileEditor = ({
               </p>
             </div>
 
+            {/* Antecedência mínima */}
+            <div className="space-y-2">
+              <Label htmlFor="mentor-advance" className="flex items-center gap-1.5 text-sm">
+                <Clock className="w-3.5 h-3.5 text-muted-foreground" />
+                Antecedência mínima para agendamentos
+              </Label>
+              <Select
+                value={String(formData.minAdvanceHours)}
+                onValueChange={(v) => setFormData({ ...formData, minAdvanceHours: Number(v) })}
+              >
+                <SelectTrigger className="bg-background">
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
+                <SelectContent>
+                  {advanceHoursOptions.map((opt) => (
+                    <SelectItem key={opt.value} value={String(opt.value)}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Mentorados só poderão agendar com você respeitando esse tempo mínimo.
+              </p>
+            </div>
+
+            {/* LinkedIn */}
+            <div className="space-y-2">
+              <Label htmlFor="mentor-linkedin" className="flex items-center gap-1.5 text-sm">
+                <Linkedin className="w-3.5 h-3.5 text-[#0A66C2]" />
+                LinkedIn (opcional)
+              </Label>
+              <Input
+                id="mentor-linkedin"
+                value={formData.linkedinUrl}
+                onChange={(e) => setFormData({ ...formData, linkedinUrl: e.target.value })}
+                placeholder="https://linkedin.com/in/seuperfil"
+                className="bg-background"
+              />
+            </div>
+
             <div className="flex gap-2 pt-2">
               <Button
                 variant="ghost"
@@ -228,6 +299,20 @@ const MentorProfileEditor = ({
             <div>
               <p className="text-xs text-muted-foreground font-medium">Descrição</p>
               <p className="text-sm text-foreground line-clamp-3">{description}</p>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <p className="text-xs text-muted-foreground font-medium">Antecedência</p>
+                <p className="text-sm text-foreground">{minAdvanceHours}h</p>
+              </div>
+              {linkedinUrl && (
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium">LinkedIn</p>
+                  <a href={linkedinUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-[#0A66C2] hover:underline flex items-center gap-1">
+                    <Linkedin className="w-3 h-3" /> Perfil
+                  </a>
+                </div>
+              )}
             </div>
           </motion.div>
         )}
