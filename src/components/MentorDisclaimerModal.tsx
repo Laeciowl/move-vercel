@@ -95,6 +95,14 @@ const MentorDisclaimerModal = ({ isOpen, onClose, onAccept }: MentorDisclaimerMo
                 </p>
               </div>
 
+              <div className="bg-primary/5 rounded-xl p-4 border border-primary/20">
+                <p className="text-sm text-foreground font-medium mb-1">📖 Dica importante!</p>
+                <p className="text-sm text-muted-foreground">
+                  Após ativar seu perfil, confira o <strong>"Guia de como aproveitar a plataforma"</strong> no seu dashboard. 
+                  Lá você encontrará dicas detalhadas de como se comunicar com mentorados e conduzir mentorias de sucesso!
+                </p>
+              </div>
+
               {/* Checkbox */}
               <div className="flex items-start gap-3 pt-2">
                 <Checkbox

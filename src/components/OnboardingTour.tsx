@@ -38,6 +38,12 @@ const steps: OnboardingStep[] = [
     highlight: "content-library",
   },
   {
+    id: "guide",
+    title: "Guia da Plataforma 📖",
+    description: "No seu dashboard, você encontrará o 'Guia de como aproveitar a plataforma' com dicas detalhadas e passo a passo para tirar o máximo proveito do Movê!",
+    icon: <BookOpen className="w-8 h-8" />,
+  },
+  {
     id: "evolution",
     title: "Acompanhe sua evolução",
     description: "Atualize seu status profissional e veja seu histórico de progresso. Isso nos ajuda a entender o impacto do Movê!",
