@@ -308,8 +308,6 @@ const Auth = () => {
     switch (view) {
       case "login":
         return "Entre na sua conta";
-      case "signup":
-        return "Crie sua conta";
       case "forgot-password":
         return "Recuperar senha";
       case "reset-password":
