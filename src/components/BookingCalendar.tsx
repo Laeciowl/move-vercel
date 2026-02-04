@@ -1,13 +1,16 @@
 import { useState, useMemo } from "react";
 import { Calendar } from "@/components/ui/calendar";
-import { format, addDays, startOfDay, isSameDay, getDay, addMinutes, isWithinInterval, parseISO } from "date-fns";
+import { format, addDays, startOfDay, isSameDay, getDay, addMinutes, addHours, isWithinInterval, parseISO, isBefore, isAfter } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Clock, Loader2, AlertCircle, Timer, GraduationCap, Target } from "lucide-react";
+import { Clock, Loader2, AlertCircle, Timer, GraduationCap, Target, Info } from "lucide-react";
 import { isDateBlocked, getBlockedReason, isHoliday } from "@/lib/brazilianHolidays";
 import { motion } from "framer-motion";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
+// Minimum advance booking time in hours
+const MIN_ADVANCE_HOURS = 24;
 interface Availability {
   day: string;
   times: string[];
@@ -77,6 +80,19 @@ const BookingCalendar = ({
     return availability.map(a => dayIndexMap[a.day]);
   }, [availability]);
 
+  // Check if a time slot is in the past or doesn't meet minimum advance booking
+  const isTimeSlotInPastOrTooSoon = (date: Date, time: string): boolean => {
+    const [hours, minutes] = time.split(":").map(Number);
+    const slotDateTime = new Date(date);
+    slotDateTime.setHours(hours, minutes, 0, 0);
+    
+    const now = new Date();
+    const minBookingTime = addHours(now, MIN_ADVANCE_HOURS);
+    
+    // Slot must be at least MIN_ADVANCE_HOURS in the future
+    return isBefore(slotDateTime, minBookingTime);
+  };
+
   // Check if a time slot conflicts with existing sessions
   const isTimeSlotBooked = (date: Date, time: string): boolean => {
     const [hours, minutes] = time.split(":").map(Number);
@@ -88,13 +104,34 @@ const BookingCalendar = ({
       const sessionStart = parseISO(session.scheduled_at);
       const sessionEnd = addMinutes(sessionStart, session.duration || 30);
       
-      // Check if slot start falls within an existing session
+      // Normalize both dates to compare just the time on the same day
+      // This handles timezone issues where stored UTC doesn't match local display
+      if (isSameDay(slotStart, sessionStart)) {
+        // Same day - check if the hours/minutes overlap
+        const sessionHour = sessionStart.getHours();
+        const sessionMinute = sessionStart.getMinutes();
+        
+        // If session is at this exact time, it's booked
+        if (sessionHour === hours && sessionMinute === minutes) {
+          return true;
+        }
+        
+        // Check for overlap considering duration
+        const sessionEndTime = sessionHour * 60 + sessionMinute + (session.duration || 30);
+        const slotStartTime = hours * 60 + minutes;
+        const slotEndTime = slotStartTime + 30; // Default 30 min slot
+        
+        // Overlap check: slot starts before session ends AND slot ends after session starts
+        if (slotStartTime < sessionEndTime && slotEndTime > (sessionHour * 60 + sessionMinute)) {
+          return true;
+        }
+      }
+      
+      // Also do the original interval check for edge cases
       if (isWithinInterval(slotStart, { start: sessionStart, end: sessionEnd })) {
         return true;
       }
       
-      // Also check if an existing session starts within a potential new slot
-      // Assuming a default 30-min slot for this check
       const slotEnd = addMinutes(slotStart, 30);
       if (isWithinInterval(sessionStart, { start: slotStart, end: slotEnd })) {
         return true;
@@ -121,7 +158,7 @@ const BookingCalendar = ({
     return false;
   };
 
-  // Get available times for selected date, filtering out already booked slots
+  // Get available times for selected date, filtering out already booked slots and past times
   const availableTimes = useMemo(() => {
     if (!selectedDate) return [];
     
@@ -133,13 +170,33 @@ const BookingCalendar = ({
     const dayAvailability = availability.find(a => a.day === dayName);
     const allTimes = dayAvailability?.times || [];
     
-    // Filter out times that are already booked
-    return allTimes.filter(time => !isTimeSlotBooked(selectedDate, time));
+    // Filter out times that are:
+    // 1. In the past or within minimum advance window
+    // 2. Already booked
+    return allTimes.filter(time => {
+      // Check if slot is too soon (past or within 24h)
+      if (isTimeSlotInPastOrTooSoon(selectedDate, time)) {
+        return false;
+      }
+      // Check if slot is already booked
+      if (isTimeSlotBooked(selectedDate, time)) {
+        return false;
+      }
+      return true;
+    });
   }, [selectedDate, availability, bookedSessions]);
 
   // Get reason why date is blocked (for tooltip)
   const getDisabledReason = (date: Date): string | undefined => {
-    if (date < startOfDay(new Date())) return "Data passada";
+    const now = new Date();
+    const minBookingTime = addHours(now, MIN_ADVANCE_HOURS);
+    
+    if (date < startOfDay(now)) return "Data passada";
+    
+    // Check if all times for this day would be within minimum advance window
+    if (date < startOfDay(minBookingTime)) {
+      // Might still have some slots available later in the day
+    }
     
     const dayIndex = getDay(date);
     if (!availableDayIndices.includes(dayIndex)) {
@@ -163,6 +220,14 @@ const BookingCalendar = ({
 
   return (
     <div className="space-y-6">
+      {/* Minimum advance booking notice */}
+      <div className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg border border-border/50">
+        <Info className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+        <p className="text-xs text-muted-foreground">
+          Agendamentos devem ser feitos com pelo menos <strong className="text-foreground">24 horas de antecedência</strong>.
+        </p>
+      </div>
+
       {/* Calendar */}
       <div className="flex justify-center">
         <Calendar

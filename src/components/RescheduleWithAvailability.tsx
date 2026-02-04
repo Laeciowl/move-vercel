@@ -1,14 +1,16 @@
 import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Calendar, X, Loader2, RefreshCw, MessageSquare, Clock, AlertCircle } from "lucide-react";
+import { Calendar, X, Loader2, RefreshCw, MessageSquare, Clock, AlertCircle, Info } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { format, getDay, startOfDay, addMinutes, isWithinInterval, parseISO } from "date-fns";
+import { format, getDay, startOfDay, addMinutes, addHours, isWithinInterval, parseISO, isBefore, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { isDateBlocked, getBlockedReason, isHoliday } from "@/lib/brazilianHolidays";
 
+// Minimum advance booking time in hours
+const MIN_ADVANCE_HOURS = 24;
 interface Availability {
   day: string;
   times: string[];
@@ -118,6 +120,18 @@ const RescheduleWithAvailability = ({
     fetchMentorData();
   }, [mentorId, sessionId]);
 
+  // Check if a time slot is in the past or doesn't meet minimum advance booking
+  const isTimeSlotInPastOrTooSoon = (date: Date, time: string): boolean => {
+    const [hours, minutes] = time.split(":").map(Number);
+    const slotDateTime = new Date(date);
+    slotDateTime.setHours(hours, minutes, 0, 0);
+    
+    const now = new Date();
+    const minBookingTime = addHours(now, MIN_ADVANCE_HOURS);
+    
+    return isBefore(slotDateTime, minBookingTime);
+  };
+
   // Check if a time slot conflicts with existing sessions
   const isTimeSlotBooked = (date: Date, time: string): boolean => {
     const [hours, minutes] = time.split(":").map(Number);
@@ -128,12 +142,28 @@ const RescheduleWithAvailability = ({
       const sessionStart = parseISO(session.scheduled_at);
       const sessionEnd = addMinutes(sessionStart, session.duration || 30);
       
-      // Check if slot start falls within an existing session
+      // Check if same day and overlapping times
+      if (isSameDay(slotStart, sessionStart)) {
+        const sessionHour = sessionStart.getHours();
+        const sessionMinute = sessionStart.getMinutes();
+        
+        if (sessionHour === hours && sessionMinute === minutes) {
+          return true;
+        }
+        
+        const sessionEndTime = sessionHour * 60 + sessionMinute + (session.duration || 30);
+        const slotStartTime = hours * 60 + minutes;
+        const slotEndTime = slotStartTime + 30;
+        
+        if (slotStartTime < sessionEndTime && slotEndTime > (sessionHour * 60 + sessionMinute)) {
+          return true;
+        }
+      }
+      
       if (isWithinInterval(slotStart, { start: sessionStart, end: sessionEnd })) {
         return true;
       }
       
-      // Check if an existing session starts within a potential new slot
       const slotEnd = addMinutes(slotStart, 30);
       if (isWithinInterval(sessionStart, { start: slotStart, end: slotEnd })) {
         return true;
@@ -165,7 +195,7 @@ const RescheduleWithAvailability = ({
     return false;
   };
 
-  // Get available times for selected date, filtering out already booked slots
+  // Get available times for selected date, filtering out already booked slots and past times
   const availableTimes = useMemo(() => {
     if (!selectedDate) return [];
 
@@ -177,8 +207,16 @@ const RescheduleWithAvailability = ({
     const dayAvailability = availability.find((a) => a.day === dayName);
     const allTimes = dayAvailability?.times || [];
     
-    // Filter out times that are already booked by other sessions
-    return allTimes.filter(time => !isTimeSlotBooked(selectedDate, time));
+    // Filter out times that are past, too soon, or already booked
+    return allTimes.filter(time => {
+      if (isTimeSlotInPastOrTooSoon(selectedDate, time)) {
+        return false;
+      }
+      if (isTimeSlotBooked(selectedDate, time)) {
+        return false;
+      }
+      return true;
+    });
   }, [selectedDate, availability, bookedSessions]);
 
   const handleReschedule = async () => {
@@ -259,6 +297,14 @@ const RescheduleWithAvailability = ({
         <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
           <Clock className="w-3 h-3" />
           Atual: {formattedDate}
+        </p>
+      </div>
+
+      {/* Minimum advance booking notice */}
+      <div className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg border border-border/50">
+        <Info className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+        <p className="text-xs text-muted-foreground">
+          Remarcações devem ser feitas com pelo menos <strong className="text-foreground">24 horas de antecedência</strong>.
         </p>
       </div>
 
