@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { MessageSquare, Copy, Check, Clock, Send, Info } from "lucide-react";
-import { motion } from "framer-motion";
+import { MessageSquare, Copy, Check, Send, Info, ChevronDown } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { toast } from "sonner";
 
 interface WhatsAppTemplatesProps {
@@ -21,6 +22,7 @@ const WhatsAppTemplates = ({
   duration,
   objective,
 }: WhatsAppTemplatesProps) => {
+  const [isOpen, setIsOpen] = useState(false);
   const [copiedTemplate, setCopiedTemplate] = useState<string | null>(null);
 
   const firstName = menteeName.split(" ")[0];
@@ -54,15 +56,10 @@ Lembrete: nossa mentoria é AMANHÃ às ${time}!
 Confirma presença? 🚀`;
 
   const formatPhoneForWhatsApp = (phone: string): string => {
-    // Remove all non-numeric characters
     const cleanPhone = phone.replace(/\D/g, "");
-    
-    // If it already starts with 55 and has 12-13 digits, use as is
     if (cleanPhone.startsWith("55") && cleanPhone.length >= 12) {
       return cleanPhone;
     }
-    
-    // Otherwise, add Brazil country code
     return `55${cleanPhone}`;
   };
 
@@ -108,79 +105,97 @@ Confirma presença? 🚀`;
   ];
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.2 }}
-      className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-xl p-4 space-y-4"
-    >
-      <div className="flex items-center gap-2">
-        <MessageSquare className="w-5 h-5 text-green-600" />
-        <h4 className="font-semibold text-foreground">Templates para WhatsApp</h4>
-      </div>
-      
-      <p className="text-sm text-muted-foreground">
-        Envie mensagens prontas com um clique:
-      </p>
-
-      <div className="space-y-4">
-        {templates.map((template) => (
-          <div
-            key={template.id}
-            className="bg-white dark:bg-black/20 rounded-lg p-4 border border-green-100 dark:border-green-800 space-y-3"
-          >
-            <div className="flex items-start gap-2">
-              <span className="text-lg">{template.icon}</span>
-              <div className="flex-1">
-                <h5 className="font-medium text-foreground">{template.title}</h5>
-                <p className="text-xs text-muted-foreground">{template.description}</p>
-              </div>
-            </div>
-
-            {/* Preview of message */}
-            <div className="bg-muted/50 rounded-lg p-3 text-xs text-muted-foreground whitespace-pre-wrap max-h-32 overflow-y-auto">
-              {template.message}
-            </div>
-
-            <div className="flex gap-2">
-              <Button
-                onClick={() => openWhatsApp(template.message)}
-                disabled={!menteePhone}
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-                size="sm"
-              >
-                <Send className="w-4 h-4 mr-2" />
-                Enviar no WhatsApp
-              </Button>
-              
-              <Button
-                onClick={() => copyToClipboard(template.message, template.id)}
-                variant="outline"
-                size="sm"
-                className="border-green-300 hover:bg-green-50 dark:hover:bg-green-900/30"
-              >
-                {copiedTemplate === template.id ? (
-                  <>
-                    <Check className="w-4 h-4 mr-1 text-green-600" />
-                    Copiado!
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-4 h-4 mr-1" />
-                    Copiar
-                  </>
-                )}
-              </Button>
-            </div>
+    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+      <CollapsibleTrigger asChild>
+        <button className="w-full flex items-center justify-between gap-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-xl px-4 py-3 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors">
+          <div className="flex items-center gap-2">
+            <MessageSquare className="w-4 h-4 text-green-600" />
+            <span className="font-medium text-foreground text-sm">Templates para WhatsApp</span>
           </div>
-        ))}
-      </div>
+          <motion.div
+            animate={{ rotate: isOpen ? 180 : 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <ChevronDown className="w-4 h-4 text-muted-foreground" />
+          </motion.div>
+        </button>
+      </CollapsibleTrigger>
+      
+      <CollapsibleContent>
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.2 }}
+              className="overflow-hidden"
+            >
+              <div className="pt-3 space-y-3">
+                <p className="text-xs text-muted-foreground">
+                  Envie mensagens prontas com um clique:
+                </p>
 
-      <div className="flex items-start gap-2 text-xs text-muted-foreground bg-muted/50 rounded-lg p-3">
-        <Info className="w-4 h-4 shrink-0 mt-0.5" />
-        <span>Você pode editar a mensagem antes de enviar no WhatsApp!</span>
-      </div>
-    </motion.div>
+                {templates.map((template) => (
+                  <div
+                    key={template.id}
+                    className="bg-card rounded-lg p-3 border border-border/50 space-y-2"
+                  >
+                    <div className="flex items-start gap-2">
+                      <span className="text-base">{template.icon}</span>
+                      <div className="flex-1">
+                        <h5 className="font-medium text-foreground text-sm">{template.title}</h5>
+                        <p className="text-xs text-muted-foreground">{template.description}</p>
+                      </div>
+                    </div>
+
+                    <div className="bg-muted/50 rounded-lg p-2 text-xs text-muted-foreground whitespace-pre-wrap max-h-24 overflow-y-auto">
+                      {template.message}
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => openWhatsApp(template.message)}
+                        disabled={!menteePhone}
+                        className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                        size="sm"
+                      >
+                        <Send className="w-3 h-3 mr-1.5" />
+                        Enviar
+                      </Button>
+                      
+                      <Button
+                        onClick={() => copyToClipboard(template.message, template.id)}
+                        variant="outline"
+                        size="sm"
+                        className="border-green-300 hover:bg-green-50 dark:hover:bg-green-900/30"
+                      >
+                        {copiedTemplate === template.id ? (
+                          <>
+                            <Check className="w-3 h-3 mr-1 text-green-600" />
+                            Copiado!
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3 h-3 mr-1" />
+                            Copiar
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+
+                <div className="flex items-start gap-2 text-xs text-muted-foreground bg-muted/30 rounded-lg p-2">
+                  <Info className="w-3 h-3 shrink-0 mt-0.5" />
+                  <span>Você pode editar a mensagem antes de enviar!</span>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </CollapsibleContent>
+    </Collapsible>
   );
 };
 
