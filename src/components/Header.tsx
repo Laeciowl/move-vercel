@@ -45,30 +45,24 @@ const Header = () => {
             Sobre
           </button>
           <Link
-            to="/voluntario"
-            className="text-muted-foreground hover:text-foreground transition-colors font-medium"
-          >
-            Seja Voluntário
-          </Link>
-          <Link
             to="/auth"
             className="text-muted-foreground hover:text-foreground transition-colors font-medium"
           >
             Entrar
           </Link>
-          <button
-            onClick={() => scrollToSection("inscreva-se")}
+          <Link
+            to="/cadastro"
             className="bg-gradient-hero text-primary-foreground px-6 py-2.5 rounded-lg font-semibold shadow-button hover:opacity-90 transition-opacity"
           >
             Inscreva-se
-          </button>
+          </Link>
         </nav>
 
         <Link
-          to="/auth"
+          to="/cadastro"
           className="md:hidden bg-gradient-hero text-primary-foreground px-4 py-2 rounded-lg font-semibold text-sm"
         >
-          Entrar
+          Inscreva-se
         </Link>
       </div>
     </motion.header>

@@ -29,7 +29,7 @@ const SignupSection = () => {
             A gente tá aqui pra te apoiar nessa jornada.
           </p>
           <Link
-            to="/auth"
+            to="/cadastro"
             className="inline-flex items-center gap-3 bg-gradient-hero text-primary-foreground px-10 py-5 rounded-full font-bold text-lg shadow-button hover:scale-105 transition-transform"
           >
             Criar minha conta grátis
