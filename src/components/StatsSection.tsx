@@ -48,23 +48,19 @@ const StatsSection = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        // Fetch all stats in parallel
+        // Fetch all stats in parallel using secure RPC functions
         const [mentorsResult, membersResult, sessionsResult] = await Promise.all([
-          // Approved mentors count
-          supabase
-            .from("mentors_public")
-            .select("*", { count: "exact", head: true }),
-          // Total community members (all profiles)
-          supabase
-            .from("profiles")
-            .select("*", { count: "exact", head: true }),
-          // Total completed sessions
+          // Approved mentors count via secure RPC
+          supabase.rpc("get_public_mentors_count"),
+          // Total community members via secure RPC
+          supabase.rpc("get_public_members_count"),
+          // Total completed sessions via secure RPC
           supabase.rpc("get_total_completed_sessions"),
         ]);
 
         setStats({
-          totalMentors: mentorsResult.count || 0,
-          totalMembers: membersResult.count || 0,
+          totalMentors: mentorsResult.data || 0,
+          totalMembers: membersResult.data || 0,
           totalSessions: sessionsResult.data || 0,
         });
       } catch (error) {
