@@ -38,16 +38,6 @@ const Auth = () => {
   // Login form
   const [loginData, setLoginData] = useState({ email: "", password: "" });
 
-  // Signup form
-  const [signupData, setSignupData] = useState({
-    email: "",
-    password: "",
-    name: "",
-    age: "",
-    phone: "",
-    professionalStatus: "",
-    lgpdConsent: false,
-  });
 
   // Forgot password
   const [forgotEmail, setForgotEmail] = useState("");
