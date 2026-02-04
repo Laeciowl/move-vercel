@@ -1,22 +1,16 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, FileText, Video, Users, Loader2, ExternalLink, Clock, CheckCircle, XCircle, Calendar, Settings, Award, Mail, Phone, User } from "lucide-react";
+import { Heart, FileText, Video, Loader2, ExternalLink, Clock, CheckCircle, XCircle, Calendar, Award, ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useVolunteerCheck } from "@/hooks/useVolunteerCheck";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import MentorBlockedPeriodsManager from "./MentorBlockedPeriodsManager";
 import MentorSessionConfirmation from "./MentorSessionConfirmation";
-import MentorAvailabilityEditor from "./MentorAvailabilityEditor";
 import MentorProfileEditor from "./MentorProfileEditor";
-import MentorAdvanceNoticeEditor from "./MentorAdvanceNoticeEditor";
-import SessionManagement from "./SessionManagement";
 import ContentSubmissionModal from "./ContentSubmissionModal";
-import WhatsAppTemplates from "./WhatsAppTemplates";
-import { format, isPast } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { toast } from "sonner";
+import { isPast } from "date-fns";
 
 interface Submission {
   id: string;
@@ -92,6 +86,7 @@ const dayLabels: Record<string, string> = {
 };
 
 const VolunteerPanel = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { isVolunteer, loading: checkingVolunteer } = useVolunteerCheck();
   const [submissions, setSubmissions] = useState<Submission[]>([]);
@@ -99,7 +94,6 @@ const VolunteerPanel = () => {
   const [sessions, setSessions] = useState<MentorSession[]>([]);
   const [stats, setStats] = useState<MentorStats>({ totalSessions: 0, completedSessions: 0, upcomingSessions: 0, uniqueMentees: 0 });
   const [loading, setLoading] = useState(true);
-  const [showBlockedPeriods, setShowBlockedPeriods] = useState(false);
   const [activeTab, setActiveTab] = useState<"overview" | "profile" | "agenda" | "content">("overview");
   const [submissionModal, setSubmissionModal] = useState<{ isOpen: boolean; category: "aulas_lives" | "templates_arquivos" }>({
     isOpen: false,
@@ -490,285 +484,53 @@ const VolunteerPanel = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
-            className="space-y-6"
+            className="space-y-4"
           >
-
-            {/* Agenda (mentor) */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15 }}
-              className="bg-card/60 rounded-2xl border border-border/50 p-4 space-y-4"
-            >
-              <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-primary" />
-                Agenda
-              </h4>
-
-              <MentorAdvanceNoticeEditor
-                mentorId={mentorData.id}
-                minAdvanceHours={mentorData.min_advance_hours ?? 24}
-                onUpdate={fetchData}
-              />
-
-              <div>
-                <h5 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-primary" />
-                  Sua disponibilidade atual
-                </h5>
-                <div className="flex flex-wrap gap-2">
-                  {mentorData.availability.length > 0 ? (
-                    mentorData.availability.map((avail: any, index: number) => (
-                      <motion.div
-                        key={avail.day}
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.2 + index * 0.05 }}
-                        className="bg-muted/50 px-4 py-2.5 rounded-xl text-sm border border-border/50 hover:border-primary/30 transition-all duration-300"
-                      >
-                        <span className="font-medium text-foreground">{dayLabels[avail.day]}:</span>{" "}
-                        <span className="text-muted-foreground">{avail.times?.join(", ") || "Sem horários"}</span>
-                      </motion.div>
-                    ))
-                  ) : (
-                    <p className="text-sm text-muted-foreground bg-muted/30 px-4 py-3 rounded-xl">
-                      Nenhuma disponibilidade configurada
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              <MentorAvailabilityEditor
-                mentorId={mentorData.id}
-                initialAvailability={mentorData.availability}
-                onUpdate={fetchData}
-              />
-
-              <div>
-                <button
-                  onClick={() => setShowBlockedPeriods(!showBlockedPeriods)}
-                  className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors group"
-                >
-                  <Settings className="w-4 h-4 transition-transform group-hover:rotate-90 duration-300" />
-                  {showBlockedPeriods ? "Ocultar" : "Gerenciar"} períodos bloqueados
-                </button>
-
-                <AnimatePresence>
-                  {showBlockedPeriods && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.3 }}
-                      className="mt-4 overflow-hidden"
-                    >
-                      <MentorBlockedPeriodsManager mentorId={mentorData.id} />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            </motion.div>
-
-            {/* Past sessions (automatically completed) */}
-            {pastSessions.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.22 }}
-              >
-                <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-600" />
-                  Sessões realizadas ({pastSessions.length})
-                </h4>
-                <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
-                  {pastSessions.map((session, index) => {
-                    const sessionDuration = session.duration || 30;
-
-                    return (
-                      <motion.div
-                        key={session.id}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.25 + index * 0.06 }}
-                        className="bg-gradient-to-br from-green-50/50 to-green-100/30 dark:from-green-900/20 dark:to-green-800/10 rounded-2xl p-4 space-y-2 border border-green-200/50 dark:border-green-700/30"
-                      >
-                        <div className="flex items-center gap-3">
-                          {/* Mentee photo */}
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500/20 to-green-500/10 flex items-center justify-center overflow-hidden border-2 border-green-500/30 shrink-0">
-                            {session.mentee_profile?.photo_url ? (
-                              <img
-                                src={session.mentee_profile.photo_url}
-                                alt={session.mentee_profile.name || "Mentorado"}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <User className="w-5 h-5 text-green-600/60" />
-                            )}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <span className="font-medium text-foreground block truncate">
-                              {session.mentee_profile?.name || "Mentorado"}
-                            </span>
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <Badge variant="secondary" className="text-xs bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                                <CheckCircle className="w-3 h-3 mr-1" />
-                                Realizada
-                              </Badge>
-                              <Badge className="text-xs bg-primary/15 text-primary border border-primary/30 font-semibold">
-                                <Clock className="w-3 h-3 mr-1" />
-                                {sessionDuration} min
-                              </Badge>
-                            </div>
-                          </div>
-                        </div>
-
-                        <p className="text-sm text-muted-foreground">
-                          📅 {format(new Date(session.scheduled_at), "EEEE, d 'de' MMMM 'às' HH:mm", { locale: ptBR })}
-                        </p>
-                      </motion.div>
-                    );
-                  })}
-                </div>
-              </motion.div>
-            )}
-
-            {/* Upcoming sessions */}
-            {upcomingSessions.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.25 }}
-              >
-                <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+            {/* Quick Summary */}
+            <div className="bg-muted/30 rounded-xl p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
                   <Calendar className="w-4 h-4 text-primary" />
-                  Próximas sessões ({upcomingSessions.length})
+                  Resumo
                 </h4>
-                <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
-                  {upcomingSessions.map((session, index) => {
-                    const sessionDuration = session.duration || 30;
-
-                    return (
-                      <motion.div
-                        key={session.id}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.3 + index * 0.1 }}
-                        className="bg-gradient-to-br from-accent/50 to-accent/30 rounded-2xl p-4 space-y-3 border border-border/50 hover:border-primary/30 transition-all duration-300 hover:shadow-soft"
-                      >
-                        <div className="flex items-center gap-3">
-                          {/* Mentee photo */}
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center overflow-hidden border-2 border-primary/30 shrink-0">
-                            {session.mentee_profile?.photo_url ? (
-                              <img
-                                src={session.mentee_profile.photo_url}
-                                alt={session.mentee_profile.name || "Mentorado"}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <User className="w-5 h-5 text-primary/60" />
-                            )}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <span className="font-medium text-foreground block truncate">
-                              {session.mentee_profile?.name || "Mentorado"}
-                            </span>
-                            <div className="flex items-center gap-2 flex-wrap">
-                              {session.confirmed_by_mentor && (
-                                <Badge variant="outline" className="text-green-600 dark:text-green-400 border-green-600 dark:border-green-400 text-xs">
-                                  <CheckCircle className="w-3 h-3 mr-1" />
-                                  Confirmado
-                                </Badge>
-                              )}
-                              <Badge className="text-xs bg-primary/15 text-primary border border-primary/30 font-semibold">
-                                <Clock className="w-3 h-3 mr-1" />
-                                {sessionDuration} min
-                              </Badge>
-                            </div>
-                          </div>
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          📅 {format(new Date(session.scheduled_at), "EEEE, d 'de' MMMM 'às' HH:mm", { locale: ptBR })}
-                        </p>
-
-                        {/* Mentee objective and formation */}
-                        {(session.mentee_objective || session.mentee_formation) && (
-                          <div className="bg-primary/5 rounded-xl p-3 space-y-2 border border-primary/20">
-                            {session.mentee_formation && (
-                              <div className="text-sm">
-                                <span className="font-medium text-foreground">Formação:</span>{" "}
-                                <span className="text-muted-foreground">{session.mentee_formation}</span>
-                              </div>
-                            )}
-                            {session.mentee_objective && (
-                              <div className="text-sm">
-                                <span className="font-medium text-foreground">Objetivo:</span>{" "}
-                                <span className="text-muted-foreground">{session.mentee_objective}</span>
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {/* Contact info */}
-                        <div className="bg-card/50 rounded-lg p-2 space-y-1 border border-border/50">
-                          {session.mentee_email && (
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <Mail className="w-3 h-3 text-primary" />
-                              <a href={`mailto:${session.mentee_email}`} className="hover:text-primary transition-colors underline truncate">
-                                {session.mentee_email}
-                              </a>
-                            </div>
-                          )}
-
-                          {session.mentee_profile?.phone ? (
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <Phone className="w-3 h-3 text-primary" />
-                              <a href={`tel:${session.mentee_profile.phone}`} className="hover:text-primary transition-colors">
-                                {session.mentee_profile.phone}
-                              </a>
-                            </div>
-                          ) : (
-                            <p className="text-xs text-muted-foreground italic">Telefone não informado pelo mentorado</p>
-                          )}
-                        </div>
-
-                        {/* WhatsApp Templates for confirmed sessions */}
-                        {session.confirmed_by_mentor && (
-                          <WhatsAppTemplates
-                            menteeName={session.mentee_profile?.name || "Mentorado"}
-                            menteePhone={session.mentee_profile?.phone || null}
-                            scheduledAt={session.scheduled_at}
-                            duration={sessionDuration}
-                            objective={session.mentee_objective || null}
-                          />
-                        )}
-
-                        {/* Session management */}
-                        <div className="flex justify-end pt-2 border-t border-border/50">
-                          <SessionManagement
-                            sessionId={session.id}
-                            scheduledAt={session.scheduled_at}
-                            mentorName={mentorData.name}
-                            mentorId={mentorData.id}
-                            menteeName={session.mentee_profile?.name}
-                            menteeEmail={session.mentee_email}
-                            mentorEmail={mentorData.email}
-                            userRole="mentor"
-                            confirmedByMentor={session.confirmed_by_mentor || false}
-                            onUpdate={fetchData}
-                          />
-                        </div>
-                      </motion.div>
-                    );
-                  })}
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-card/50 rounded-lg p-3 text-center border border-border/50">
+                  <div className="text-xl font-bold text-primary">{stats.upcomingSessions}</div>
+                  <div className="text-xs text-muted-foreground">Agendadas</div>
                 </div>
-              </motion.div>
-            )}
+                <div className="bg-card/50 rounded-lg p-3 text-center border border-border/50">
+                  <div className="text-xl font-bold text-foreground">{stats.completedSessions}</div>
+                  <div className="text-xs text-muted-foreground">Realizadas</div>
+                </div>
+              </div>
+            </div>
 
-            {pastSessions.length === 0 && upcomingSessions.length === 0 && (
-              <div className="text-sm text-muted-foreground bg-muted/30 px-4 py-3 rounded-xl">
-                Nenhuma sessão por aqui por enquanto.
+            {/* Pending Confirmations Quick View */}
+            {sessions.filter(s => s.status === "scheduled" && !s.confirmed_by_mentor && !isSessionPast(s.scheduled_at, s.duration || 30)).length > 0 && (
+              <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-4 border border-amber-200/50 dark:border-amber-700/30">
+                <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400">
+                  <Clock className="w-4 h-4" />
+                  <span className="font-medium text-sm">
+                    {sessions.filter(s => s.status === "scheduled" && !s.confirmed_by_mentor && !isSessionPast(s.scheduled_at, s.duration || 30)).length} pedido(s) aguardando confirmação
+                  </span>
+                </div>
               </div>
             )}
+
+            {/* Link to full agenda page */}
+            <Button
+              onClick={() => navigate("/mentor/agenda")}
+              className="w-full bg-gradient-hero text-primary-foreground rounded-xl py-6 text-base font-semibold shadow-button hover:opacity-90 transition-opacity"
+            >
+              <Calendar className="w-5 h-5 mr-2" />
+              Abrir Agenda Completa
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </Button>
+
+            <p className="text-xs text-center text-muted-foreground">
+              Gerencie disponibilidade, períodos bloqueados e todas as sessões
+            </p>
           </motion.div>
         )}
       </AnimatePresence>

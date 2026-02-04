@@ -84,8 +84,10 @@ const Signup = () => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    emailConfirm: "",
     password: "",
     phone: "",
+    phoneConfirm: "",
   });
 
   // Mentee specific fields
@@ -177,6 +179,19 @@ const Signup = () => {
       }
     }
 
+    // Validate email confirmation
+    if (formData.email.trim().toLowerCase() !== formData.emailConfirm.trim().toLowerCase()) {
+      toast.error("Os e-mails não coincidem. Por favor, verifique.");
+      return false;
+    }
+
+    // Validate phone confirmation
+    const normalizePhone = (phone: string) => phone.replace(/\D/g, '');
+    if (normalizePhone(formData.phone) !== normalizePhone(formData.phoneConfirm)) {
+      toast.error("Os telefones não coincidem. Por favor, verifique.");
+      return false;
+    }
+
     const userAge = parseInt(menteeData.age);
     if (isNaN(userAge) || userAge < 18 || userAge > 100) {
       toast.error("Idade deve estar entre 18 e 100 anos");
@@ -207,6 +222,19 @@ const Signup = () => {
         toast.error(error.errors[0].message);
         return false;
       }
+    }
+
+    // Validate email confirmation
+    if (formData.email.trim().toLowerCase() !== formData.emailConfirm.trim().toLowerCase()) {
+      toast.error("Os e-mails não coincidem. Por favor, verifique.");
+      return false;
+    }
+
+    // Validate phone confirmation
+    const normalizePhone = (phone: string) => phone.replace(/\D/g, '');
+    if (normalizePhone(formData.phone) !== normalizePhone(formData.phoneConfirm)) {
+      toast.error("Os telefones não coincidem. Por favor, verifique.");
+      return false;
     }
 
     if (!mentorData.area.trim()) {
@@ -593,6 +621,28 @@ const Signup = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
+                    Confirme seu e-mail *
+                  </label>
+                  <input
+                    type="email"
+                    value={formData.emailConfirm}
+                    onChange={(e) => setFormData({ ...formData, emailConfirm: e.target.value })}
+                    className={`w-full px-4 py-3 rounded-xl border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 ${
+                      formData.emailConfirm && formData.email.trim().toLowerCase() !== formData.emailConfirm.trim().toLowerCase()
+                        ? "border-destructive"
+                        : "border-input"
+                    }`}
+                    placeholder="Digite o e-mail novamente"
+                    required
+                    maxLength={255}
+                  />
+                  {formData.emailConfirm && formData.email.trim().toLowerCase() !== formData.emailConfirm.trim().toLowerCase() && (
+                    <p className="text-xs text-destructive mt-1">Os e-mails não coincidem</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
                     Senha *
                   </label>
                   <div className="relative">
@@ -633,6 +683,28 @@ const Signup = () => {
                   <p className="text-xs text-muted-foreground mt-1">
                     Será usado para mentores entrarem em contato com você.
                   </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Confirme seu telefone *
+                  </label>
+                  <input
+                    type="tel"
+                    value={formData.phoneConfirm}
+                    onChange={(e) => setFormData({ ...formData, phoneConfirm: e.target.value })}
+                    className={`w-full px-4 py-3 rounded-xl border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 ${
+                      formData.phoneConfirm && formData.phone.replace(/\D/g, '') !== formData.phoneConfirm.replace(/\D/g, '')
+                        ? "border-destructive"
+                        : "border-input"
+                    }`}
+                    placeholder="Digite o telefone novamente"
+                    required
+                    maxLength={20}
+                  />
+                  {formData.phoneConfirm && formData.phone.replace(/\D/g, '') !== formData.phoneConfirm.replace(/\D/g, '') && (
+                    <p className="text-xs text-destructive mt-1">Os telefones não coincidem</p>
+                  )}
                 </div>
 
                 <div>
@@ -789,6 +861,28 @@ const Signup = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
+                    Confirme seu e-mail *
+                  </label>
+                  <input
+                    type="email"
+                    value={formData.emailConfirm}
+                    onChange={(e) => setFormData({ ...formData, emailConfirm: e.target.value })}
+                    className={`w-full px-4 py-3 rounded-xl border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 ${
+                      formData.emailConfirm && formData.email.trim().toLowerCase() !== formData.emailConfirm.trim().toLowerCase()
+                        ? "border-destructive"
+                        : "border-input"
+                    }`}
+                    placeholder="Digite o e-mail novamente"
+                    required
+                    maxLength={255}
+                  />
+                  {formData.emailConfirm && formData.email.trim().toLowerCase() !== formData.emailConfirm.trim().toLowerCase() && (
+                    <p className="text-xs text-destructive mt-1">Os e-mails não coincidem</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
                     Senha *
                   </label>
                   <div className="relative">
@@ -826,6 +920,28 @@ const Signup = () => {
                     required
                     maxLength={20}
                   />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Confirme seu telefone *
+                  </label>
+                  <input
+                    type="tel"
+                    value={formData.phoneConfirm}
+                    onChange={(e) => setFormData({ ...formData, phoneConfirm: e.target.value })}
+                    className={`w-full px-4 py-3 rounded-xl border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 ${
+                      formData.phoneConfirm && formData.phone.replace(/\D/g, '') !== formData.phoneConfirm.replace(/\D/g, '')
+                        ? "border-destructive"
+                        : "border-input"
+                    }`}
+                    placeholder="Digite o telefone novamente"
+                    required
+                    maxLength={20}
+                  />
+                  {formData.phoneConfirm && formData.phone.replace(/\D/g, '') !== formData.phoneConfirm.replace(/\D/g, '') && (
+                    <p className="text-xs text-destructive mt-1">Os telefones não coincidem</p>
+                  )}
                 </div>
 
                 <div>
