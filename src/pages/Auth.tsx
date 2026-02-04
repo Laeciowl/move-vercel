@@ -6,7 +6,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { z } from "zod";
-import PasswordStrengthIndicator from "@/components/PasswordStrengthIndicator";
 
 const emailSchema = z.string().email("E-mail inválido").max(255);
 
