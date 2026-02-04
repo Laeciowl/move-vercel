@@ -37,7 +37,7 @@ const professionalStatusOptions = [
   { value: "freelancer_pj", label: "Freelancer / PJ" },
 ];
 
-type AuthView = "login" | "signup" | "forgot-password" | "reset-password";
+type AuthView = "login" | "forgot-password" | "reset-password";
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
@@ -45,7 +45,7 @@ const Auth = () => {
   const isPasswordReset = searchParams.get("type") === "recovery";
   
   const [view, setView] = useState<AuthView>(
-    isPasswordReset ? "reset-password" : shouldShowSignup ? "signup" : "login"
+    isPasswordReset ? "reset-password" : "login"
   );
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
