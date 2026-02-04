@@ -10,6 +10,7 @@ interface Metrics {
   totalMentees: number;
   scheduledSessions: number;
   completedSessions: number;
+  livesImpacted: number;
 }
 
 const AdminMetricsPanel = () => {
