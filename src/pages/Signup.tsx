@@ -489,8 +489,8 @@ const Signup = () => {
             Recebemos sua inscrição e estamos muito felizes! 
             Assim que aprovada, você terá acesso à área de voluntários.
           </p>
-          <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6 text-left">
-            <p className="text-sm text-green-800">
+          <div className="bg-accent border border-border rounded-xl p-4 mb-6 text-left">
+            <p className="text-sm text-accent-foreground">
               <strong>✅ Sua conta foi criada!</strong><br />
               Use o e-mail e senha cadastrados para fazer login quando for aprovado.
             </p>
