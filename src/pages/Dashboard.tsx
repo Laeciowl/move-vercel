@@ -18,6 +18,7 @@ import BugReportButton from "@/components/BugReportButton";
 import ContentLibrary from "@/components/ContentLibrary";
 import OnboardingTour from "@/components/OnboardingTour";
 import FirstMentorshipMission from "@/components/FirstMentorshipMission";
+import PlatformGuide from "@/components/PlatformGuide";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -401,6 +402,9 @@ const Dashboard = () => {
 
             {/* Mentorship Section - for non-volunteers OR approved mentors (so mentors can also book sessions) */}
             {(!isVolunteer || isMentor) && <MentorshipSection />}
+
+            {/* Platform Guide */}
+            <PlatformGuide userType={isVolunteer ? "mentor" : "mentee"} />
 
             {/* Content Library */}
             <ContentLibrary />

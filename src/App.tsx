@@ -14,7 +14,6 @@ import Admin from "./pages/Admin";
 import Terms from "./pages/Terms";
 import ForMentees from "./pages/ForMentees";
 import ForMentors from "./pages/ForMentors";
-import HelpCenter from "./pages/HelpCenter";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -37,7 +36,6 @@ const App = () => (
             <Route path="/termos" element={<Terms />} />
             <Route path="/para-mentorados" element={<ForMentees />} />
             <Route path="/para-mentores" element={<ForMentors />} />
-            <Route path="/ajuda" element={<HelpCenter />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
