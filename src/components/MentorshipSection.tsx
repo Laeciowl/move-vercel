@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useVolunteerCheck } from "@/hooks/useVolunteerCheck";
 import { useMentorCheck } from "@/hooks/useMentorCheck";
+import { usePendingMentorCheck } from "@/hooks/usePendingMentorCheck";
 import SessionManagement from "./SessionManagement";
 import SessionReviewModal from "./SessionReviewModal";
 import { Badge } from "@/components/ui/badge";
@@ -53,13 +54,14 @@ const MentorshipSection = () => {
   const { user, profile } = useAuth();
   const { isVolunteer } = useVolunteerCheck();
   const { isMentor } = useMentorCheck();
+  const { isPendingMentor } = usePendingMentorCheck();
   const [sessions, setSessions] = useState<MentorSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const [sessionToReview, setSessionToReview] = useState<MentorSession | null>(null);
 
-  // Show CTA to become mentor only for mentees (not volunteers and not mentors)
-  const showBecomeMentorCta = !isVolunteer && !isMentor;
+  // Show CTA to become mentor only for mentees (not volunteers, not approved mentors, and not pending mentors)
+  const showBecomeMentorCta = !isVolunteer && !isMentor && !isPendingMentor;
 
   const fetchSessions = async () => {
     if (!user) return;
