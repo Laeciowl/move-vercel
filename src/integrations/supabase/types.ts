@@ -682,6 +682,8 @@ export type Database = {
         Args: { _mentor_id: string }
         Returns: number
       }
+      get_public_members_count: { Args: never; Returns: number }
+      get_public_mentors_count: { Args: never; Returns: number }
       get_total_completed_sessions: { Args: never; Returns: number }
       has_role: {
         Args: {
