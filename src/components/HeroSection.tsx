@@ -11,11 +11,7 @@ const HeroSection = () => {
   };
 
   const goToSignup = () => {
-    navigate("/auth?cadastro=true");
-  };
-
-  const goToVolunteer = () => {
-    navigate("/voluntario");
+    navigate("/cadastro");
   };
 
   return (
