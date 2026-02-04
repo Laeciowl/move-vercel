@@ -683,6 +683,21 @@ export type Database = {
         Returns: number
       }
       get_public_members_count: { Args: never; Returns: number }
+      get_public_mentors: {
+        Args: never
+        Returns: {
+          area: string
+          availability: Json
+          description: string
+          education: string
+          id: string
+          linkedin_url: string
+          min_advance_hours: number
+          name: string
+          photo_url: string
+          sessions_completed_count: number
+        }[]
+      }
       get_public_mentors_count: { Args: never; Returns: number }
       get_total_completed_sessions: { Args: never; Returns: number }
       has_role: {
