@@ -687,6 +687,28 @@ const Signup = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
+                    Confirme seu telefone *
+                  </label>
+                  <input
+                    type="tel"
+                    value={formData.phoneConfirm}
+                    onChange={(e) => setFormData({ ...formData, phoneConfirm: e.target.value })}
+                    className={`w-full px-4 py-3 rounded-xl border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 ${
+                      formData.phoneConfirm && formData.phone.replace(/\D/g, '') !== formData.phoneConfirm.replace(/\D/g, '')
+                        ? "border-destructive"
+                        : "border-input"
+                    }`}
+                    placeholder="Digite o telefone novamente"
+                    required
+                    maxLength={20}
+                  />
+                  {formData.phoneConfirm && formData.phone.replace(/\D/g, '') !== formData.phoneConfirm.replace(/\D/g, '') && (
+                    <p className="text-xs text-destructive mt-1">Os telefones não coincidem</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
                     Idade *
                   </label>
                   <input
