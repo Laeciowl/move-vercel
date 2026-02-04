@@ -621,6 +621,28 @@ const Signup = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
+                    Confirme seu e-mail *
+                  </label>
+                  <input
+                    type="email"
+                    value={formData.emailConfirm}
+                    onChange={(e) => setFormData({ ...formData, emailConfirm: e.target.value })}
+                    className={`w-full px-4 py-3 rounded-xl border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 ${
+                      formData.emailConfirm && formData.email.trim().toLowerCase() !== formData.emailConfirm.trim().toLowerCase()
+                        ? "border-destructive"
+                        : "border-input"
+                    }`}
+                    placeholder="Digite o e-mail novamente"
+                    required
+                    maxLength={255}
+                  />
+                  {formData.emailConfirm && formData.email.trim().toLowerCase() !== formData.emailConfirm.trim().toLowerCase() && (
+                    <p className="text-xs text-destructive mt-1">Os e-mails não coincidem</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
                     Senha *
                   </label>
                   <div className="relative">
