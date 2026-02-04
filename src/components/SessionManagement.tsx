@@ -17,6 +17,7 @@ interface SessionManagementProps {
   menteeEmail?: string;
   mentorEmail?: string;
   userRole: "mentor" | "mentee";
+  confirmedByMentor?: boolean;
   onUpdate: () => void;
 }
 
@@ -29,6 +30,7 @@ const SessionManagement = ({
   menteeEmail,
   mentorEmail,
   userRole,
+  confirmedByMentor = false,
   onUpdate,
 }: SessionManagementProps) => {
   const [showModal, setShowModal] = useState(false);
@@ -160,18 +162,34 @@ const SessionManagement = ({
   const today = new Date();
   const minDate = today.toISOString().split("T")[0];
 
+  // Mentees can only reschedule if the session is confirmed by mentor
+  const canReschedule = userRole === "mentor" || confirmedByMentor;
+
   return (
     <>
       <div className="flex gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => openModal("reschedule")}
-          className="text-xs"
-        >
-          <RefreshCw className="w-3 h-3 mr-1" />
-          Remarcar
-        </Button>
+        {canReschedule ? (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => openModal("reschedule")}
+            className="text-xs"
+          >
+            <RefreshCw className="w-3 h-3 mr-1" />
+            Remarcar
+          </Button>
+        ) : (
+          <Button
+            variant="outline"
+            size="sm"
+            disabled
+            className="text-xs opacity-50 cursor-not-allowed"
+            title="Aguarde a confirmação do mentor para remarcar"
+          >
+            <RefreshCw className="w-3 h-3 mr-1" />
+            Remarcar
+          </Button>
+        )}
         <Button
           variant="outline"
           size="sm"

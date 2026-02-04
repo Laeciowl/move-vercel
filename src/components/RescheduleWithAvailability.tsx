@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Calendar, X, Loader2, RefreshCw, MessageSquare, Clock, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { format, getDay, startOfDay } from "date-fns";
+import { format, getDay, startOfDay, addMinutes, isWithinInterval, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
@@ -18,6 +18,13 @@ interface BlockedPeriod {
   start_date: string;
   end_date: string;
   reason?: string;
+}
+
+interface BookedSession {
+  scheduled_at: string;
+  duration: number;
+  status: string;
+  id: string;
 }
 
 interface RescheduleWithAvailabilityProps {
@@ -62,11 +69,12 @@ const RescheduleWithAvailability = ({
   const [loadingMentor, setLoadingMentor] = useState(true);
   const [availability, setAvailability] = useState<Availability[]>([]);
   const [blockedPeriods, setBlockedPeriods] = useState<BlockedPeriod[]>([]);
+  const [bookedSessions, setBookedSessions] = useState<BookedSession[]>([]);
 
   const sessionDate = new Date(scheduledAt);
   const formattedDate = format(sessionDate, "EEEE, d 'de' MMMM 'às' HH:mm", { locale: ptBR });
 
-  // Fetch mentor availability and blocked periods
+  // Fetch mentor availability, blocked periods, and existing booked sessions
   useEffect(() => {
     const fetchMentorData = async () => {
       setLoadingMentor(true);
@@ -91,11 +99,49 @@ const RescheduleWithAvailability = ({
         setBlockedPeriods(blocked);
       }
 
+      // Fetch mentor's booked sessions (scheduled or completed, excluding current session being rescheduled)
+      const { data: sessions } = await supabase
+        .from("mentor_sessions")
+        .select("id, scheduled_at, duration, status")
+        .eq("mentor_id", mentorId)
+        .in("status", ["scheduled", "completed"])
+        .neq("id", sessionId)
+        .gte("scheduled_at", new Date().toISOString());
+
+      if (sessions) {
+        setBookedSessions(sessions);
+      }
+
       setLoadingMentor(false);
     };
 
     fetchMentorData();
-  }, [mentorId]);
+  }, [mentorId, sessionId]);
+
+  // Check if a time slot conflicts with existing sessions
+  const isTimeSlotBooked = (date: Date, time: string): boolean => {
+    const [hours, minutes] = time.split(":").map(Number);
+    const slotStart = new Date(date);
+    slotStart.setHours(hours, minutes, 0, 0);
+    
+    for (const session of bookedSessions) {
+      const sessionStart = parseISO(session.scheduled_at);
+      const sessionEnd = addMinutes(sessionStart, session.duration || 30);
+      
+      // Check if slot start falls within an existing session
+      if (isWithinInterval(slotStart, { start: sessionStart, end: sessionEnd })) {
+        return true;
+      }
+      
+      // Check if an existing session starts within a potential new slot
+      const slotEnd = addMinutes(slotStart, 30);
+      if (isWithinInterval(sessionStart, { start: slotStart, end: slotEnd })) {
+        return true;
+      }
+    }
+    
+    return false;
+  };
 
   // Get available weekdays from mentor's availability
   const availableDayIndices = useMemo(() => {
@@ -119,7 +165,7 @@ const RescheduleWithAvailability = ({
     return false;
   };
 
-  // Get available times for selected date
+  // Get available times for selected date, filtering out already booked slots
   const availableTimes = useMemo(() => {
     if (!selectedDate) return [];
 
@@ -129,8 +175,11 @@ const RescheduleWithAvailability = ({
     if (!dayName) return [];
 
     const dayAvailability = availability.find((a) => a.day === dayName);
-    return dayAvailability?.times || [];
-  }, [selectedDate, availability]);
+    const allTimes = dayAvailability?.times || [];
+    
+    // Filter out times that are already booked by other sessions
+    return allTimes.filter(time => !isTimeSlotBooked(selectedDate, time));
+  }, [selectedDate, availability, bookedSessions]);
 
   const handleReschedule = async () => {
     if (!selectedDate || !selectedTime) {
