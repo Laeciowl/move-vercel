@@ -85,10 +85,8 @@ const Mentors = () => {
 
   useEffect(() => {
     const fetchMentors = async () => {
-      // Use mentors_public view which excludes sensitive email data
-      const { data, error } = await supabase
-        .from("mentors_public")
-        .select("*");
+      // Use secure RPC function to get public mentor data
+      const { data, error } = await supabase.rpc("get_public_mentors");
 
       if (error) {
         console.error("Error fetching mentors:", error);
@@ -105,22 +103,16 @@ const Mentors = () => {
       // Get all mentor IDs
       const mentorIds = data.map(m => m.id).filter(Boolean) as string[];
 
-      // Fetch reviews and completed sessions count in parallel
-      const [reviewsResult, ...sessionsResults] = await Promise.all([
-        supabase
-          .from("session_reviews")
-          .select("*")
-          .in("mentor_id", mentorIds)
-          .order("created_at", { ascending: false }),
-        // Fetch completed sessions count for each mentor
-        ...mentorIds.map(id => 
-          supabase.rpc("get_mentor_sessions_completed_count", { _mentor_id: id })
-        )
-      ]);
+      // Fetch reviews for all mentors
+      const { data: reviewsData } = await supabase
+        .from("session_reviews")
+        .select("*")
+        .in("mentor_id", mentorIds)
+        .order("created_at", { ascending: false });
 
       // Group reviews by mentor
       const reviewsByMentor = new Map<string, Review[]>();
-      (reviewsResult.data || []).forEach(review => {
+      (reviewsData || []).forEach(review => {
         const existing = reviewsByMentor.get(review.mentor_id) || [];
         existing.push({
           id: review.id,
@@ -130,18 +122,10 @@ const Mentors = () => {
         reviewsByMentor.set(review.mentor_id, existing);
       });
 
-      // Map completed sessions count by mentor ID
-      const sessionsCountByMentor = new Map<string, number>();
-      mentorIds.forEach((id, index) => {
-        sessionsCountByMentor.set(id, sessionsResults[index]?.data ?? 0);
-      });
-
       const formattedMentors = data.map((m) => {
         const mentorReviews = reviewsByMentor.get(m.id!) || [];
         // Only count reviews that have comments for display
         const reviewsWithComments = mentorReviews.filter(r => r.comment?.trim()).length;
-        // Get actual completed sessions count from RPC
-        const completedSessions = sessionsCountByMentor.get(m.id!) ?? 0;
 
         return {
           ...m,
@@ -152,9 +136,9 @@ const Mentors = () => {
           availability: (m.availability as unknown as Availability[]) || [],
           reviews: mentorReviews,
           totalReviews: reviewsWithComments,
-          min_advance_hours: (m as any).min_advance_hours ?? 24,
-          sessions_completed_count: completedSessions,
-          linkedin_url: (m as any).linkedin_url ?? null,
+          min_advance_hours: m.min_advance_hours ?? 24,
+          sessions_completed_count: m.sessions_completed_count ?? 0,
+          linkedin_url: m.linkedin_url ?? null,
         };
       });
 
