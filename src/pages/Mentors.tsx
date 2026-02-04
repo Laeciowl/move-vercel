@@ -398,7 +398,7 @@ const Mentors = () => {
                   <div className="flex items-center gap-2 mb-3 text-sm">
                     <span className="flex items-center gap-1 text-muted-foreground">
                       <Award className="w-4 h-4 text-green-600" />
-                      {mentor.sessions_completed_count} {mentor.sessions_completed_count === 1 ? 'sessão' : 'sessões'}
+                      {mentor.sessions_completed_count} {mentor.sessions_completed_count === 1 ? 'sessão realizada' : 'sessões realizadas'}
                     </span>
                     {mentor.totalReviews > 0 ? (
                       <Button
