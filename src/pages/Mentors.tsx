@@ -105,16 +105,22 @@ const Mentors = () => {
       // Get all mentor IDs
       const mentorIds = data.map(m => m.id).filter(Boolean) as string[];
 
-      // Fetch all reviews for these mentors
-      const { data: reviewsData } = await supabase
-        .from("session_reviews")
-        .select("*")
-        .in("mentor_id", mentorIds)
-        .order("created_at", { ascending: false });
+      // Fetch reviews and completed sessions count in parallel
+      const [reviewsResult, ...sessionsResults] = await Promise.all([
+        supabase
+          .from("session_reviews")
+          .select("*")
+          .in("mentor_id", mentorIds)
+          .order("created_at", { ascending: false }),
+        // Fetch completed sessions count for each mentor
+        ...mentorIds.map(id => 
+          supabase.rpc("get_mentor_sessions_completed_count", { _mentor_id: id })
+        )
+      ]);
 
       // Group reviews by mentor
       const reviewsByMentor = new Map<string, Review[]>();
-      (reviewsData || []).forEach(review => {
+      (reviewsResult.data || []).forEach(review => {
         const existing = reviewsByMentor.get(review.mentor_id) || [];
         existing.push({
           id: review.id,
@@ -124,12 +130,18 @@ const Mentors = () => {
         reviewsByMentor.set(review.mentor_id, existing);
       });
 
+      // Map completed sessions count by mentor ID
+      const sessionsCountByMentor = new Map<string, number>();
+      mentorIds.forEach((id, index) => {
+        sessionsCountByMentor.set(id, sessionsResults[index]?.data ?? 0);
+      });
+
       const formattedMentors = data.map((m) => {
         const mentorReviews = reviewsByMentor.get(m.id!) || [];
         // Only count reviews that have comments for display
         const reviewsWithComments = mentorReviews.filter(r => r.comment?.trim()).length;
-        // Total reviews = sessions that were reviewed (confirmed completed)
-        const sessionsFromReviews = mentorReviews.length;
+        // Get actual completed sessions count from RPC
+        const completedSessions = sessionsCountByMentor.get(m.id!) ?? 0;
 
         return {
           ...m,
@@ -141,13 +153,18 @@ const Mentors = () => {
           reviews: mentorReviews,
           totalReviews: reviewsWithComments,
           min_advance_hours: (m as any).min_advance_hours ?? 24,
-          sessions_completed_count: sessionsFromReviews, // Use reviews as proof of completed sessions
+          sessions_completed_count: completedSessions,
           linkedin_url: (m as any).linkedin_url ?? null,
         };
       });
 
-      // Sort by number of reviews (most reviews first)
-      formattedMentors.sort((a, b) => b.totalReviews - a.totalReviews);
+      // Sort by number of completed sessions (most first), then by reviews
+      formattedMentors.sort((a, b) => {
+        if (b.sessions_completed_count !== a.sessions_completed_count) {
+          return b.sessions_completed_count - a.sessions_completed_count;
+        }
+        return b.totalReviews - a.totalReviews;
+      });
 
       setMentors(formattedMentors);
       setLoading(false);

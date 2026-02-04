@@ -652,6 +652,7 @@ export type Database = {
         Returns: boolean
       }
       current_user_email: { Args: never; Returns: string }
+      get_future_scheduled_sessions: { Args: never; Returns: number }
       get_mentee_contact_profiles: {
         Args: { session_user_ids: string[] }
         Returns: {
@@ -676,6 +677,11 @@ export type Database = {
           status: string
         }[]
       }
+      get_mentor_sessions_completed_count: {
+        Args: { _mentor_id: string }
+        Returns: number
+      }
+      get_total_completed_sessions: { Args: never; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
