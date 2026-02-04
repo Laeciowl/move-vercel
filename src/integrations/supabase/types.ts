@@ -653,6 +653,7 @@ export type Database = {
       }
       current_user_email: { Args: never; Returns: string }
       get_future_scheduled_sessions: { Args: never; Returns: number }
+      get_lives_impacted: { Args: never; Returns: number }
       get_mentee_contact_profiles: {
         Args: { session_user_ids: string[] }
         Returns: {
