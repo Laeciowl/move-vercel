@@ -86,6 +86,7 @@ const dayLabels: Record<string, string> = {
 };
 
 const VolunteerPanel = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { isVolunteer, loading: checkingVolunteer } = useVolunteerCheck();
   const [submissions, setSubmissions] = useState<Submission[]>([]);
@@ -93,7 +94,6 @@ const VolunteerPanel = () => {
   const [sessions, setSessions] = useState<MentorSession[]>([]);
   const [stats, setStats] = useState<MentorStats>({ totalSessions: 0, completedSessions: 0, upcomingSessions: 0, uniqueMentees: 0 });
   const [loading, setLoading] = useState(true);
-  const [showBlockedPeriods, setShowBlockedPeriods] = useState(false);
   const [activeTab, setActiveTab] = useState<"overview" | "profile" | "agenda" | "content">("overview");
   const [submissionModal, setSubmissionModal] = useState<{ isOpen: boolean; category: "aulas_lives" | "templates_arquivos" }>({
     isOpen: false,
