@@ -203,8 +203,8 @@ const Mentors = () => {
 
   const handleBookSession = async (date: Date, time: string, duration: number, formation: string, objective: string) => {
     if (!user) {
-      toast.error("Faz login primeiro pra agendar uma mentoria 😊");
-      navigate("/auth?cadastro=true");
+      toast.error("Crie uma conta ou faça login para agendar uma mentoria 😊");
+      navigate("/cadastro");
       return;
     }
 
