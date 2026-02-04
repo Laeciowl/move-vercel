@@ -392,8 +392,11 @@ const Dashboard = () => {
         >
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            {/* First Mentorship Mission - Only for non-volunteers */}
-            {!isVolunteer && (
+            {/* Pending Mentor Banner - Show for users who applied as mentors but aren't approved yet */}
+            {isPendingMentor && !isVolunteer && <PendingMentorBanner />}
+
+            {/* First Mentorship Mission - Only for non-volunteers who are NOT pending mentors */}
+            {!isVolunteer && !isPendingMentor && (
               <FirstMentorshipMission isCompleted={profile?.first_mentorship_booked || false} />
             )}
 
