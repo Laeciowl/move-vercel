@@ -51,6 +51,12 @@ const Header = () => {
             Seja Voluntário
           </Link>
           <Link
+            to="/ajuda"
+            className="text-muted-foreground hover:text-foreground transition-colors font-medium"
+          >
+            Ajuda
+          </Link>
+          <Link
             to="/auth"
             className="text-muted-foreground hover:text-foreground transition-colors font-medium"
           >

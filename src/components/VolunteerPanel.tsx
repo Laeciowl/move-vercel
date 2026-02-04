@@ -13,6 +13,7 @@ import MentorProfileEditor from "./MentorProfileEditor";
 import MentorAdvanceNoticeEditor from "./MentorAdvanceNoticeEditor";
 import SessionManagement from "./SessionManagement";
 import ContentSubmissionModal from "./ContentSubmissionModal";
+import WhatsAppTemplates from "./WhatsAppTemplates";
 import { format, isPast } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
@@ -729,6 +730,17 @@ const VolunteerPanel = () => {
                             <p className="text-xs text-muted-foreground italic">Telefone não informado pelo mentorado</p>
                           )}
                         </div>
+
+                        {/* WhatsApp Templates for confirmed sessions */}
+                        {session.confirmed_by_mentor && (
+                          <WhatsAppTemplates
+                            menteeName={session.mentee_profile?.name || "Mentorado"}
+                            menteePhone={session.mentee_profile?.phone || null}
+                            scheduledAt={session.scheduled_at}
+                            duration={sessionDuration}
+                            objective={session.mentee_objective || null}
+                          />
+                        )}
 
                         {/* Session management */}
                         <div className="flex justify-end pt-2 border-t border-border/50">
