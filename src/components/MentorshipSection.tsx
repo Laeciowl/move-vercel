@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useVolunteerCheck } from "@/hooks/useVolunteerCheck";
 import { useMentorCheck } from "@/hooks/useMentorCheck";
+import { usePendingMentorCheck } from "@/hooks/usePendingMentorCheck";
 import SessionManagement from "./SessionManagement";
 import SessionReviewModal from "./SessionReviewModal";
 import { Badge } from "@/components/ui/badge";
