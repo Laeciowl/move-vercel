@@ -38,6 +38,12 @@ const Header = () => {
         </button>
 
         <nav className="hidden md:flex items-center gap-6">
+          <Link
+            to="/mentores"
+            className="text-muted-foreground hover:text-foreground transition-colors font-medium"
+          >
+            Conheça nossos mentores
+          </Link>
           <button
             onClick={() => scrollToSection("sobre")}
             className="text-muted-foreground hover:text-foreground transition-colors font-medium"

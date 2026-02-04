@@ -203,8 +203,8 @@ const Mentors = () => {
 
   const handleBookSession = async (date: Date, time: string, duration: number, formation: string, objective: string) => {
     if (!user) {
-      toast.error("Faz login primeiro pra agendar uma mentoria 😊");
-      navigate("/auth?cadastro=true");
+      toast.error("Crie uma conta ou faça login para agendar uma mentoria 😊");
+      navigate("/cadastro");
       return;
     }
 
@@ -315,11 +315,11 @@ const Mentors = () => {
     <div className="min-h-screen bg-gradient-warm py-12 px-4">
       <div className="container mx-auto max-w-6xl">
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate("/")}
           className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
-          Voltar
+          Voltar para a página inicial
         </button>
 
         <motion.div
@@ -335,6 +335,31 @@ const Mentors = () => {
             compartilhar experiências e te ajudar a dar os próximos passos.
           </p>
         </motion.div>
+
+        {/* CTA Banner for non-logged users */}
+        {!user && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/20 rounded-2xl p-6 mb-10 flex flex-col sm:flex-row items-center justify-between gap-4"
+          >
+            <div>
+              <h3 className="text-lg font-semibold text-foreground mb-1">
+                Quer agendar uma mentoria?
+              </h3>
+              <p className="text-muted-foreground text-sm">
+                Crie sua conta gratuita e comece a receber orientação de profissionais experientes.
+              </p>
+            </div>
+            <button
+              onClick={() => navigate("/cadastro")}
+              className="bg-gradient-hero text-primary-foreground px-6 py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity whitespace-nowrap"
+            >
+              Criar conta grátis
+            </button>
+          </motion.div>
+        )}
 
         {loading ? (
           <div className="flex items-center justify-center py-20">
@@ -495,10 +520,10 @@ const Mentors = () => {
               Enquanto isso, que tal fazer parte dessa história?
             </p>
             <button
-              onClick={() => navigate("/voluntario")}
+              onClick={() => navigate("/cadastro")}
               className="bg-accent text-accent-foreground px-6 py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity"
             >
-              Quero ser voluntário
+              Fazer parte do Movê
             </button>
           </motion.div>
         )}
