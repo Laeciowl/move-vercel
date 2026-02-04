@@ -28,6 +28,8 @@ interface MentorData {
   availability: Availability[];
   disclaimer_accepted: boolean;
   disclaimer_accepted_at: string | null;
+  min_advance_hours?: number;
+  linkedin_url?: string | null;
 }
 
 interface MentorSession {
@@ -92,6 +94,8 @@ const MentorPanel = () => {
         ...mentor,
         education: mentor.education || null,
         availability: (mentor.availability as unknown as Availability[]) || [],
+        min_advance_hours: (mentor as any).min_advance_hours ?? 24,
+        linkedin_url: (mentor as any).linkedin_url ?? null,
       });
 
       // Fetch upcoming sessions with mentee info
@@ -249,6 +253,8 @@ const MentorPanel = () => {
           area={mentorData.area}
           description={mentorData.description}
           education={mentorData.education}
+          minAdvanceHours={mentorData.min_advance_hours}
+          linkedinUrl={mentorData.linkedin_url}
           onUpdate={fetchMentorData}
         />
       </motion.div>

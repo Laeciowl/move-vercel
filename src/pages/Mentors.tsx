@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Calendar, Clock, User, Loader2, GraduationCap, MessageSquare } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, User, Loader2, GraduationCap, MessageSquare, Award, Linkedin, Info } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMentorCheck } from "@/hooks/useMentorCheck";
@@ -46,6 +46,9 @@ interface Mentor {
   availability: Availability[];
   totalReviews: number;
   reviews: Review[];
+  min_advance_hours: number;
+  sessions_completed_count: number;
+  linkedin_url: string | null;
 }
 
 const dayLabels: Record<string, string> = {
@@ -134,7 +137,10 @@ const Mentors = () => {
           description: m.description!,
           availability: (m.availability as unknown as Availability[]) || [],
           reviews: mentorReviews,
-          totalReviews
+          totalReviews,
+          min_advance_hours: (m as any).min_advance_hours ?? 24,
+          sessions_completed_count: (m as any).sessions_completed_count ?? 0,
+          linkedin_url: (m as any).linkedin_url ?? null,
         };
       });
 
@@ -391,6 +397,32 @@ const Mentors = () => {
                     )}
                   </div>
 
+                  {/* Stats bar: sessions + advance notice */}
+                  <div className="flex flex-wrap items-center gap-3 mb-3 text-xs text-muted-foreground">
+                    {mentor.sessions_completed_count > 0 && (
+                      <span className="flex items-center gap-1">
+                        <Award className="w-3 h-3 text-green-600" />
+                        {mentor.sessions_completed_count} sessões
+                      </span>
+                    )}
+                    <span className="flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      {mentor.min_advance_hours}h de antecedência
+                    </span>
+                    {mentor.linkedin_url && (
+                      <a
+                        href={mentor.linkedin_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-[#0A66C2] hover:underline"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Linkedin className="w-3 h-3" />
+                        LinkedIn
+                      </a>
+                    )}
+                  </div>
+
                   {mentor.availability && mentor.availability.length > 0 && (
                     <div className="flex items-center gap-2 mb-3 text-sm text-muted-foreground">
                       <Clock className="w-4 h-4" />
@@ -472,6 +504,7 @@ const Mentors = () => {
                 bookedSessions={bookedSessions}
                 onConfirm={handleBookSession}
                 loading={booking}
+                minAdvanceHours={selectedMentor.min_advance_hours}
               />
             )}
           </DialogContent>
@@ -541,6 +574,39 @@ const Mentors = () => {
                   <h3 className="text-sm font-semibold text-foreground mb-2">Sobre</h3>
                   <p className="text-muted-foreground text-sm whitespace-pre-wrap">
                     {selectedMentorForProfile.description}
+                  </p>
+                </div>
+
+                {/* Stats + LinkedIn */}
+                <div className="mb-4 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                  {selectedMentorForProfile.sessions_completed_count > 0 && (
+                    <span className="flex items-center gap-1.5">
+                      <Award className="w-4 h-4 text-green-600" />
+                      {selectedMentorForProfile.sessions_completed_count} sessões realizadas
+                    </span>
+                  )}
+                  <span className="flex items-center gap-1.5">
+                    <Clock className="w-4 h-4" />
+                    {selectedMentorForProfile.min_advance_hours}h de antecedência
+                  </span>
+                  {selectedMentorForProfile.linkedin_url && (
+                    <a
+                      href={selectedMentorForProfile.linkedin_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 text-[#0A66C2] hover:underline"
+                    >
+                      <Linkedin className="w-4 h-4" />
+                      LinkedIn
+                    </a>
+                  )}
+                </div>
+
+                {/* Aviso de antecedência */}
+                <div className="flex items-start gap-2 p-3 mb-4 bg-muted/50 rounded-lg border border-border/50">
+                  <Info className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                  <p className="text-xs text-muted-foreground">
+                    Agendamentos devem ser feitos com pelo menos <strong className="text-foreground">{selectedMentorForProfile.min_advance_hours} horas de antecedência</strong>.
                   </p>
                 </div>
 

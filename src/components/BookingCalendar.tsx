@@ -9,8 +9,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
-// Minimum advance booking time in hours
-const MIN_ADVANCE_HOURS = 24;
 interface Availability {
   day: string;
   times: string[];
@@ -34,6 +32,7 @@ interface BookingCalendarProps {
   bookedSessions?: BookedSession[];
   onConfirm: (date: Date, time: string, duration: number, formation: string, objective: string) => Promise<void>;
   loading: boolean;
+  minAdvanceHours?: number;
 }
 
 const dayIndexMap: Record<string, number> = {
@@ -67,13 +66,16 @@ const BookingCalendar = ({
   blockedPeriods,
   bookedSessions = [],
   onConfirm, 
-  loading 
+  loading,
+  minAdvanceHours = 24,
 }: BookingCalendarProps) => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [selectedDuration, setSelectedDuration] = useState<number>(30);
   const [formation, setFormation] = useState<string>("");
   const [objective, setObjective] = useState<string>("");
+
+  const MIN_ADVANCE_HOURS = minAdvanceHours;
 
   // Get available weekdays from mentor's availability
   const availableDayIndices = useMemo(() => {
@@ -201,7 +203,7 @@ const BookingCalendar = ({
       <div className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg border border-border/50">
         <Info className="w-4 h-4 text-primary shrink-0 mt-0.5" />
         <p className="text-xs text-muted-foreground">
-          Agendamentos devem ser feitos com pelo menos <strong className="text-foreground">24 horas de antecedência</strong>.
+          Agendamentos devem ser feitos com pelo menos <strong className="text-foreground">{MIN_ADVANCE_HOURS} horas de antecedência</strong>.
         </p>
       </div>
 

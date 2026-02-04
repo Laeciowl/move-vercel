@@ -9,8 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { isDateBlocked, getBlockedReason, isHoliday } from "@/lib/brazilianHolidays";
 
-// Minimum advance booking time in hours
-const MIN_ADVANCE_HOURS = 24;
 interface Availability {
   day: string;
   times: string[];
@@ -72,6 +70,7 @@ const RescheduleWithAvailability = ({
   const [availability, setAvailability] = useState<Availability[]>([]);
   const [blockedPeriods, setBlockedPeriods] = useState<BlockedPeriod[]>([]);
   const [bookedSessions, setBookedSessions] = useState<BookedSession[]>([]);
+  const [minAdvanceHours, setMinAdvanceHours] = useState<number>(24);
 
   const sessionDate = new Date(scheduledAt);
   const formattedDate = format(sessionDate, "EEEE, d 'de' MMMM 'às' HH:mm", { locale: ptBR });
@@ -83,12 +82,13 @@ const RescheduleWithAvailability = ({
       
       const { data: mentor } = await supabase
         .from("mentors")
-        .select("availability")
+        .select("availability, min_advance_hours")
         .eq("id", mentorId)
         .single();
 
       if (mentor) {
         setAvailability((mentor.availability as unknown as Availability[]) || []);
+        setMinAdvanceHours((mentor as any).min_advance_hours ?? 24);
       }
 
       const { data: blocked } = await supabase
@@ -129,7 +129,7 @@ const RescheduleWithAvailability = ({
     slotDateTime.setHours(hours, minutes, 0, 0);
     
     const now = new Date();
-    const minBookingTime = addHours(now, MIN_ADVANCE_HOURS);
+    const minBookingTime = addHours(now, minAdvanceHours);
     
     return isBefore(slotDateTime, minBookingTime);
   };
@@ -289,7 +289,7 @@ const RescheduleWithAvailability = ({
       <div className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg border border-border/50">
         <Info className="w-4 h-4 text-primary shrink-0 mt-0.5" />
         <p className="text-xs text-muted-foreground">
-          Remarcações devem ser feitas com pelo menos <strong className="text-foreground">24 horas de antecedência</strong>.
+          Remarcações devem ser feitas com pelo menos <strong className="text-foreground">{minAdvanceHours} horas de antecedência</strong>.
         </p>
       </div>
 
