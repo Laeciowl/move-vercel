@@ -350,16 +350,16 @@ const Volunteer = () => {
           setLoading(false);
           return;
         }
-      }
 
-      // Insert mentor tags
-      if (mentorData && selectedTags.length > 0) {
-        const tagInserts = selectedTags.map(tag => ({
-          mentor_id: mentorData.id,
-          tag_id: tag.id,
-        }));
-        
-        await supabase.from("mentor_tags").insert(tagInserts);
+        // Insert mentor tags
+        if (mentorData && selectedTags.length > 0) {
+          const tagInserts = selectedTags.map(tag => ({
+            mentor_id: mentorData.id,
+            tag_id: tag.id,
+          }));
+          
+          await supabase.from("mentor_tags").insert(tagInserts);
+        }
       }
 
       // Send mentor application email (since all volunteers are now mentors)
