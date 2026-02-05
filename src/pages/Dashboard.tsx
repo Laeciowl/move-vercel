@@ -23,6 +23,7 @@ import PlatformGuide from "@/components/PlatformGuide";
 import PendingMentorBanner from "@/components/PendingMentorBanner";
 import MenteeInterestsEditor from "@/components/MenteeInterestsEditor";
 import InterestsOnboardingModal from "@/components/InterestsOnboardingModal";
+import InterestsNotificationBanner from "@/components/InterestsNotificationBanner";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
