@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Calendar, Clock, CheckCircle, ArrowLeft, Mail, Phone, User, Settings, Award, Loader2 } from "lucide-react";
+import { Calendar, Clock, CheckCircle, ArrowLeft, Mail, Phone, User, Settings, Award, Loader2, Tag } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useVolunteerCheck } from "@/hooks/useVolunteerCheck";
@@ -11,6 +11,7 @@ import MentorBlockedPeriodsManager from "@/components/MentorBlockedPeriodsManage
 import MentorSessionConfirmation from "@/components/MentorSessionConfirmation";
 import MentorAvailabilityEditor from "@/components/MentorAvailabilityEditor";
 import MentorAdvanceNoticeEditor from "@/components/MentorAdvanceNoticeEditor";
+import MentorTagsEditor from "@/components/MentorTagsEditor";
 import SessionManagement from "@/components/SessionManagement";
 import WhatsAppTemplates from "@/components/WhatsAppTemplates";
 import { format, isPast } from "date-fns";
