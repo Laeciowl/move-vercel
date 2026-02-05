@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Calendar, Clock, User, Loader2, GraduationCap, MessageSquare, Award, Linkedin, Info } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, User, Loader2, GraduationCap, MessageSquare, Award, Linkedin, Info, Star, Tag } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMentorCheck } from "@/hooks/useMentorCheck";
+import { useTags, useMenteeInterests } from "@/hooks/useTags";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -17,7 +18,10 @@ import BookingCalendar from "@/components/BookingCalendar";
 import MentorRatingDisplay from "@/components/MentorRatingDisplay";
 import MentorReviewsList from "@/components/MentorReviewsList";
 import MentorShareButton from "@/components/MentorShareButton";
+import MentorTagFilter from "@/components/MentorTagFilter";
+import MentorMatchBadge from "@/components/MentorMatchBadge";
 import { Button } from "@/components/ui/button";
+import type { TagItem } from "@/components/TagSelector";
 
 interface Availability {
   day: string;
@@ -49,6 +53,9 @@ interface Mentor {
   min_advance_hours: number;
   sessions_completed_count: number;
   linkedin_url: string | null;
+  tags: TagItem[];
+  matchCount: number;
+  matchingTags: TagItem[];
 }
 
 const dayLabels: Record<string, string> = {
