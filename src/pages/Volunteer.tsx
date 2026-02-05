@@ -548,19 +548,27 @@ const Volunteer = () => {
               </p>
             </div>
 
+            {/* Tags selector for areas */}
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">
-                Área de atuação *
+                Áreas de atuação * (selecione de 1 a 5)
               </label>
-              <input
-                type="text"
-                value={formData.area}
-                onChange={(e) => setFormData({ ...formData, area: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
-                placeholder="Ex: Marketing, RH, Tecnologia, Finanças..."
-                required
-                maxLength={100}
-              />
+              {tagsLoading ? (
+                <div className="flex items-center gap-2 py-4">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span className="text-sm text-muted-foreground">Carregando áreas...</span>
+                </div>
+              ) : (
+                <TagSelector
+                  availableTags={availableTags}
+                  selectedTags={selectedTags}
+                  onTagsChange={setSelectedTags}
+                  maxTags={5}
+                  minTags={1}
+                  title=""
+                  subtitle="Escolha as áreas em que você pode ajudar os mentorados"
+                />
+              )}
             </div>
 
             {/* Password field - only for new users */}
