@@ -476,6 +476,18 @@ const MentorAgenda = () => {
             transition={{ delay: 0.2 }}
             className="space-y-6"
           >
+            {/* Mentor Tags */}
+            <div className="bg-card rounded-2xl border border-border p-6 shadow-soft">
+              <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                <Tag className="w-5 h-5 text-primary" />
+                Áreas de Mentoria
+              </h3>
+              <MentorTagsEditor
+                mentorId={mentorData.id}
+                onUpdate={fetchData}
+              />
+            </div>
+
             {/* Advance Notice */}
             <div className="bg-card rounded-2xl border border-border p-6 shadow-soft">
               <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
