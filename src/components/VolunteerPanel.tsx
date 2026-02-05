@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import MentorSessionConfirmation from "./MentorSessionConfirmation";
 import MentorProfileEditor from "./MentorProfileEditor";
+import MentorTagsEditor from "./MentorTagsEditor";
 import ContentSubmissionModal from "./ContentSubmissionModal";
 import { isPast } from "date-fns";
 
