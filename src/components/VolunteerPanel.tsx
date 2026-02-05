@@ -11,6 +11,7 @@ import MentorSessionConfirmation from "./MentorSessionConfirmation";
 import MentorProfileEditor from "./MentorProfileEditor";
 import MentorTagsEditor from "./MentorTagsEditor";
 import ContentSubmissionModal from "./ContentSubmissionModal";
+import MentorProgressMilestones from "./MentorProgressMilestones";
 import { isPast } from "date-fns";
 
 interface Submission {
@@ -348,36 +349,23 @@ const VolunteerPanel = () => {
             transition={{ duration: 0.2 }}
             className="space-y-4"
           >
-            {/* Mentor Impact Stats - Compact */}
+            {/* Mentor Impact Stats with Milestones */}
             {mentorData && mentorData.status === "approved" && (
               <div className="bg-muted/30 rounded-xl p-4 space-y-3">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium text-foreground flex items-center gap-2">
                     <Award className="w-4 h-4 text-primary" />
                     Seu impacto
                   </span>
-                  <span className="text-xs text-muted-foreground">
-                    {stats.completedSessions}/{10} mentorias
-                  </span>
                 </div>
                 
-                {/* Progress bar - Minimal */}
-                <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                  <motion.div 
-                    initial={{ width: 0 }}
-                    animate={{ width: `${Math.min((stats.completedSessions / 10) * 100, 100)}%` }}
-                    transition={{ duration: 0.6, ease: "easeOut" }}
-                    className="h-full bg-primary rounded-full"
-                  />
-                </div>
+                {/* Progress bar with milestones */}
+                <MentorProgressMilestones completedSessions={stats.completedSessions} />
 
                 {/* Quick stats - Inline */}
-                <div className="flex items-center gap-4 text-sm">
+                <div className="flex items-center gap-4 text-sm pt-2 border-t border-border/30">
                   <span className="text-muted-foreground">
-                    <span className="font-semibold text-foreground">{stats.completedSessions}</span> realizadas
-                  </span>
-                  <span className="text-muted-foreground">
-                    <span className="font-semibold text-foreground">{stats.uniqueMentees}</span> pessoas
+                    <span className="font-semibold text-foreground">{stats.uniqueMentees}</span> pessoas impactadas
                   </span>
                   <span className="text-muted-foreground">
                     <span className="font-semibold text-foreground">{stats.upcomingSessions}</span> agendadas
