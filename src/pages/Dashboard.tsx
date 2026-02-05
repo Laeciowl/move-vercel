@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
   LogOut, RefreshCw, User, 
-  Loader2, History, Edit, Shield, Heart, Sparkles, ExternalLink, MessageCircle, Settings, Briefcase
+  Loader2, History, Edit, Shield, Heart, Sparkles, ExternalLink, MessageCircle, Settings, Briefcase, Target
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
@@ -21,6 +21,8 @@ import OnboardingTour from "@/components/OnboardingTour";
 import FirstMentorshipMission from "@/components/FirstMentorshipMission";
 import PlatformGuide from "@/components/PlatformGuide";
 import PendingMentorBanner from "@/components/PendingMentorBanner";
+import MenteeInterestsEditor from "@/components/MenteeInterestsEditor";
+import InterestsOnboardingModal from "@/components/InterestsOnboardingModal";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -64,6 +66,7 @@ const Dashboard = () => {
   const [showUpdateForm, setShowUpdateForm] = useState(false);
   const [showProfileEdit, setShowProfileEdit] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showInterestsOnboarding, setShowInterestsOnboarding] = useState(false);
   const [updating, setUpdating] = useState(false);
   const [updateData, setUpdateData] = useState({
     professionalStatus: "",
@@ -462,6 +465,18 @@ const Dashboard = () => {
                     Atualizar status
                   </Button>
                 )}
+              </motion.div>
+            )}
+
+            {/* Mentee Interests - Only for non-volunteers */}
+            {!isVolunteer && (
+              <motion.div
+                initial={{ opacity: 0, x: 16 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.22 }}
+                className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/30 p-5"
+              >
+                <MenteeInterestsEditor />
               </motion.div>
             )}
 

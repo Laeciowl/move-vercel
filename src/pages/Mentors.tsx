@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Calendar, Clock, User, Loader2, GraduationCap, MessageSquare, Award, Linkedin, Info } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, User, Loader2, GraduationCap, MessageSquare, Award, Linkedin, Info, Star, Tag } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMentorCheck } from "@/hooks/useMentorCheck";
+import { useTags, useMenteeInterests } from "@/hooks/useTags";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -17,7 +18,10 @@ import BookingCalendar from "@/components/BookingCalendar";
 import MentorRatingDisplay from "@/components/MentorRatingDisplay";
 import MentorReviewsList from "@/components/MentorReviewsList";
 import MentorShareButton from "@/components/MentorShareButton";
+import MentorTagFilter from "@/components/MentorTagFilter";
+import MentorMatchBadge from "@/components/MentorMatchBadge";
 import { Button } from "@/components/ui/button";
+import type { TagItem } from "@/components/TagSelector";
 
 interface Availability {
   day: string;
@@ -49,6 +53,9 @@ interface Mentor {
   min_advance_hours: number;
   sessions_completed_count: number;
   linkedin_url: string | null;
+  tags: TagItem[];
+  matchCount: number;
+  matchingTags: TagItem[];
 }
 
 const dayLabels: Record<string, string> = {
@@ -71,6 +78,8 @@ const Mentors = () => {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
   const { isMentor, mentorId: currentUserMentorId } = useMentorCheck();
+  const { tags: availableTags } = useTags();
+  const { interests: userInterests } = useMenteeInterests(user?.id || null);
   const [mentors, setMentors] = useState<Mentor[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedMentor, setSelectedMentor] = useState<Mentor | null>(null);
@@ -82,14 +91,63 @@ const Mentors = () => {
   const [selectedMentorForReviews, setSelectedMentorForReviews] = useState<Mentor | null>(null);
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
   const [selectedMentorForProfile, setSelectedMentorForProfile] = useState<Mentor | null>(null);
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+
+  const userInterestTagIds = useMemo(() => userInterests.map(t => t.id), [userInterests]);
 
   useEffect(() => {
     const fetchMentors = async () => {
-      // Use secure RPC function to get public mentor data
-      const { data, error } = await supabase.rpc("get_public_mentors");
+      // Use secure RPC function to get mentors with match data
+      const { data, error } = await supabase.rpc("get_mentors_with_match", {
+        user_id_param: user?.id || null,
+      });
 
       if (error) {
         console.error("Error fetching mentors:", error);
+        // Fallback to public mentors
+        const { data: fallbackData } = await supabase.rpc("get_public_mentors");
+        if (fallbackData) {
+          const mentorIds = fallbackData.map(m => m.id).filter(Boolean) as string[];
+          const { data: reviewsData } = await supabase
+            .from("session_reviews")
+            .select("*")
+            .in("mentor_id", mentorIds)
+            .order("created_at", { ascending: false });
+
+          const reviewsByMentor = new Map<string, Review[]>();
+          (reviewsData || []).forEach(review => {
+            const existing = reviewsByMentor.get(review.mentor_id) || [];
+            existing.push({
+              id: review.id,
+              comment: review.comment,
+              created_at: review.created_at
+            });
+            reviewsByMentor.set(review.mentor_id, existing);
+          });
+
+          const formattedMentors = fallbackData.map((m) => {
+            const mentorReviews = reviewsByMentor.get(m.id!) || [];
+            const reviewsWithComments = mentorReviews.filter(r => r.comment?.trim()).length;
+            return {
+              id: m.id!,
+              name: m.name!,
+              area: m.area!,
+              description: m.description!,
+              education: m.education || null,
+              photo_url: m.photo_url || null,
+              availability: (m.availability as unknown as Availability[]) || [],
+              reviews: mentorReviews,
+              totalReviews: reviewsWithComments,
+              min_advance_hours: m.min_advance_hours ?? 24,
+              sessions_completed_count: m.sessions_completed_count ?? 0,
+              linkedin_url: m.linkedin_url ?? null,
+              tags: [],
+              matchCount: 0,
+              matchingTags: [],
+            };
+          });
+          setMentors(formattedMentors);
+        }
         setLoading(false);
         return;
       }
@@ -124,39 +182,43 @@ const Mentors = () => {
 
       const formattedMentors = data.map((m) => {
         const mentorReviews = reviewsByMentor.get(m.id!) || [];
-        // Only count reviews that have comments for display
         const reviewsWithComments = mentorReviews.filter(r => r.comment?.trim()).length;
 
         return {
-          ...m,
           id: m.id!,
           name: m.name!,
           area: m.area!,
           description: m.description!,
+          education: m.education || null,
+          photo_url: m.photo_url || null,
           availability: (m.availability as unknown as Availability[]) || [],
           reviews: mentorReviews,
           totalReviews: reviewsWithComments,
           min_advance_hours: m.min_advance_hours ?? 24,
           sessions_completed_count: m.sessions_completed_count ?? 0,
           linkedin_url: m.linkedin_url ?? null,
+          tags: (m.tags as unknown as TagItem[]) || [],
+          matchCount: m.match_count ?? 0,
+          matchingTags: (m.matching_tags as unknown as TagItem[]) || [],
         };
       });
 
-      // Sort by number of completed sessions (most first), then by reviews
-      formattedMentors.sort((a, b) => {
-        if (b.sessions_completed_count !== a.sessions_completed_count) {
-          return b.sessions_completed_count - a.sessions_completed_count;
-        }
-        return b.totalReviews - a.totalReviews;
-      });
-
+      // Mentors are already sorted by match_count in the RPC function
       setMentors(formattedMentors);
       setLoading(false);
     };
 
     fetchMentors();
-  }, []);
+  }, [user?.id]);
 
+  // Filter mentors by selected tags
+  const filteredMentors = useMemo(() => {
+    if (selectedTagIds.length === 0) return mentors;
+    
+    return mentors.filter(mentor => 
+      mentor.tags.some(tag => selectedTagIds.includes(tag.id))
+    );
+  }, [mentors, selectedTagIds]);
   const fetchBlockedPeriods = async (mentorId: string) => {
     const { data, error } = await supabase
       .from("mentor_blocked_periods")
@@ -345,13 +407,30 @@ const Mentors = () => {
           </motion.div>
         )}
 
+        {/* Tag Filter */}
+        {!loading && mentors.length > 0 && availableTags.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="mb-8"
+          >
+            <MentorTagFilter
+              availableTags={availableTags}
+              selectedTagIds={selectedTagIds}
+              onFilterChange={setSelectedTagIds}
+              userInterestTagIds={userInterestTagIds}
+            />
+          </motion.div>
+        )}
+
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
-        ) : mentors.length > 0 ? (
+        ) : filteredMentors.length > 0 ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {mentors.map((mentor, index) => (
+            {filteredMentors.map((mentor, index) => (
               <motion.div
                 key={mentor.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -380,6 +459,14 @@ const Mentors = () => {
 
                 {/* Content area with flex-grow to fill remaining space */}
                 <div className="p-5 flex flex-col flex-1">
+                  {/* Match Badge */}
+                  {mentor.matchCount > 0 && (
+                    <MentorMatchBadge
+                      matchCount={mentor.matchCount}
+                      matchingTags={mentor.matchingTags}
+                    />
+                  )}
+
                   <div 
                     className="cursor-pointer hover:opacity-80 transition-opacity"
                     onClick={() => openProfileDialog(mentor)}
@@ -404,6 +491,33 @@ const Mentors = () => {
                       {mentor.description}
                     </p>
                   </div>
+
+                  {/* Mentor Tags */}
+                  {mentor.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mb-3">
+                      {mentor.tags.slice(0, 3).map((tag) => {
+                        const isMatching = mentor.matchingTags.some(mt => mt.id === tag.id);
+                        return (
+                          <span
+                            key={tag.id}
+                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
+                              isMatching
+                                ? "bg-amber-100 text-amber-800 border border-amber-300 dark:bg-amber-950/30 dark:text-amber-200 dark:border-amber-700"
+                                : "bg-primary/10 text-primary border border-primary/20"
+                            }`}
+                          >
+                            {isMatching && <Star className="w-3 h-3 fill-amber-400 text-amber-400" />}
+                            {tag.name}
+                          </span>
+                        );
+                      })}
+                      {mentor.tags.length > 3 && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground">
+                          +{mentor.tags.length - 3}
+                        </span>
+                      )}
+                    </div>
+                  )}
 
                   {/* Session count + Reviews - separated clearly */}
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-3 text-sm">
@@ -594,6 +708,40 @@ const Mentors = () => {
                     <p className="text-sm text-muted-foreground">
                       {selectedMentorForProfile.education}
                     </p>
+                  </div>
+                )}
+
+                {/* Tags */}
+                {selectedMentorForProfile.tags.length > 0 && (
+                  <div className="mb-4">
+                    <h3 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
+                      <Tag className="w-4 h-4" />
+                      Áreas de Mentoria
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedMentorForProfile.tags.map((tag) => {
+                        const isMatching = selectedMentorForProfile.matchingTags.some(mt => mt.id === tag.id);
+                        return (
+                          <span
+                            key={tag.id}
+                            className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${
+                              isMatching
+                                ? "bg-amber-100 text-amber-800 border border-amber-300 dark:bg-amber-950/30 dark:text-amber-200 dark:border-amber-700"
+                                : "bg-primary/10 text-primary border border-primary/20"
+                            }`}
+                          >
+                            {isMatching && <Star className="w-3 h-3 fill-amber-400 text-amber-400" />}
+                            {tag.name}
+                          </span>
+                        );
+                      })}
+                    </div>
+                    {selectedMentorForProfile.matchCount > 0 && (
+                      <p className="text-xs text-amber-700 dark:text-amber-300 mt-2 flex items-center gap-1">
+                        <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                        = áreas que combinam com seus interesses
+                      </p>
+                    )}
                   </div>
                 )}
 
