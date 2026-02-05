@@ -116,6 +116,35 @@ export type Database = {
         }
         Relationships: []
       }
+      mentee_interests: {
+        Row: {
+          created_at: string
+          id: string
+          tag_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          tag_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          tag_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mentee_interests_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mentor_blocked_periods: {
         Row: {
           created_at: string
@@ -220,6 +249,49 @@ export type Database = {
             columns: ["mentor_id"]
             isOneToOne: false
             referencedRelation: "mentors_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mentor_tags: {
+        Row: {
+          created_at: string
+          id: string
+          mentor_id: string
+          tag_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          mentor_id: string
+          tag_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          mentor_id?: string
+          tag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mentor_tags_mentor_id_fkey"
+            columns: ["mentor_id"]
+            isOneToOne: false
+            referencedRelation: "mentors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mentor_tags_mentor_id_fkey"
+            columns: ["mentor_id"]
+            isOneToOne: false
+            referencedRelation: "mentors_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mentor_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
             referencedColumns: ["id"]
           },
         ]
@@ -432,6 +504,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      tags: {
+        Row: {
+          active: boolean
+          category: string
+          created_at: string
+          id: string
+          name: string
+          slug: string
+        }
+        Insert: {
+          active?: boolean
+          category: string
+          created_at?: string
+          id?: string
+          name: string
+          slug: string
+        }
+        Update: {
+          active?: boolean
+          category?: string
+          created_at?: string
+          id?: string
+          name?: string
+          slug?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
@@ -681,6 +780,24 @@ export type Database = {
       get_mentor_sessions_completed_count: {
         Args: { _mentor_id: string }
         Returns: number
+      }
+      get_mentors_with_match: {
+        Args: { user_id_param?: string }
+        Returns: {
+          area: string
+          availability: Json
+          description: string
+          education: string
+          id: string
+          linkedin_url: string
+          match_count: number
+          matching_tags: Json
+          min_advance_hours: number
+          name: string
+          photo_url: string
+          sessions_completed_count: number
+          tags: Json
+        }[]
       }
       get_public_members_count: { Args: never; Returns: number }
       get_public_mentors: {
