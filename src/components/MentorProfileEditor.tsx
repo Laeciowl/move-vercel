@@ -7,39 +7,21 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface MentorProfileEditorProps {
   mentorId: string;
   photoUrl?: string | null;
   name: string;
-  area: string;
   description: string;
   education: string | null;
   linkedinUrl?: string | null;
   onUpdate: () => void;
 }
 
-const areaOptions = [
-  "Tecnologia",
-  "Marketing",
-  "Design",
-  "Finanças",
-  "Operações",
-  "RH / Gestão de Pessoas",
-  "Vendas",
-  "Empreendedorismo",
-  "Jurídico",
-  "Engenharia",
-  "Comunicação",
-  "Outro",
-];
-
 const MentorProfileEditor = ({
   mentorId,
   photoUrl = null,
   name,
-  area,
   description,
   education,
   linkedinUrl = null,
@@ -52,7 +34,6 @@ const MentorProfileEditor = ({
   const [formData, setFormData] = useState({
     photoUrl: photoUrl || "",
     name,
-    area,
     description,
     education: education || "",
     linkedinUrl: linkedinUrl || "",
@@ -109,7 +90,7 @@ const MentorProfileEditor = ({
   };
 
   const handleSave = async () => {
-    if (!formData.name.trim() || !formData.area.trim() || !formData.description.trim()) {
+    if (!formData.name.trim() || !formData.description.trim()) {
       toast.error("Preencha todos os campos obrigatórios");
       return;
     }
@@ -127,7 +108,6 @@ const MentorProfileEditor = ({
       .update({
         photo_url: formData.photoUrl.trim() || null,
         name: formData.name.trim(),
-        area: formData.area.trim(),
         description: formData.description.trim(),
         education: formData.education.trim() || null,
         linkedin_url: formData.linkedinUrl.trim() || null,
@@ -150,7 +130,6 @@ const MentorProfileEditor = ({
     setFormData({ 
       photoUrl: photoUrl || "",
       name, 
-      area, 
       description, 
       education: education || "",
       linkedinUrl: linkedinUrl || "",
@@ -238,25 +217,6 @@ const MentorProfileEditor = ({
                 placeholder="Seu nome como mentor"
                 className="bg-background"
               />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="mentor-area" className="flex items-center gap-1.5 text-sm">
-                <Briefcase className="w-3.5 h-3.5 text-muted-foreground" />
-                Área de atuação *
-              </Label>
-              <select
-                id="mentor-area"
-                value={formData.area}
-                onChange={(e) => setFormData({ ...formData, area: e.target.value })}
-                className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-              >
-                {areaOptions.map((opt) => (
-                  <option key={opt} value={opt}>
-                    {opt}
-                  </option>
-                ))}
-              </select>
             </div>
 
             <div className="space-y-2">
@@ -352,11 +312,7 @@ const MentorProfileEditor = ({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <p className="text-xs text-muted-foreground font-medium">Área</p>
-                <p className="text-sm text-foreground">{area}</p>
-              </div>
+            <div className="grid grid-cols-1 gap-3">
               <div>
                 <p className="text-xs text-muted-foreground font-medium">Formação</p>
                 <p className="text-sm text-foreground">{education || "—"}</p>

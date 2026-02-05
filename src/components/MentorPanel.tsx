@@ -10,6 +10,7 @@ import MentorSessionConfirmation from "./MentorSessionConfirmation";
 import MentorAvailabilityEditor from "./MentorAvailabilityEditor";
 import MentorProfileEditor from "./MentorProfileEditor";
 import MentorAdvanceNoticeEditor from "./MentorAdvanceNoticeEditor";
+import MentorTagsEditor from "./MentorTagsEditor";
 import SessionManagement from "./SessionManagement";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -254,10 +255,14 @@ const MentorPanel = () => {
           mentorId={mentorData.id}
           photoUrl={mentorData.photo_url ?? null}
           name={mentorData.name}
-          area={mentorData.area}
           description={mentorData.description}
           education={mentorData.education}
           linkedinUrl={mentorData.linkedin_url}
+          onUpdate={fetchMentorData}
+        />
+        
+        <MentorTagsEditor
+          mentorId={mentorData.id}
           onUpdate={fetchMentorData}
         />
       </motion.div>

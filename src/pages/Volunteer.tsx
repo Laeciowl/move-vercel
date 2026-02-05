@@ -8,7 +8,8 @@ import { z } from "zod";
 import { useAuth } from "@/contexts/AuthContext";
 import MentorDisclaimerModal from "@/components/MentorDisclaimerModal";
 import PasswordStrengthIndicator from "@/components/PasswordStrengthIndicator";
-
+import TagSelector, { type TagItem } from "@/components/TagSelector";
+import { useTags } from "@/hooks/useTags";
 const emailSchema = z.string().email("E-mail inválido").max(255);
 const nameSchema = z.string().min(2, "Nome deve ter pelo menos 2 caracteres").max(100);
 const passwordSchema = z
@@ -77,11 +78,13 @@ const Volunteer = () => {
     email: "",
     password: "",
     phone: "",
-    area: "",
     // Mentor fields - todos voluntários são mentores
     description: "",
     education: "",
   });
+  
+  const [selectedTags, setSelectedTags] = useState<TagItem[]>([]);
+  const { tags: availableTags, loading: tagsLoading } = useTags();
   
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -173,8 +176,13 @@ const Volunteer = () => {
       }
     }
 
-    if (!formData.area.trim()) {
-      toast.error("Conta pra gente qual é sua área de atuação!");
+    if (selectedTags.length === 0) {
+      toast.error("Selecione pelo menos uma área de atuação!");
+      return false;
+    }
+    
+    if (selectedTags.length > 5) {
+      toast.error("Selecione no máximo 5 áreas de atuação!");
       return false;
     }
 
@@ -280,7 +288,7 @@ const Volunteer = () => {
           .insert({
             name: formData.name.trim(),
             email: formData.email.trim(),
-            area: formData.area.trim(),
+            area: selectedTags.map(t => t.name).join(", ") || "Mentoria",
             how_to_help: "Mentoria, Aulas/Lives, Templates",
             categories: ["mentoria", "aulas_lives", "templates_arquivos"],
             user_id: currentUserId,
@@ -319,17 +327,17 @@ const Volunteer = () => {
           }
         }
 
-        const { error: mentorError } = await supabase.from("mentors").insert([{
+        const { data: mentorData, error: mentorError } = await supabase.from("mentors").insert([{
           name: formData.name.trim(),
           email: formData.email.trim(),
-          area: formData.area.trim(),
+          area: selectedTags.map(t => t.name).join(", ") || "Mentoria",
           description: formData.description.trim(),
           education: formData.education.trim() || null,
           photo_url: photoUrl,
           availability: JSON.parse(JSON.stringify(availability)),
           disclaimer_accepted: true,
           disclaimer_accepted_at: new Date().toISOString(),
-        }]);
+        }]).select('id').single();
 
         if (mentorError) {
           console.error("Mentor insert error:", mentorError);
@@ -342,6 +350,16 @@ const Volunteer = () => {
           setLoading(false);
           return;
         }
+
+        // Insert mentor tags
+        if (mentorData && selectedTags.length > 0) {
+          const tagInserts = selectedTags.map(tag => ({
+            mentor_id: mentorData.id,
+            tag_id: tag.id,
+          }));
+          
+          await supabase.from("mentor_tags").insert(tagInserts);
+        }
       }
 
       // Send mentor application email (since all volunteers are now mentors)
@@ -352,7 +370,7 @@ const Volunteer = () => {
             name: formData.name.trim(),
             type: "mentor_application_received",
             data: {
-              area: formData.area.trim(),
+              area: selectedTags.map(t => t.name).join(", ") || "Mentoria",
             },
             skipPreferenceCheck: true,
           },
@@ -530,19 +548,27 @@ const Volunteer = () => {
               </p>
             </div>
 
+            {/* Tags selector for areas */}
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">
-                Área de atuação *
+                Áreas de atuação * (selecione de 1 a 5)
               </label>
-              <input
-                type="text"
-                value={formData.area}
-                onChange={(e) => setFormData({ ...formData, area: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
-                placeholder="Ex: Marketing, RH, Tecnologia, Finanças..."
-                required
-                maxLength={100}
-              />
+              {tagsLoading ? (
+                <div className="flex items-center gap-2 py-4">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span className="text-sm text-muted-foreground">Carregando áreas...</span>
+                </div>
+              ) : (
+                <TagSelector
+                  availableTags={availableTags}
+                  selectedTags={selectedTags}
+                  onTagsChange={setSelectedTags}
+                  maxTags={5}
+                  minTags={1}
+                  title=""
+                  subtitle="Escolha as áreas em que você pode ajudar os mentorados"
+                />
+              )}
             </div>
 
             {/* Password field - only for new users */}

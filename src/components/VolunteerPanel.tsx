@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import MentorSessionConfirmation from "./MentorSessionConfirmation";
 import MentorProfileEditor from "./MentorProfileEditor";
+import MentorTagsEditor from "./MentorTagsEditor";
 import ContentSubmissionModal from "./ContentSubmissionModal";
 import { isPast } from "date-fns";
 
@@ -464,10 +465,14 @@ const VolunteerPanel = () => {
                 mentorId={mentorData.id}
                 photoUrl={mentorData.photo_url ?? null}
                 name={mentorData.name}
-                area={mentorData.area}
                 description={mentorData.description}
                 education={mentorData.education}
                 linkedinUrl={mentorData.linkedin_url}
+                onUpdate={fetchData}
+              />
+              
+              <MentorTagsEditor
+                mentorId={mentorData.id}
                 onUpdate={fetchData}
               />
             </motion.div>
