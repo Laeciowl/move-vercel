@@ -206,36 +206,17 @@ const MentorProfileEditor = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="mentor-name" className="flex items-center gap-1.5 text-sm">
-                <User className="w-3.5 h-3.5 text-muted-foreground" />
-                Nome de exibição *
+              <Label htmlFor="mentor-education" className="flex items-center gap-1.5 text-sm">
+                <GraduationCap className="w-3.5 h-3.5 text-muted-foreground" />
+                Formação
               </Label>
               <Input
-                id="mentor-name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="Seu nome como mentor"
+                id="mentor-education"
+                value={formData.education}
+                onChange={(e) => setFormData({ ...formData, education: e.target.value })}
+                placeholder="Ex: Engenharia de Software - USP"
                 className="bg-background"
               />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="mentor-area" className="flex items-center gap-1.5 text-sm">
-                <Briefcase className="w-3.5 h-3.5 text-muted-foreground" />
-                Área de atuação *
-              </Label>
-              <select
-                id="mentor-area"
-                value={formData.area}
-                onChange={(e) => setFormData({ ...formData, area: e.target.value })}
-                className="w-full px-3 py-2 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-              >
-                {areaOptions.map((opt) => (
-                  <option key={opt} value={opt}>
-                    {opt}
-                  </option>
-                ))}
-              </select>
             </div>
 
             <div className="space-y-2">
