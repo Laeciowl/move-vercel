@@ -255,10 +255,14 @@ const MentorPanel = () => {
           mentorId={mentorData.id}
           photoUrl={mentorData.photo_url ?? null}
           name={mentorData.name}
-          area={mentorData.area}
           description={mentorData.description}
           education={mentorData.education}
           linkedinUrl={mentorData.linkedin_url}
+          onUpdate={fetchMentorData}
+        />
+        
+        <MentorTagsEditor
+          mentorId={mentorData.id}
           onUpdate={fetchMentorData}
         />
       </motion.div>

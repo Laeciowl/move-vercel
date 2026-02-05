@@ -464,7 +464,6 @@ const VolunteerPanel = () => {
                 mentorId={mentorData.id}
                 photoUrl={mentorData.photo_url ?? null}
                 name={mentorData.name}
-                area={mentorData.area}
                 description={mentorData.description}
                 education={mentorData.education}
                 linkedinUrl={mentorData.linkedin_url}
