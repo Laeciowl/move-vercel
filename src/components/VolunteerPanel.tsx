@@ -470,6 +470,11 @@ const VolunteerPanel = () => {
                 linkedinUrl={mentorData.linkedin_url}
                 onUpdate={fetchData}
               />
+              
+              <MentorTagsEditor
+                mentorId={mentorData.id}
+                onUpdate={fetchData}
+              />
             </motion.div>
           </motion.div>
         )}
