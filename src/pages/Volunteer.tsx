@@ -8,7 +8,8 @@ import { z } from "zod";
 import { useAuth } from "@/contexts/AuthContext";
 import MentorDisclaimerModal from "@/components/MentorDisclaimerModal";
 import PasswordStrengthIndicator from "@/components/PasswordStrengthIndicator";
-
+import TagSelector, { type TagItem } from "@/components/TagSelector";
+import { useTags } from "@/hooks/useTags";
 const emailSchema = z.string().email("E-mail inválido").max(255);
 const nameSchema = z.string().min(2, "Nome deve ter pelo menos 2 caracteres").max(100);
 const passwordSchema = z
