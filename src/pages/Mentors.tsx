@@ -474,9 +474,32 @@ const Mentors = () => {
                     <h3 className="text-xl font-bold text-foreground mb-1">
                       {mentor.name}
                     </h3>
-                    <p className="text-primary font-medium text-sm mb-3">
-                      {mentor.area}
-                    </p>
+                    
+                    {/* Tags as area description */}
+                    {mentor.tags.length > 0 ? (
+                      <div className="flex flex-wrap gap-1.5 mb-3">
+                        {mentor.tags.map((tag) => {
+                          const isMatching = mentor.matchingTags.some(mt => mt.id === tag.id);
+                          return (
+                            <span
+                              key={tag.id}
+                              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium ${
+                                isMatching
+                                  ? "bg-amber-100 text-amber-800 border border-amber-300 dark:bg-amber-950/30 dark:text-amber-200 dark:border-amber-700"
+                                  : "bg-primary/10 text-primary border border-primary/20"
+                              }`}
+                            >
+                              {isMatching && <Star className="w-3 h-3 fill-amber-400 text-amber-400" />}
+                              {tag.name}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-primary font-medium text-sm mb-3">
+                        {mentor.area}
+                      </p>
+                    )}
 
                     {mentor.education && (
                       <div className="flex items-start gap-2 mb-3">
@@ -491,33 +514,6 @@ const Mentors = () => {
                       {mentor.description}
                     </p>
                   </div>
-
-                  {/* Mentor Tags */}
-                  {mentor.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mb-3">
-                      {mentor.tags.slice(0, 3).map((tag) => {
-                        const isMatching = mentor.matchingTags.some(mt => mt.id === tag.id);
-                        return (
-                          <span
-                            key={tag.id}
-                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
-                              isMatching
-                                ? "bg-amber-100 text-amber-800 border border-amber-300 dark:bg-amber-950/30 dark:text-amber-200 dark:border-amber-700"
-                                : "bg-primary/10 text-primary border border-primary/20"
-                            }`}
-                          >
-                            {isMatching && <Star className="w-3 h-3 fill-amber-400 text-amber-400" />}
-                            {tag.name}
-                          </span>
-                        );
-                      })}
-                      {mentor.tags.length > 3 && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground">
-                          +{mentor.tags.length - 3}
-                        </span>
-                      )}
-                    </div>
-                  )}
 
                   {/* Session count + Reviews - separated clearly */}
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-3 text-sm">
