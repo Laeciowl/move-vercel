@@ -64,12 +64,20 @@ const Header = () => {
           </Link>
         </nav>
 
-        <Link
-          to="/cadastro"
-          className="md:hidden bg-gradient-hero text-primary-foreground px-4 py-2 rounded-lg font-semibold text-sm"
-        >
-          Inscreva-se
-        </Link>
+        <div className="md:hidden flex items-center gap-3">
+          <Link
+            to="/auth"
+            className="text-muted-foreground hover:text-foreground transition-colors font-medium text-sm"
+          >
+            Entrar
+          </Link>
+          <Link
+            to="/cadastro"
+            className="bg-gradient-hero text-primary-foreground px-4 py-2 rounded-lg font-semibold text-sm"
+          >
+            Inscreva-se
+          </Link>
+        </div>
       </div>
     </motion.header>
   );
