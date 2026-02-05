@@ -468,6 +468,18 @@ const Dashboard = () => {
               </motion.div>
             )}
 
+            {/* Mentee Interests - Only for non-volunteers */}
+            {!isVolunteer && (
+              <motion.div
+                initial={{ opacity: 0, x: 16 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.22 }}
+                className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/30 p-5"
+              >
+                <MenteeInterestsEditor />
+              </motion.div>
+            )}
+
             {/* Impact History - Only for students */}
             {!isVolunteer && impactHistory.length > 0 && (
               <motion.div
