@@ -97,11 +97,57 @@ const Mentors = () => {
 
   useEffect(() => {
     const fetchMentors = async () => {
-      // Use secure RPC function to get public mentor data
-      const { data, error } = await supabase.rpc("get_public_mentors");
+      // Use secure RPC function to get mentors with match data
+      const { data, error } = await supabase.rpc("get_mentors_with_match", {
+        user_id_param: user?.id || null,
+      });
 
       if (error) {
         console.error("Error fetching mentors:", error);
+        // Fallback to public mentors
+        const { data: fallbackData } = await supabase.rpc("get_public_mentors");
+        if (fallbackData) {
+          const mentorIds = fallbackData.map(m => m.id).filter(Boolean) as string[];
+          const { data: reviewsData } = await supabase
+            .from("session_reviews")
+            .select("*")
+            .in("mentor_id", mentorIds)
+            .order("created_at", { ascending: false });
+
+          const reviewsByMentor = new Map<string, Review[]>();
+          (reviewsData || []).forEach(review => {
+            const existing = reviewsByMentor.get(review.mentor_id) || [];
+            existing.push({
+              id: review.id,
+              comment: review.comment,
+              created_at: review.created_at
+            });
+            reviewsByMentor.set(review.mentor_id, existing);
+          });
+
+          const formattedMentors = fallbackData.map((m) => {
+            const mentorReviews = reviewsByMentor.get(m.id!) || [];
+            const reviewsWithComments = mentorReviews.filter(r => r.comment?.trim()).length;
+            return {
+              id: m.id!,
+              name: m.name!,
+              area: m.area!,
+              description: m.description!,
+              education: m.education || null,
+              photo_url: m.photo_url || null,
+              availability: (m.availability as unknown as Availability[]) || [],
+              reviews: mentorReviews,
+              totalReviews: reviewsWithComments,
+              min_advance_hours: m.min_advance_hours ?? 24,
+              sessions_completed_count: m.sessions_completed_count ?? 0,
+              linkedin_url: m.linkedin_url ?? null,
+              tags: [],
+              matchCount: 0,
+              matchingTags: [],
+            };
+          });
+          setMentors(formattedMentors);
+        }
         setLoading(false);
         return;
       }
@@ -136,38 +182,34 @@ const Mentors = () => {
 
       const formattedMentors = data.map((m) => {
         const mentorReviews = reviewsByMentor.get(m.id!) || [];
-        // Only count reviews that have comments for display
         const reviewsWithComments = mentorReviews.filter(r => r.comment?.trim()).length;
 
         return {
-          ...m,
           id: m.id!,
           name: m.name!,
           area: m.area!,
           description: m.description!,
+          education: m.education || null,
+          photo_url: m.photo_url || null,
           availability: (m.availability as unknown as Availability[]) || [],
           reviews: mentorReviews,
           totalReviews: reviewsWithComments,
           min_advance_hours: m.min_advance_hours ?? 24,
           sessions_completed_count: m.sessions_completed_count ?? 0,
           linkedin_url: m.linkedin_url ?? null,
+          tags: (m.tags as unknown as TagItem[]) || [],
+          matchCount: m.match_count ?? 0,
+          matchingTags: (m.matching_tags as unknown as TagItem[]) || [],
         };
       });
 
-      // Sort by number of completed sessions (most first), then by reviews
-      formattedMentors.sort((a, b) => {
-        if (b.sessions_completed_count !== a.sessions_completed_count) {
-          return b.sessions_completed_count - a.sessions_completed_count;
-        }
-        return b.totalReviews - a.totalReviews;
-      });
-
+      // Mentors are already sorted by match_count in the RPC function
       setMentors(formattedMentors);
       setLoading(false);
     };
 
     fetchMentors();
-  }, []);
+  }, [user?.id]);
 
   const fetchBlockedPeriods = async (mentorId: string) => {
     const { data, error } = await supabase
