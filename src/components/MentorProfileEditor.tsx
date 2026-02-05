@@ -7,39 +7,21 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface MentorProfileEditorProps {
   mentorId: string;
   photoUrl?: string | null;
   name: string;
-  area: string;
   description: string;
   education: string | null;
   linkedinUrl?: string | null;
   onUpdate: () => void;
 }
 
-const areaOptions = [
-  "Tecnologia",
-  "Marketing",
-  "Design",
-  "Finanças",
-  "Operações",
-  "RH / Gestão de Pessoas",
-  "Vendas",
-  "Empreendedorismo",
-  "Jurídico",
-  "Engenharia",
-  "Comunicação",
-  "Outro",
-];
-
 const MentorProfileEditor = ({
   mentorId,
   photoUrl = null,
   name,
-  area,
   description,
   education,
   linkedinUrl = null,
