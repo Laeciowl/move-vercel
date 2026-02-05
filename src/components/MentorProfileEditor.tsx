@@ -90,7 +90,7 @@ const MentorProfileEditor = ({
   };
 
   const handleSave = async () => {
-    if (!formData.name.trim() || !formData.area.trim() || !formData.description.trim()) {
+    if (!formData.name.trim() || !formData.description.trim()) {
       toast.error("Preencha todos os campos obrigatórios");
       return;
     }
@@ -108,7 +108,6 @@ const MentorProfileEditor = ({
       .update({
         photo_url: formData.photoUrl.trim() || null,
         name: formData.name.trim(),
-        area: formData.area.trim(),
         description: formData.description.trim(),
         education: formData.education.trim() || null,
         linkedin_url: formData.linkedinUrl.trim() || null,
