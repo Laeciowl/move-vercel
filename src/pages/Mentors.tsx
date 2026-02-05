@@ -711,6 +711,40 @@ const Mentors = () => {
                   </div>
                 )}
 
+                {/* Tags */}
+                {selectedMentorForProfile.tags.length > 0 && (
+                  <div className="mb-4">
+                    <h3 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
+                      <Tag className="w-4 h-4" />
+                      Áreas de Mentoria
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedMentorForProfile.tags.map((tag) => {
+                        const isMatching = selectedMentorForProfile.matchingTags.some(mt => mt.id === tag.id);
+                        return (
+                          <span
+                            key={tag.id}
+                            className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${
+                              isMatching
+                                ? "bg-amber-100 text-amber-800 border border-amber-300 dark:bg-amber-950/30 dark:text-amber-200 dark:border-amber-700"
+                                : "bg-primary/10 text-primary border border-primary/20"
+                            }`}
+                          >
+                            {isMatching && <Star className="w-3 h-3 fill-amber-400 text-amber-400" />}
+                            {tag.name}
+                          </span>
+                        );
+                      })}
+                    </div>
+                    {selectedMentorForProfile.matchCount > 0 && (
+                      <p className="text-xs text-amber-700 dark:text-amber-300 mt-2 flex items-center gap-1">
+                        <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                        = áreas que combinam com seus interesses
+                      </p>
+                    )}
+                  </div>
+                )}
+
                 <div className="mb-4">
                   <h3 className="text-sm font-semibold text-foreground mb-2">Sobre</h3>
                   <p className="text-muted-foreground text-sm whitespace-pre-wrap">
