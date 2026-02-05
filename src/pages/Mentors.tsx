@@ -78,6 +78,8 @@ const Mentors = () => {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
   const { isMentor, mentorId: currentUserMentorId } = useMentorCheck();
+  const { tags: availableTags } = useTags();
+  const { interests: userInterests } = useMenteeInterests(user?.id || null);
   const [mentors, setMentors] = useState<Mentor[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedMentor, setSelectedMentor] = useState<Mentor | null>(null);
@@ -89,6 +91,9 @@ const Mentors = () => {
   const [selectedMentorForReviews, setSelectedMentorForReviews] = useState<Mentor | null>(null);
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
   const [selectedMentorForProfile, setSelectedMentorForProfile] = useState<Mentor | null>(null);
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+
+  const userInterestTagIds = useMemo(() => userInterests.map(t => t.id), [userInterests]);
 
   useEffect(() => {
     const fetchMentors = async () => {
