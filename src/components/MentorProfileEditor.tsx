@@ -206,15 +206,15 @@ const MentorProfileEditor = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="mentor-education" className="flex items-center gap-1.5 text-sm">
-                <GraduationCap className="w-3.5 h-3.5 text-muted-foreground" />
-                Formação
+              <Label htmlFor="mentor-name" className="flex items-center gap-1.5 text-sm">
+                <User className="w-3.5 h-3.5 text-muted-foreground" />
+                Nome de exibição *
               </Label>
               <Input
-                id="mentor-education"
-                value={formData.education}
-                onChange={(e) => setFormData({ ...formData, education: e.target.value })}
-                placeholder="Ex: Engenharia de Software - USP"
+                id="mentor-name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                placeholder="Seu nome como mentor"
                 className="bg-background"
               />
             </div>
