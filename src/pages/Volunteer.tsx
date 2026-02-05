@@ -352,6 +352,16 @@ const Volunteer = () => {
         }
       }
 
+      // Insert mentor tags
+      if (mentorData && selectedTags.length > 0) {
+        const tagInserts = selectedTags.map(tag => ({
+          mentor_id: mentorData.id,
+          tag_id: tag.id,
+        }));
+        
+        await supabase.from("mentor_tags").insert(tagInserts);
+      }
+
       // Send mentor application email (since all volunteers are now mentors)
       try {
         await supabase.functions.invoke("send-notification-email", {
@@ -360,7 +370,7 @@ const Volunteer = () => {
             name: formData.name.trim(),
             type: "mentor_application_received",
             data: {
-              area: formData.area.trim(),
+              area: selectedTags.map(t => t.name).join(", ") || "Mentoria",
             },
             skipPreferenceCheck: true,
           },
