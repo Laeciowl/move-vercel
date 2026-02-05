@@ -78,11 +78,13 @@ const Volunteer = () => {
     email: "",
     password: "",
     phone: "",
-    area: "",
     // Mentor fields - todos voluntários são mentores
     description: "",
     education: "",
   });
+  
+  const [selectedTags, setSelectedTags] = useState<TagItem[]>([]);
+  const { tags: availableTags, loading: tagsLoading } = useTags();
   
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
