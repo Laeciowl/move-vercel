@@ -10,6 +10,7 @@ import MentorSessionConfirmation from "./MentorSessionConfirmation";
 import MentorAvailabilityEditor from "./MentorAvailabilityEditor";
 import MentorProfileEditor from "./MentorProfileEditor";
 import MentorAdvanceNoticeEditor from "./MentorAdvanceNoticeEditor";
+import MentorTagsEditor from "./MentorTagsEditor";
 import SessionManagement from "./SessionManagement";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
