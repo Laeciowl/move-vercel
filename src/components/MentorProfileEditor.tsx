@@ -34,7 +34,6 @@ const MentorProfileEditor = ({
   const [formData, setFormData] = useState({
     photoUrl: photoUrl || "",
     name,
-    area,
     description,
     education: education || "",
     linkedinUrl: linkedinUrl || "",
