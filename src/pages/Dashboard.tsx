@@ -673,7 +673,7 @@ const Dashboard = () => {
 
       {/* Interests Onboarding Modal */}
       <InterestsOnboardingModal
-        isOpen={showInterestsOnboarding}
+        open={showInterestsOnboarding}
         onClose={() => setShowInterestsOnboarding(false)}
       />
     </div>
