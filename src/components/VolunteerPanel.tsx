@@ -11,6 +11,7 @@ import MentorSessionConfirmation from "./MentorSessionConfirmation";
 import MentorProfileEditor from "./MentorProfileEditor";
 import MentorTagsEditor from "./MentorTagsEditor";
 import ContentSubmissionModal from "./ContentSubmissionModal";
+import MentorProgressMilestones from "./MentorProgressMilestones";
 import { isPast } from "date-fns";
 
 interface Submission {
