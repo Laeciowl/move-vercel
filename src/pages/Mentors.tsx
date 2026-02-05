@@ -211,6 +211,14 @@ const Mentors = () => {
     fetchMentors();
   }, [user?.id]);
 
+  // Filter mentors by selected tags
+  const filteredMentors = useMemo(() => {
+    if (selectedTagIds.length === 0) return mentors;
+    
+    return mentors.filter(mentor => 
+      mentor.tags.some(tag => selectedTagIds.includes(tag.id))
+    );
+  }, [mentors, selectedTagIds]);
   const fetchBlockedPeriods = async (mentorId: string) => {
     const { data, error } = await supabase
       .from("mentor_blocked_periods")
