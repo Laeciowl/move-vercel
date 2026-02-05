@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
   LogOut, RefreshCw, User, 
-  Loader2, History, Edit, Shield, Heart, Sparkles, ExternalLink, MessageCircle, Settings, Briefcase
+  Loader2, History, Edit, Shield, Heart, Sparkles, ExternalLink, MessageCircle, Settings, Briefcase, Target
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
@@ -21,6 +21,8 @@ import OnboardingTour from "@/components/OnboardingTour";
 import FirstMentorshipMission from "@/components/FirstMentorshipMission";
 import PlatformGuide from "@/components/PlatformGuide";
 import PendingMentorBanner from "@/components/PendingMentorBanner";
+import MenteeInterestsEditor from "@/components/MenteeInterestsEditor";
+import InterestsOnboardingModal from "@/components/InterestsOnboardingModal";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
