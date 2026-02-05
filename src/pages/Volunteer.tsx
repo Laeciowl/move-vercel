@@ -176,8 +176,13 @@ const Volunteer = () => {
       }
     }
 
-    if (!formData.area.trim()) {
-      toast.error("Conta pra gente qual é sua área de atuação!");
+    if (selectedTags.length === 0) {
+      toast.error("Selecione pelo menos uma área de atuação!");
+      return false;
+    }
+    
+    if (selectedTags.length > 5) {
+      toast.error("Selecione no máximo 5 áreas de atuação!");
       return false;
     }
 
