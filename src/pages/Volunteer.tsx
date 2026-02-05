@@ -288,7 +288,7 @@ const Volunteer = () => {
           .insert({
             name: formData.name.trim(),
             email: formData.email.trim(),
-            area: formData.area.trim(),
+            area: selectedTags.map(t => t.name).join(", ") || "Mentoria",
             how_to_help: "Mentoria, Aulas/Lives, Templates",
             categories: ["mentoria", "aulas_lives", "templates_arquivos"],
             user_id: currentUserId,
