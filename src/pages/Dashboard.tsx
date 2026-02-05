@@ -396,6 +396,13 @@ const Dashboard = () => {
         >
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
+            {/* Interests Notification Banner - For non-volunteers who haven't set interests */}
+            {!isVolunteer && !isPendingMentor && (
+              <InterestsNotificationBanner 
+                onOpenInterestsEditor={() => setShowInterestsOnboarding(true)} 
+              />
+            )}
+
             {/* First Mentorship Mission - Only for non-volunteers who are NOT pending mentors */}
             {!isVolunteer && !isPendingMentor && (
               <FirstMentorshipMission isCompleted={profile?.first_mentorship_booked || false} />
