@@ -670,6 +670,12 @@ const Dashboard = () => {
           }} 
         />
       )}
+
+      {/* Interests Onboarding Modal */}
+      <InterestsOnboardingModal
+        isOpen={showInterestsOnboarding}
+        onClose={() => setShowInterestsOnboarding(false)}
+      />
     </div>
   );
 };
