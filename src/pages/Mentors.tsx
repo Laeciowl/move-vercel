@@ -399,13 +399,30 @@ const Mentors = () => {
           </motion.div>
         )}
 
+        {/* Tag Filter */}
+        {!loading && mentors.length > 0 && availableTags.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="mb-8"
+          >
+            <MentorTagFilter
+              availableTags={availableTags}
+              selectedTagIds={selectedTagIds}
+              onFilterChange={setSelectedTagIds}
+              userInterestTagIds={userInterestTagIds}
+            />
+          </motion.div>
+        )}
+
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
-        ) : mentors.length > 0 ? (
+        ) : filteredMentors.length > 0 ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {mentors.map((mentor, index) => (
+            {filteredMentors.map((mentor, index) => (
               <motion.div
                 key={mentor.id}
                 initial={{ opacity: 0, y: 20 }}
