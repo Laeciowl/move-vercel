@@ -327,17 +327,17 @@ const Volunteer = () => {
           }
         }
 
-        const { error: mentorError } = await supabase.from("mentors").insert([{
+        const { data: mentorData, error: mentorError } = await supabase.from("mentors").insert([{
           name: formData.name.trim(),
           email: formData.email.trim(),
-          area: formData.area.trim(),
+          area: selectedTags.map(t => t.name).join(", ") || "Mentoria",
           description: formData.description.trim(),
           education: formData.education.trim() || null,
           photo_url: photoUrl,
           availability: JSON.parse(JSON.stringify(availability)),
           disclaimer_accepted: true,
           disclaimer_accepted_at: new Date().toISOString(),
-        }]);
+        }]).select('id').single();
 
         if (mentorError) {
           console.error("Mentor insert error:", mentorError);
