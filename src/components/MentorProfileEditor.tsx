@@ -312,11 +312,7 @@ const MentorProfileEditor = ({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <p className="text-xs text-muted-foreground font-medium">Área</p>
-                <p className="text-sm text-foreground">{area}</p>
-              </div>
+            <div className="grid grid-cols-1 gap-3">
               <div>
                 <p className="text-xs text-muted-foreground font-medium">Formação</p>
                 <p className="text-sm text-foreground">{education || "—"}</p>
