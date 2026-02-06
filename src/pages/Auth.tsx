@@ -146,7 +146,7 @@ const Auth = () => {
       toast.error(error.message);
     } else {
       toast.success("Senha nova salva! Agora você já pode usar.");
-      navigate("/dashboard");
+      navigate("/inicio");
     }
     
     setLoading(false);

@@ -341,7 +341,7 @@ const Signup = () => {
         }
         
         toast.success("Pronto! Sua conta foi criada 🎉");
-        navigate("/dashboard");
+        navigate("/inicio");
       }
     } catch (error: any) {
       console.error("Signup error:", error);

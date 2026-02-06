@@ -188,7 +188,7 @@ const MentorAgenda = () => {
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <p className="text-muted-foreground mb-4">Você não tem acesso a esta página.</p>
-          <Button onClick={() => navigate("/dashboard")}>Voltar ao Dashboard</Button>
+          <Button onClick={() => navigate("/inicio")}>Voltar ao Dashboard</Button>
         </div>
       </div>
     );
