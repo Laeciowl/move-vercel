@@ -4,40 +4,12 @@ import { Trophy } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface MentorAchievementsBadgesProps {
-  mentorUserId: string | null;
+  mentorId: string;
+  allAchievements?: { icon: string; name: string }[];
 }
 
-interface UnlockedAchievement {
-  icon: string;
-  name: string;
-}
-
-const MentorAchievementsBadges = ({ mentorUserId }: MentorAchievementsBadgesProps) => {
-  const [achievements, setAchievements] = useState<UnlockedAchievement[]>([]);
-
-  useEffect(() => {
-    if (!mentorUserId) return;
-
-    const fetch = async () => {
-      const { data } = await supabase
-        .from("user_achievements")
-        .select("unlocked_at, achievement:achievements(icon, name)")
-        .eq("user_id", mentorUserId)
-        .not("unlocked_at", "is", null);
-
-      if (data) {
-        const mapped = data
-          .filter((d: any) => d.achievement)
-          .map((d: any) => ({
-            icon: d.achievement.icon,
-            name: d.achievement.name,
-          }));
-        setAchievements(mapped);
-      }
-    };
-
-    fetch();
-  }, [mentorUserId]);
+const MentorAchievementsBadges = ({ mentorId, allAchievements }: MentorAchievementsBadgesProps) => {
+  const achievements = allAchievements || [];
 
   if (achievements.length === 0) return null;
 
