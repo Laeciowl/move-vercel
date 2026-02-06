@@ -55,6 +55,83 @@ export const useAchievements = () => {
 
   const userType = isMentor ? "mentor" : "mentorado";
 
+  const syncAchievementProgress = useCallback(async (
+    achievementsList: Achievement[],
+    computedStats: AchievementStats
+  ) => {
+    if (!user || achievementsList.length === 0) return;
+
+    const getProgressForAchievement = (ach: Achievement): number => {
+      switch (ach.category) {
+        case "mentorias":
+          return computedStats.totalMentorias;
+        case "tempo":
+          return computedStats.totalMinutes;
+        case "impacto":
+          return computedStats.uniqueContacts;
+        case "conteudo":
+          return ach.criteria_type === "count" ? computedStats.contentAccessed : computedStats.contentSaved;
+        case "exploracao":
+        case "areas":
+          return computedStats.areasExplored;
+        case "engajamento":
+          return computedStats.reviewsGiven;
+        case "consistencia":
+          return computedStats.currentStreak;
+        default:
+          return 0;
+      }
+    };
+
+    const upserts = achievementsList.map(ach => {
+      const progress = getProgressForAchievement(ach);
+      const isUnlocked = progress >= ach.criteria_value;
+      return {
+        user_id: user.id,
+        achievement_id: ach.id,
+        progress,
+        unlocked_at: isUnlocked ? new Date().toISOString() : null,
+      };
+    });
+
+    // Fetch existing to preserve original unlocked_at
+    const { data: existing } = await supabase
+      .from("user_achievements")
+      .select("*")
+      .eq("user_id", user.id);
+
+    const existingMap = new Map((existing || []).map(e => [e.achievement_id, e]));
+
+    for (const upsert of upserts) {
+      const prev = existingMap.get(upsert.achievement_id);
+      if (prev) {
+        // Update progress, preserve original unlocked_at if already unlocked
+        const updateData: any = { progress: upsert.progress };
+        if (!prev.unlocked_at && upsert.unlocked_at) {
+          updateData.unlocked_at = upsert.unlocked_at;
+        }
+        await supabase
+          .from("user_achievements")
+          .update(updateData)
+          .eq("id", prev.id);
+      } else {
+        await supabase
+          .from("user_achievements")
+          .insert(upsert);
+      }
+    }
+
+    // Re-fetch user achievements after sync
+    const { data: updatedData } = await supabase
+      .from("user_achievements")
+      .select("*")
+      .eq("user_id", user.id);
+
+    if (updatedData) {
+      setUserAchievements(updatedData as UserAchievement[]);
+    }
+  }, [user]);
+
   const fetchAchievements = useCallback(async () => {
     if (!user) return;
 
@@ -70,27 +147,27 @@ export const useAchievements = () => {
       setAchievements(achievementsData as Achievement[]);
     }
 
-    // Fetch user's achievement progress
-    const { data: userAchData } = await supabase
-      .from("user_achievements")
-      .select("*")
-      .eq("user_id", user.id);
+    // Calculate stats first
+    const computedStats = await calculateStats();
 
-    if (userAchData) {
-      setUserAchievements(userAchData as UserAchievement[]);
+    // Sync progress to DB
+    if (achievementsData && computedStats) {
+      await syncAchievementProgress(achievementsData as Achievement[], computedStats);
     }
 
-    // Calculate stats
-    await calculateStats();
-
     setLoading(false);
-  }, [user, userType, mentorId]);
+  }, [user, userType, mentorId, syncAchievementProgress]);
 
-  const calculateStats = async () => {
-    if (!user) return;
+  const calculateStats = async (): Promise<AchievementStats | null> => {
+    if (!user) return null;
+
+    const result: AchievementStats = {
+      totalMentorias: 0, totalMinutes: 0, uniqueContacts: 0,
+      areasExplored: 0, contentAccessed: 0, contentSaved: 0,
+      reviewsGiven: 0, currentStreak: 0,
+    };
 
     if (isMentor && mentorId) {
-      // Mentor stats
       const { data: sessions } = await supabase
         .from("mentor_sessions")
         .select("user_id, duration, scheduled_at, status")
@@ -105,18 +182,11 @@ export const useAchievements = () => {
           return endTime <= now;
         });
 
-        const totalMinutes = completedSessions.reduce((acc, s) => acc + (s.duration || 30), 0);
-        const uniqueMentees = new Set(completedSessions.map(s => s.user_id)).size;
-
-        setStats(prev => ({
-          ...prev,
-          totalMentorias: completedSessions.length,
-          totalMinutes,
-          uniqueContacts: uniqueMentees,
-        }));
+        result.totalMentorias = completedSessions.length;
+        result.totalMinutes = completedSessions.reduce((acc, s) => acc + (s.duration || 30), 0);
+        result.uniqueContacts = new Set(completedSessions.map(s => s.user_id)).size;
       }
     } else {
-      // Mentee stats
       const { data: sessions } = await supabase
         .from("mentor_sessions")
         .select("mentor_id, duration, scheduled_at, status")
@@ -131,23 +201,19 @@ export const useAchievements = () => {
           return endTime <= now;
         });
 
-        const totalMinutes = completedSessions.reduce((acc, s) => acc + (s.duration || 30), 0);
-        const uniqueMentors = new Set(completedSessions.map(s => s.mentor_id)).size;
+        result.totalMentorias = completedSessions.length;
+        result.totalMinutes = completedSessions.reduce((acc, s) => acc + (s.duration || 30), 0);
+        result.uniqueContacts = new Set(completedSessions.map(s => s.mentor_id)).size;
 
-        // Count areas explored via mentor tags
         const mentorIds = [...new Set(completedSessions.map(s => s.mentor_id))];
-        let areasExplored = 0;
         if (mentorIds.length > 0) {
           const { data: tags } = await supabase
             .from("mentor_tags")
             .select("tag_id")
             .in("mentor_id", mentorIds);
-          if (tags) {
-            areasExplored = new Set(tags.map(t => t.tag_id)).size;
-          }
+          if (tags) result.areasExplored = new Set(tags.map(t => t.tag_id)).size;
         }
 
-        // Content stats
         const { count: contentCount } = await supabase
           .from("content_access_log")
           .select("*", { count: "exact", head: true })
@@ -158,24 +224,19 @@ export const useAchievements = () => {
           .select("*", { count: "exact", head: true })
           .eq("user_id", user.id);
 
-        // Reviews
         const { count: reviewCount } = await supabase
           .from("session_reviews")
           .select("*", { count: "exact", head: true })
           .eq("user_id", user.id);
 
-        setStats(prev => ({
-          ...prev,
-          totalMentorias: completedSessions.length,
-          totalMinutes,
-          uniqueContacts: uniqueMentors,
-          areasExplored,
-          contentAccessed: contentCount || 0,
-          contentSaved: saveCount || 0,
-          reviewsGiven: reviewCount || 0,
-        }));
+        result.contentAccessed = contentCount || 0;
+        result.contentSaved = saveCount || 0;
+        result.reviewsGiven = reviewCount || 0;
       }
     }
+
+    setStats(result);
+    return result;
   };
 
   useEffect(() => {
