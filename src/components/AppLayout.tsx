@@ -41,6 +41,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
         { path: "/mentores", label: "Mentores", icon: Users },
         { path: "/conquistas", label: "Conquistas", icon: Trophy },
         { path: "/conteudos", label: "Conteúdos", icon: BookOpen },
+        { path: "/ajuda", label: "Ajuda", icon: HelpCircle },
       ];
     }
 
