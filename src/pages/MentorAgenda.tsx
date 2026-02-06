@@ -200,8 +200,47 @@ const MentorAgenda = () => {
   }
 
   const scheduledSessions = sessions.filter((s) => s.status === "scheduled");
-  const pastSessions = scheduledSessions.filter((s) => isSessionPast(s.scheduled_at, s.duration || 30));
+  const completedSessions = sessions.filter((s) => s.status === "completed");
+  const pastScheduledSessions = scheduledSessions.filter((s) => isSessionPast(s.scheduled_at, s.duration || 30));
   const upcomingSessions = scheduledSessions.filter((s) => !isSessionPast(s.scheduled_at, s.duration || 30));
+  // Past sessions: completed + past scheduled (needing confirmation)
+  const pastSessions = [...completedSessions, ...pastScheduledSessions];
+
+  const handleConfirmCompletion = async (sessionId: string) => {
+    const { error } = await supabase
+      .from("mentor_sessions")
+      .update({
+        status: "completed",
+        completed_at: new Date().toISOString(),
+      })
+      .eq("id", sessionId);
+
+    if (error) {
+      toast.error("Erro ao confirmar sessão: " + error.message);
+      return;
+    }
+
+    toast.success("Sessão confirmada como realizada! 🎉");
+    fetchData();
+  };
+
+  const handleMarkNotCompleted = async (sessionId: string) => {
+    const { error } = await supabase
+      .from("mentor_sessions")
+      .update({
+        status: "cancelled",
+        mentor_notes: "Sessão não realizada (confirmado pelo mentor)",
+      })
+      .eq("id", sessionId);
+
+    if (error) {
+      toast.error("Erro: " + error.message);
+      return;
+    }
+
+    toast.success("Sessão marcada como não realizada");
+    fetchData();
+  };
 
   return (
     <div className="min-h-screen bg-gradient-warm py-8 px-4">
