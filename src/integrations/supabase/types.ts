@@ -1002,6 +1002,10 @@ export type Database = {
         Returns: boolean
       }
       is_own_profile: { Args: { profile_user_id: string }; Returns: boolean }
+      process_referral_on_signup: {
+        Args: { new_user_id: string; ref_code: string }
+        Returns: undefined
+      }
     }
     Enums: {
       achievement_category:

@@ -313,18 +313,10 @@ const Signup = () => {
         const refCode = searchParams.get("ref");
         if (refCode) {
           try {
-            const { data: referral } = await supabase
-              .from("referrals")
-              .select("id")
-              .eq("referral_code", refCode)
-              .is("referred_user_id", null)
-              .limit(1);
-            if (referral && referral.length > 0) {
-              await supabase
-                .from("referrals")
-                .update({ referred_user_id: authData.user.id, status: "completed" })
-                .eq("id", referral[0].id);
-            }
+            await supabase.rpc("process_referral_on_signup", {
+              ref_code: refCode,
+              new_user_id: authData.user.id,
+            });
           } catch (e) {
             console.error("Error processing referral:", e);
           }
