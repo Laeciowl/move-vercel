@@ -54,7 +54,7 @@ const Auth = () => {
 
   useEffect(() => {
     if (!authLoading && user && view !== "reset-password") {
-      navigate("/dashboard");
+      navigate("/inicio");
     }
   }, [user, authLoading, navigate, view]);
 
