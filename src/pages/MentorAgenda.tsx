@@ -17,6 +17,8 @@ import SessionManagement from "@/components/SessionManagement";
 import WhatsAppTemplates from "@/components/WhatsAppTemplates";
 import { format, isPast } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { toast } from "sonner";
+import { ptBR } from "date-fns/locale";
 
 interface MentorData {
   id: string;
