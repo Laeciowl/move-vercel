@@ -69,24 +69,23 @@ const Help = () => {
           transition={{ delay: 0.2 }}
           className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/30 p-5"
         >
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center">
-              <MessageCircle className="w-5 h-5 text-green-600" />
+           <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
+              <ExternalLink className="w-5 h-5 text-blue-600" />
             </div>
             <div>
               <h3 className="font-semibold text-foreground">Precisa de ajuda?</h3>
-              <p className="text-sm text-muted-foreground">Fale com a gente pelo WhatsApp</p>
+              <p className="text-sm text-muted-foreground">Fale com a gente pelo LinkedIn</p>
             </div>
           </div>
           <a
-            href="https://chat.whatsapp.com/BFDDkhbwz5aFdg6WhIFU6C"
+            href="https://www.linkedin.com/in/laecio-rodrigues"
             target="_blank"
             rel="noopener noreferrer"
           >
-            <Button className="w-full bg-green-600 hover:bg-green-700 text-white gap-2 rounded-xl">
-              <MessageCircle className="w-4 h-4" />
-              Falar com Suporte
-              <ExternalLink className="w-3 h-3" />
+            <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white gap-2 rounded-xl">
+              <ExternalLink className="w-4 h-4" />
+              Falar com Suporte no LinkedIn
             </Button>
           </a>
         </motion.div>

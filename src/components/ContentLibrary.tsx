@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Video, FileText, BookOpen, Loader2, Play, ExternalLink, 
-  X, Filter, ChevronDown, SortDesc
+  X, Filter, ChevronDown, SortDesc, Bookmark, BookmarkCheck, Eye
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -19,6 +20,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { toast } from "sonner";
 
 interface ContentItem {
   id: string;
@@ -68,6 +70,7 @@ const typeLabels: Record<string, string> = {
 const ITEMS_PER_PAGE = 9;
 
 const ContentLibrary = () => {
+  const { user } = useAuth();
   const [contents, setContents] = useState<ContentItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedType, setSelectedType] = useState<string>("all");
@@ -75,10 +78,16 @@ const ContentLibrary = () => {
   const [selectedTheme, setSelectedTheme] = useState<string>("all");
   const [page, setPage] = useState(1);
   const [selectedContent, setSelectedContent] = useState<ContentItem | null>(null);
+  const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
+  const [accessedIds, setAccessedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetchContents();
-  }, []);
+    if (user) {
+      fetchSaves();
+      fetchAccessed();
+    }
+  }, [user]);
 
   const fetchContents = async () => {
     setLoading(true);
@@ -91,6 +100,44 @@ const ContentLibrary = () => {
       setContents(data as ContentItem[]);
     }
     setLoading(false);
+  };
+
+  const fetchSaves = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("content_saves")
+      .select("content_id")
+      .eq("user_id", user.id);
+    if (data) setSavedIds(new Set(data.map(d => d.content_id)));
+  };
+
+  const fetchAccessed = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("content_access_log")
+      .select("content_id")
+      .eq("user_id", user.id);
+    if (data) setAccessedIds(new Set(data.map(d => d.content_id)));
+  };
+
+  const toggleSave = async (e: React.MouseEvent, contentId: string) => {
+    e.stopPropagation();
+    if (!user) return;
+    if (savedIds.has(contentId)) {
+      await supabase.from("content_saves").delete().eq("user_id", user.id).eq("content_id", contentId);
+      setSavedIds(prev => { const n = new Set(prev); n.delete(contentId); return n; });
+      toast("Conteúdo removido dos salvos");
+    } else {
+      await supabase.from("content_saves").insert({ user_id: user.id, content_id: contentId });
+      setSavedIds(prev => new Set(prev).add(contentId));
+      toast("Conteúdo salvo!");
+    }
+  };
+
+  const logAccess = async (contentId: string) => {
+    if (!user || accessedIds.has(contentId)) return;
+    await supabase.from("content_access_log").insert({ user_id: user.id, content_id: contentId });
+    setAccessedIds(prev => new Set(prev).add(contentId));
   };
 
   // Filter and sort
@@ -124,6 +171,7 @@ const ContentLibrary = () => {
   };
 
   const handleContentClick = (content: ContentItem) => {
+    logAccess(content.id);
     if (content.item_type === "video") {
       setSelectedContent(content);
     } else {
@@ -318,26 +366,46 @@ const ContentLibrary = () => {
                       </p>
                     )}
 
-                    <div className="flex items-center gap-2 pt-1 flex-wrap">
-                      <Badge variant="secondary" className="text-xs">
-                        {content.item_type === "video" ? (
-                          <>
-                            <Video className="w-3 h-3 mr-1" />
-                            Vídeo
-                          </>
-                        ) : (
-                          <>
-                            <FileText className="w-3 h-3 mr-1" />
-                            Guia
-                          </>
+                    <div className="flex items-center justify-between pt-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Badge variant="secondary" className="text-xs">
+                          {content.item_type === "video" ? (
+                            <>
+                              <Video className="w-3 h-3 mr-1" />
+                              Vídeo
+                            </>
+                          ) : (
+                            <>
+                              <FileText className="w-3 h-3 mr-1" />
+                              Guia
+                            </>
+                          )}
+                        </Badge>
+                        <Badge variant="outline" className="text-xs">
+                          {areaLabels[content.area] || content.area}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {accessedIds.has(content.id) && (
+                          <span className="text-xs text-green-600 flex items-center gap-0.5" title="Visto">
+                            <Eye className="w-3.5 h-3.5" />
+                          </span>
                         )}
-                      </Badge>
-                      <Badge variant="outline" className="text-xs">
-                        {areaLabels[content.area] || content.area}
-                      </Badge>
-                      <Badge variant="outline" className="text-xs bg-muted/50">
-                        {themeLabels[content.category] || content.category}
-                      </Badge>
+                        <button
+                          onClick={(e) => toggleSave(e, content.id)}
+                          className={`p-1 rounded-lg transition-colors ${
+                            savedIds.has(content.id) 
+                              ? "text-primary" 
+                              : "text-muted-foreground hover:text-foreground"
+                          }`}
+                          title={savedIds.has(content.id) ? "Remover dos salvos" : "Salvar"}
+                        >
+                          {savedIds.has(content.id) 
+                            ? <BookmarkCheck className="w-4 h-4" /> 
+                            : <Bookmark className="w-4 h-4" />
+                          }
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </motion.div>

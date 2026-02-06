@@ -182,6 +182,84 @@ const Home = () => {
           </div>
         </motion.div>
 
+        {/* Quick Stats + Achievements Row */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {/* Achievements Preview - Compact */}
+          <motion.div
+            variants={{ initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 } }}
+            className="col-span-2 bg-card/50 backdrop-blur-sm rounded-2xl border border-border/30 p-4"
+          >
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Trophy className="w-4 h-4 text-primary" />
+              </div>
+              <h3 className="font-semibold text-foreground text-sm">Conquistas</h3>
+              <Link to="/conquistas" className="ml-auto text-xs text-primary hover:underline flex items-center gap-1">
+                Ver todas <ArrowRight className="w-3 h-3" />
+              </Link>
+            </div>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="flex-1">
+                <div className="flex items-center justify-between text-xs mb-1">
+                  <span className="text-muted-foreground">{unlockedCount}/{totalCount}</span>
+                  <span className="font-medium text-primary">{overallProgress}%</span>
+                </div>
+                <Progress value={overallProgress} className="h-2" />
+              </div>
+            </div>
+            {recentUnlocked.length > 0 && (
+              <div className="flex items-center gap-2 mt-2 flex-wrap">
+                {recentUnlocked.slice(0, 3).map(ach => (
+                  <span key={ach.id} className="text-sm" title={ach.name}>{ach.icon}</span>
+                ))}
+              </div>
+            )}
+            {nextAchievement && (
+              <p className="text-xs text-muted-foreground mt-2">
+                💡 Próxima: <strong className="text-foreground">{nextAchievement.name}</strong>
+              </p>
+            )}
+          </motion.div>
+
+          {/* Quick Stats */}
+          {!isVolunteer && (
+            <motion.div
+              variants={{ initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 } }}
+              className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/30 p-4 flex flex-col items-center justify-center text-center"
+            >
+              <span className="text-2xl font-bold text-primary">{stats.totalMentorias}</span>
+              <span className="text-xs text-muted-foreground">Mentorias</span>
+            </motion.div>
+          )}
+          {!isVolunteer && (
+            <motion.div
+              variants={{ initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 } }}
+              className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/30 p-4 flex flex-col items-center justify-center text-center"
+            >
+              <span className="text-2xl font-bold text-primary">{Math.round(stats.totalMinutes / 60 * 10) / 10}h</span>
+              <span className="text-xs text-muted-foreground">Aprendizado</span>
+            </motion.div>
+          )}
+          {isVolunteer && (
+            <>
+              <motion.div
+                variants={{ initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 } }}
+                className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/30 p-4 flex flex-col items-center justify-center text-center"
+              >
+                <span className="text-2xl font-bold text-primary">{stats.totalMentorias}</span>
+                <span className="text-xs text-muted-foreground">Mentorias</span>
+              </motion.div>
+              <motion.div
+                variants={{ initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 } }}
+                className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/30 p-4 flex flex-col items-center justify-center text-center"
+              >
+                <span className="text-2xl font-bold text-primary">{stats.uniqueContacts}</span>
+                <span className="text-xs text-muted-foreground">Vidas impactadas</span>
+              </motion.div>
+            </>
+          )}
+        </div>
+
         {/* Main Grid */}
         <div className="grid lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
@@ -206,56 +284,6 @@ const Home = () => {
 
           {/* Sidebar */}
           <div className="space-y-4">
-            {/* Achievements Preview */}
-            <motion.div
-              variants={{ initial: { opacity: 0, x: 16 }, animate: { opacity: 1, x: 0 } }}
-              className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/30 p-5"
-            >
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <Trophy className="w-4 h-4 text-primary" />
-                </div>
-                <h3 className="font-semibold text-foreground">Conquistas</h3>
-                <Link to="/conquistas" className="ml-auto text-xs text-primary hover:underline flex items-center gap-1">
-                  Ver todas <ArrowRight className="w-3 h-3" />
-                </Link>
-              </div>
-
-              {/* Progress */}
-              <div className="mb-4">
-                <div className="flex items-center justify-between text-xs mb-1">
-                  <span className="text-muted-foreground">{unlockedCount}/{totalCount}</span>
-                  <span className="font-medium text-primary">{overallProgress}%</span>
-                </div>
-                <Progress value={overallProgress} className="h-2" />
-              </div>
-
-              {/* Recent */}
-              {recentUnlocked.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-xs text-muted-foreground font-medium">Recentes:</p>
-                  {recentUnlocked.map(ach => (
-                    <div key={ach.id} className="flex items-center gap-2 text-sm">
-                      <span>{ach.icon}</span>
-                      <span className="text-foreground font-medium truncate">{ach.name}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Next */}
-              {nextAchievement && (
-                <div className="mt-3 pt-3 border-t border-border/30">
-                  <p className="text-xs text-muted-foreground">
-                    💡 Próxima: <strong className="text-foreground">{nextAchievement.name}</strong>
-                    {nextAchievement.criteria_value > 0 && (
-                      <span> ({nextAchievement.progress}/{nextAchievement.criteria_value})</span>
-                    )}
-                  </p>
-                </div>
-              )}
-            </motion.div>
-
             {/* Evolution */}
             {!isVolunteer && !isPendingMentor && (
               <motion.div
@@ -301,33 +329,6 @@ const Home = () => {
                 className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/30 p-5"
               >
                 <MenteeInterestsEditor />
-              </motion.div>
-            )}
-
-            {/* Impact History */}
-            {!isVolunteer && impactHistory.length > 0 && (
-              <motion.div
-                variants={{ initial: { opacity: 0, x: 16 }, animate: { opacity: 1, x: 0 } }}
-                className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/30 p-5"
-              >
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <History className="w-4 h-4 text-primary" />
-                  </div>
-                  <h3 className="font-semibold text-foreground">Sua trajetória</h3>
-                </div>
-                <div className="space-y-2 max-h-48 overflow-y-auto">
-                  {impactHistory.slice(0, 5).map((entry: any) => (
-                    <div key={entry.id} className="flex items-center justify-between py-2 px-3 rounded-lg bg-muted/30">
-                      <span className="text-sm font-medium text-foreground">
-                        {professionalStatusLabels[entry.professional_status]}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        {new Date(entry.recorded_at).toLocaleDateString("pt-BR")}
-                      </span>
-                    </div>
-                  ))}
-                </div>
               </motion.div>
             )}
 
