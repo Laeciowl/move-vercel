@@ -92,6 +92,8 @@ const VolunteerPanel = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { isVolunteer, loading: checkingVolunteer } = useVolunteerCheck();
+  const [mentorIdForTags, setMentorIdForTags] = useState<string | null>(null);
+  const { mentorTags } = useMentorTags(mentorIdForTags);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [mentorData, setMentorData] = useState<MentorData | null>(null);
   const [sessions, setSessions] = useState<MentorSession[]>([]);
