@@ -388,6 +388,16 @@ const VolunteerPanel = () => {
               </div>
             )}
 
+            {/* Mentor Certificate */}
+            {mentorData && mentorData.status === "approved" && stats.completedSessions > 0 && (
+              <MentorCertificate
+                mentorName={mentorData.name}
+                mentorPhotoUrl={mentorData.photo_url ?? null}
+                uniqueMentees={stats.uniqueMentees}
+                completedSessions={stats.completedSessions}
+              />
+            )}
+
             {/* Content Stats - Minimal */}
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-muted/30 rounded-xl p-4 text-center hover:bg-muted/50 transition-colors">
