@@ -9,6 +9,7 @@ interface MentorCertificateProps {
   mentorPhotoUrl: string | null;
   uniqueMentees: number;
   completedSessions: number;
+  totalMinutes?: number;
 }
 
 const MentorCertificate = ({
@@ -16,6 +17,7 @@ const MentorCertificate = ({
   mentorPhotoUrl,
   uniqueMentees,
   completedSessions,
+  totalMinutes = 0,
 }: MentorCertificateProps) => {
   const [generating, setGenerating] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
@@ -62,7 +64,7 @@ const MentorCertificate = ({
       setGenerating(false);
     }
 
-    const text = `🏆 Sou Mentor Movê!\n\nEu faço parte dos que movem a sociedade.\n\n📊 ${completedSessions} mentorias realizadas\n🌱 ${uniqueMentees} vidas impactadas\n\nO Movê é um hub gratuito de orientação profissional para jovens. Se você quer transformar vidas doando seu tempo e conhecimento, venha fazer parte!\n\n#MentorMovê #Mentoria #ImpactoSocial #Voluntariado`;
+    const text = `🏆 Sou Mentor Movê!\n\nEu faço parte dos que movem a sociedade.\n\n📊 ${completedSessions} mentorias realizadas\n🌱 ${uniqueMentees} vidas impactadas\n⏱️ ${totalMinutes} minutos transformando vidas\n\nO Movê é um hub gratuito de orientação profissional para jovens. Se você quer transformar vidas doando seu tempo e conhecimento, venha fazer parte!\n\n#MentorMovê #Mentoria #ImpactoSocial #Voluntariado`;
     const url = "https://movesocial.lovable.app";
     setTimeout(() => {
       window.open(
@@ -159,15 +161,20 @@ const MentorCertificate = ({
           </p>
 
           {/* Impact metrics */}
-          <div className="flex gap-8 mb-6">
+          <div className="flex gap-6 mb-6">
             <div className="text-center">
               <div className="text-3xl font-extrabold text-white">{completedSessions}</div>
-              <div className="text-[10px] text-orange-300/70 uppercase tracking-wider mt-0.5">mentorias realizadas</div>
+              <div className="text-[10px] text-orange-300/70 uppercase tracking-wider mt-0.5">mentorias</div>
             </div>
             <div className="w-px bg-orange-500/30" />
             <div className="text-center">
               <div className="text-3xl font-extrabold text-white">{uniqueMentees}</div>
               <div className="text-[10px] text-orange-300/70 uppercase tracking-wider mt-0.5">vidas impactadas</div>
+            </div>
+            <div className="w-px bg-orange-500/30" />
+            <div className="text-center">
+              <div className="text-3xl font-extrabold text-white">{totalMinutes}</div>
+              <div className="text-[10px] text-orange-300/70 uppercase tracking-wider mt-0.5">minutos</div>
             </div>
           </div>
 
