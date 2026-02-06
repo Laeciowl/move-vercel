@@ -159,6 +159,7 @@ const VolunteerPanel = () => {
       .maybeSingle();
 
     if (mentor) {
+      setMentorIdForTags(mentor.id);
       setMentorData({
         ...mentor,
         description: mentor.description || "",
