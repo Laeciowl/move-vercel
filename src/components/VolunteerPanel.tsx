@@ -13,6 +13,7 @@ import MentorTagsEditor from "./MentorTagsEditor";
 import ContentSubmissionModal from "./ContentSubmissionModal";
 import MentorProgressMilestones from "./MentorProgressMilestones";
 import { useMentorTags } from "@/hooks/useTags";
+import MentorCertificate from "./MentorCertificate";
 import { isPast } from "date-fns";
 
 interface Submission {
