@@ -178,7 +178,7 @@ const MentorCertificate = ({
             color: "#fff",
           }}>
             <span style={{ lineHeight: "1.2", verticalAlign: "middle" }}>Eu faço parte dos que&nbsp;</span>
-            <span style={{ color: "#f97316", fontWeight: 800, fontStyle: "normal", lineHeight: "1.2", verticalAlign: "middle" }}>MOVEM</span>
+            <span style={{ color: "#f97316", fontWeight: "inherit", fontStyle: "inherit", lineHeight: "1.2", verticalAlign: "middle" }}>MOVEM</span>
             <span style={{ lineHeight: "1.2", verticalAlign: "middle" }}>&nbsp;a sociedade.</span>
           </div>
 
