@@ -38,7 +38,7 @@ const AdminMentorSessionsPanel = () => {
       .from("mentor_sessions_with_names")
       .select("*")
       .order("scheduled_at", { ascending: false })
-      .limit(200);
+      .limit(1000);
 
     if (!error && data) {
       setSessions(data as unknown as SessionRow[]);
