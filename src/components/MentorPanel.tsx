@@ -11,6 +11,7 @@ import MentorAvailabilityEditor from "./MentorAvailabilityEditor";
 import MentorProfileEditor from "./MentorProfileEditor";
 import MentorAdvanceNoticeEditor from "./MentorAdvanceNoticeEditor";
 import MentorTagsEditor from "./MentorTagsEditor";
+import MentorFeaturedAchievementsEditor from "./MentorFeaturedAchievementsEditor";
 import SessionManagement from "./SessionManagement";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -265,6 +266,8 @@ const MentorPanel = () => {
           mentorId={mentorData.id}
           onUpdate={fetchMentorData}
         />
+
+        <MentorFeaturedAchievementsEditor mentorId={mentorData.id} />
       </motion.div>
 
       {/* Agenda */}

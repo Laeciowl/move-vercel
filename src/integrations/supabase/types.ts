@@ -287,6 +287,52 @@ export type Database = {
           },
         ]
       }
+      mentor_featured_achievements: {
+        Row: {
+          achievement_id: string
+          created_at: string
+          display_order: number
+          id: string
+          mentor_id: string
+        }
+        Insert: {
+          achievement_id: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          mentor_id: string
+        }
+        Update: {
+          achievement_id?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          mentor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mentor_featured_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mentor_featured_achievements_mentor_id_fkey"
+            columns: ["mentor_id"]
+            isOneToOne: false
+            referencedRelation: "mentors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mentor_featured_achievements_mentor_id_fkey"
+            columns: ["mentor_id"]
+            isOneToOne: false
+            referencedRelation: "mentors_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mentor_sessions: {
         Row: {
           completed_at: string | null
@@ -937,6 +983,17 @@ export type Database = {
           duration: number
           scheduled_at: string
           status: string
+        }[]
+      }
+      get_mentor_featured_achievements: {
+        Args: { mentor_ids: string[] }
+        Returns: {
+          achievement_id: string
+          achievement_name: string
+          description: string
+          display_order: number
+          icon: string
+          mentor_id: string
         }[]
       }
       get_mentor_sessions_completed_count: {

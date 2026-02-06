@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Calendar, Clock, User, Loader2, GraduationCap, MessageSquare, Award, Linkedin, Info, Star, Tag, Trophy } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, User, Loader2, GraduationCap, MessageSquare, Award, Linkedin, Info, Star, Tag } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMentorCheck } from "@/hooks/useMentorCheck";
@@ -20,6 +20,7 @@ import MentorReviewsList from "@/components/MentorReviewsList";
 import MentorShareButton from "@/components/MentorShareButton";
 import MentorTagFilter from "@/components/MentorTagFilter";
 import MentorMatchBadge from "@/components/MentorMatchBadge";
+import MentorFeaturedAchievements, { type FeaturedAchievement } from "@/components/MentorFeaturedAchievements";
 import { Button } from "@/components/ui/button";
 import type { TagItem } from "@/components/TagSelector";
 
@@ -92,7 +93,7 @@ const Mentors = () => {
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
   const [selectedMentorForProfile, setSelectedMentorForProfile] = useState<Mentor | null>(null);
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
-  const [mentorAchievementsMap, setMentorAchievementsMap] = useState<Record<string, { icon: string; name: string }[]>>({});
+  const [mentorFeaturedMap, setMentorFeaturedMap] = useState<Record<string, FeaturedAchievement[]>>({});
 
   const userInterestTagIds = useMemo(() => userInterests.map(t => t.id), [userInterests]);
 
@@ -207,19 +208,46 @@ const Mentors = () => {
       // Mentors are already sorted by match_count in the RPC function
       setMentors(formattedMentors);
 
-      // Fetch unlocked achievements for all mentors
+      // Fetch featured achievements for all mentors
       const allMentorIds = formattedMentors.map(m => m.id);
       if (allMentorIds.length > 0) {
-        const { data: achData } = await supabase.rpc("get_mentor_unlocked_achievements", {
+        const { data: featuredData } = await supabase.rpc("get_mentor_featured_achievements", {
           mentor_ids: allMentorIds,
         });
-        if (achData) {
-          const map: Record<string, { icon: string; name: string }[]> = {};
-          (achData as any[]).forEach((row: any) => {
-            if (!map[row.mentor_id]) map[row.mentor_id] = [];
-            map[row.mentor_id].push({ icon: row.icon, name: row.achievement_name });
+        let featuredMap: Record<string, FeaturedAchievement[]> = {};
+        if (featuredData) {
+          (featuredData as any[]).forEach((row: any) => {
+            if (!featuredMap[row.mentor_id]) featuredMap[row.mentor_id] = [];
+            featuredMap[row.mentor_id].push({
+              achievement_id: row.achievement_id,
+              icon: row.icon,
+              achievement_name: row.achievement_name,
+              description: row.description,
+              display_order: row.display_order,
+            });
           });
-          setMentorAchievementsMap(map);
+          setMentorFeaturedMap(featuredMap);
+        }
+
+        // Fallback: for mentors without featured achievements, use unlocked ones
+        const { data: achData } = await supabase.rpc("get_mentor_unlocked_achievements", {
+          mentor_ids: allMentorIds.filter(id => !featuredMap[id] || featuredMap[id].length === 0),
+        });
+        if (achData) {
+          const fallbackMap: Record<string, FeaturedAchievement[]> = {};
+          (achData as any[]).forEach((row: any) => {
+            if (!fallbackMap[row.mentor_id]) fallbackMap[row.mentor_id] = [];
+            if (fallbackMap[row.mentor_id].length < 4) {
+              fallbackMap[row.mentor_id].push({
+                achievement_id: row.mentor_id + row.icon,
+                icon: row.icon,
+                achievement_name: row.achievement_name,
+                description: "",
+                display_order: fallbackMap[row.mentor_id].length + 1,
+              });
+            }
+          });
+          setMentorFeaturedMap(prev => ({ ...prev, ...fallbackMap }));
         }
       }
 
@@ -555,18 +583,6 @@ const Mentors = () => {
                     )}
                   </div>
 
-                  {/* Mentor Achievements */}
-                  {mentorAchievementsMap[mentor.id]?.length > 0 && (
-                    <div className="flex items-center gap-1.5 flex-wrap mb-3">
-                      <Trophy className="w-3.5 h-3.5 text-primary shrink-0" />
-                      {mentorAchievementsMap[mentor.id].slice(0, 6).map((ach, i) => (
-                        <span key={i} className="text-sm" title={ach.name}>{ach.icon}</span>
-                      ))}
-                      {mentorAchievementsMap[mentor.id].length > 6 && (
-                        <span className="text-xs text-muted-foreground">+{mentorAchievementsMap[mentor.id].length - 6}</span>
-                      )}
-                    </div>
-                  )}
 
                   {/* Stats bar: advance notice + LinkedIn */}
                   <div className="flex flex-wrap items-center gap-3 mb-3 text-xs text-muted-foreground">
@@ -599,6 +615,11 @@ const Mentors = () => {
                         {mentor.availability.length > 3 && "..."}
                       </span>
                     </div>
+                  )}
+
+                  {/* Featured Achievements Section */}
+                  {mentorFeaturedMap[mentor.id]?.length > 0 && (
+                    <MentorFeaturedAchievements achievements={mentorFeaturedMap[mentor.id]} />
                   )}
 
                   {/* Spacer to push content below to bottom */}
