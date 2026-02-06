@@ -75,6 +75,8 @@ const MentorAgenda = () => {
   const [stats, setStats] = useState<MentorStats>({ totalSessions: 0, completedSessions: 0, upcomingSessions: 0, uniqueMentees: 0 });
   const [loading, setLoading] = useState(true);
   const [showBlockedPeriods, setShowBlockedPeriods] = useState(false);
+  const [expandedSessionId, setExpandedSessionId] = useState<string | null>(null);
+  const [expandedMenteeId, setExpandedMenteeId] = useState<string | null>(null);
 
   const isSessionPast = (scheduledAt: string, duration: number = 30): boolean => {
     const sessionEndTime = new Date(scheduledAt);
