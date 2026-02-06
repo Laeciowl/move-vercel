@@ -155,11 +155,11 @@ const AdminMentorSessionsPanel = () => {
           filteredSessions.map((session) => {
             const status = getSessionStatus(session);
             return (
-              <div
+              <details
                 key={session.id}
-                className="bg-muted/20 rounded-xl p-4 border border-border/30 space-y-2"
+                className="bg-muted/20 rounded-xl border border-border/30 overflow-hidden group"
               >
-                <div className="flex items-center justify-between flex-wrap gap-2">
+                <summary className="p-4 cursor-pointer list-none flex items-center justify-between flex-wrap gap-2">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
                       <User className="w-4 h-4 text-primary" />
@@ -175,13 +175,33 @@ const AdminMentorSessionsPanel = () => {
                     </div>
                   </div>
                   {statusBadge(status)}
+                </summary>
+                <div className="px-4 pb-4 space-y-2 border-t border-border/20 pt-3">
+                  {session.mentee_objective && (
+                    <p className="text-sm text-muted-foreground">
+                      🎯 <strong>Objetivo:</strong> {session.mentee_objective}
+                    </p>
+                  )}
+                  {session.mentee_formation && (
+                    <p className="text-sm text-muted-foreground">
+                      🎓 <strong>Formação:</strong> {session.mentee_formation}
+                    </p>
+                  )}
+                  {session.notes && (
+                    <p className="text-sm text-muted-foreground">
+                      📝 <strong>Notas:</strong> {session.notes}
+                    </p>
+                  )}
+                  {session.mentor_notes && (
+                    <p className="text-sm text-muted-foreground">
+                      📋 <strong>Notas do mentor:</strong> {session.mentor_notes}
+                    </p>
+                  )}
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <span>Confirmado: {session.confirmed_by_mentor ? "✅ Sim" : "⏳ Pendente"}</span>
+                  </div>
                 </div>
-                {session.mentee_objective && (
-                  <p className="text-xs text-muted-foreground pl-11 truncate">
-                    🎯 {session.mentee_objective}
-                  </p>
-                )}
-              </div>
+              </details>
             );
           })
         )}
