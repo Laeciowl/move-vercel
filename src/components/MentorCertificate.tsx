@@ -119,69 +119,74 @@ const MentorCertificate = ({
           width: "100%",
           maxWidth: 520,
           aspectRatio: "1/1",
-          background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, #0f3460 100%)",
+          background: "linear-gradient(145deg, #1a0a00 0%, #2d1200 30%, #4a1e00 60%, #1a0a00 100%)",
         }}
       >
-        {/* Decorative elements */}
+        {/* Decorative orbs */}
         <div
-          className="absolute top-0 right-0 w-48 h-48 rounded-full opacity-20"
-          style={{ background: "radial-gradient(circle, #f97316, transparent 70%)", transform: "translate(30%, -30%)" }}
+          className="absolute top-0 right-0 w-56 h-56 rounded-full opacity-25"
+          style={{ background: "radial-gradient(circle, #f97316, transparent 65%)", transform: "translate(25%, -25%)" }}
         />
         <div
-          className="absolute bottom-0 left-0 w-36 h-36 rounded-full opacity-15"
-          style={{ background: "radial-gradient(circle, #f97316, transparent 70%)", transform: "translate(-20%, 20%)" }}
+          className="absolute bottom-0 left-0 w-40 h-40 rounded-full opacity-20"
+          style={{ background: "radial-gradient(circle, #fb923c, transparent 65%)", transform: "translate(-15%, 15%)" }}
         />
+        <div
+          className="absolute top-1/2 left-1/2 w-72 h-72 rounded-full opacity-10"
+          style={{ background: "radial-gradient(circle, #f97316, transparent 60%)", transform: "translate(-50%, -50%)" }}
+        />
+
+        {/* Border accent */}
+        <div className="absolute inset-0 rounded-2xl" style={{ border: "1px solid rgba(249, 115, 22, 0.2)" }} />
 
         <div className="relative z-10 flex flex-col items-center justify-center h-full p-8 text-center">
           {/* Title */}
-          <div className="mb-4">
-            <p className="text-xs tracking-[0.3em] uppercase text-orange-300/70 font-medium mb-1">Certificado</p>
-            <h2 className="text-3xl font-extrabold text-white tracking-tight">
+          <div className="mb-5">
+            <p className="text-[10px] tracking-[0.4em] uppercase font-semibold mb-1.5" style={{ color: "#fb923c" }}>Certificado</p>
+            <h2 className="text-3xl font-extrabold tracking-tight" style={{ color: "#fff" }}>
               MENTOR <span style={{ color: "#f97316" }}>MOVÊ</span>
             </h2>
           </div>
 
           {/* Photo */}
-          <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-orange-500/40 mb-4 shadow-xl">
+          <div className="w-24 h-24 rounded-full overflow-hidden mb-4 shadow-2xl" style={{ border: "3px solid #f97316", boxShadow: "0 0 30px rgba(249, 115, 22, 0.3)" }}>
             {mentorPhotoUrl ? (
               <img src={mentorPhotoUrl} alt={mentorName} className="w-full h-full object-cover" crossOrigin="anonymous" />
             ) : (
-              <div className="w-full h-full bg-orange-500/20 flex items-center justify-center">
-                <Award className="w-10 h-10 text-orange-400" />
+              <div className="w-full h-full flex items-center justify-center" style={{ background: "rgba(249, 115, 22, 0.15)" }}>
+                <Award className="w-10 h-10" style={{ color: "#f97316" }} />
               </div>
             )}
           </div>
 
           {/* Name */}
-          <h3 className="text-xl font-bold text-white mb-2">{mentorName}</h3>
+          <h3 className="text-xl font-bold mb-1" style={{ color: "#fff" }}>{mentorName}</h3>
 
           {/* Quote */}
-          <p className="text-sm text-orange-200/80 italic mb-6 max-w-xs leading-relaxed">
-            Eu faço parte dos que movem a sociedade.
+          <p className="text-sm italic mb-6 max-w-xs leading-relaxed" style={{ color: "rgba(251, 146, 60, 0.85)" }}>
+            "Eu faço parte dos que movem a sociedade."
           </p>
 
-          {/* Impact metrics */}
-          <div className="flex gap-6 mb-6">
-            <div className="text-center">
-              <div className="text-3xl font-extrabold text-white">{completedSessions}</div>
-              <div className="text-[10px] text-orange-300/70 uppercase tracking-wider mt-0.5">mentorias</div>
+          {/* Impact metrics - vertical stack */}
+          <div className="w-full max-w-xs space-y-3 mb-6">
+            <div className="flex items-center justify-between px-4 py-2.5 rounded-xl" style={{ background: "rgba(249, 115, 22, 0.1)", border: "1px solid rgba(249, 115, 22, 0.15)" }}>
+              <span className="text-xs font-medium uppercase tracking-wider" style={{ color: "rgba(251, 146, 60, 0.7)" }}>Mentorias realizadas</span>
+              <span className="text-2xl font-extrabold" style={{ color: "#f97316" }}>{completedSessions}</span>
             </div>
-            <div className="w-px bg-orange-500/30" />
-            <div className="text-center">
-              <div className="text-3xl font-extrabold text-white">{uniqueMentees}</div>
-              <div className="text-[10px] text-orange-300/70 uppercase tracking-wider mt-0.5">vidas impactadas</div>
+            <div className="flex items-center justify-between px-4 py-2.5 rounded-xl" style={{ background: "rgba(249, 115, 22, 0.1)", border: "1px solid rgba(249, 115, 22, 0.15)" }}>
+              <span className="text-xs font-medium uppercase tracking-wider" style={{ color: "rgba(251, 146, 60, 0.7)" }}>Vidas impactadas</span>
+              <span className="text-2xl font-extrabold" style={{ color: "#f97316" }}>{uniqueMentees}</span>
             </div>
-            <div className="w-px bg-orange-500/30" />
-            <div className="text-center">
-              <div className="text-3xl font-extrabold text-white">{totalMinutes}</div>
-              <div className="text-[10px] text-orange-300/70 uppercase tracking-wider mt-0.5">min. transformando vidas</div>
+            <div className="flex items-center justify-between px-4 py-2.5 rounded-xl" style={{ background: "rgba(249, 115, 22, 0.1)", border: "1px solid rgba(249, 115, 22, 0.15)" }}>
+              <span className="text-xs font-medium uppercase tracking-wider" style={{ color: "rgba(251, 146, 60, 0.7)" }}>Min. transformando vidas</span>
+              <span className="text-2xl font-extrabold" style={{ color: "#f97316" }}>{totalMinutes}</span>
             </div>
           </div>
 
           {/* Footer */}
           <div className="mt-auto">
-            <p className="text-lg font-bold" style={{ color: "#f97316" }}>Movê</p>
-            <p className="text-[9px] text-gray-400 mt-0.5">
+            <p className="text-lg font-extrabold" style={{ color: "#f97316" }}>Movê</p>
+            <p className="text-[9px] mt-0.5" style={{ color: "rgba(251, 146, 60, 0.5)" }}>
               Hub gratuito de orientação profissional para jovens
             </p>
           </div>
