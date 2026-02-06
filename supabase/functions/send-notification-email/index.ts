@@ -19,6 +19,7 @@ type EmailType =
   | "session_cancelled_notification"
   | "session_rescheduled"
   | "session_request_mentor"
+  | "session_review_request"
   | "content_approved" 
   | "content_rejected" 
   | "mentor_approved" 
