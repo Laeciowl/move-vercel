@@ -176,7 +176,14 @@ const AdminMentorSessionsPanel = () => {
                       </p>
                     </div>
                   </div>
-                  {statusBadge(status)}
+                  <div className="flex items-center gap-2">
+                    {session.confirmed_by_mentor ? (
+                      <Badge className="bg-green-500/10 text-green-600 border-green-500/20 text-xs">✅ Aceita</Badge>
+                    ) : (
+                      <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20 text-xs">⏳ Pendente</Badge>
+                    )}
+                    {statusBadge(status)}
+                  </div>
                 </summary>
                 <div className="px-4 pb-4 space-y-2 border-t border-border/20 pt-3">
                   {session.mentee_objective && (

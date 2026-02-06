@@ -273,6 +273,7 @@ const Home = () => {
               </div>
               <h3 className="font-semibold text-foreground text-sm">Comunidade</h3>
             </div>
+            <p className="text-xs text-muted-foreground leading-relaxed mb-2">Grupo geral para trocar ideias e se conectar com outros membros.</p>
             <a href="https://chat.whatsapp.com/BFDDkhbwz5aFdg6WhIFU6C" target="_blank" rel="noopener noreferrer"
               className="w-full inline-flex items-center justify-center gap-1.5 bg-green-600 text-white py-2 rounded-xl font-medium text-xs hover:bg-green-700 transition-colors">
               <MessageCircle className="w-3.5 h-3.5" /> Entrar
@@ -291,6 +292,7 @@ const Home = () => {
                 </div>
                 <h3 className="font-semibold text-foreground text-sm">TEM VAGA?</h3>
               </div>
+              <p className="text-xs text-muted-foreground leading-relaxed mb-2">Vagas de estágio e cargos iniciais para jovens talentos.</p>
               <a href="https://chat.whatsapp.com/JugF130879CH7Lgo2Ycs1b" target="_blank" rel="noopener noreferrer"
                 className="w-full inline-flex items-center justify-center gap-1.5 bg-blue-600 text-white py-2 rounded-xl font-medium text-xs hover:bg-blue-700 transition-colors">
                 <MessageCircle className="w-3.5 h-3.5" /> Entrar

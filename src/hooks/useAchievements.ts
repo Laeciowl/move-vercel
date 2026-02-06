@@ -72,8 +72,9 @@ export const useAchievements = () => {
         case "conteudo":
           return ach.criteria_type === "count" ? computedStats.contentAccessed : computedStats.contentSaved;
         case "exploracao":
+          return computedStats.uniqueContacts; // unique mentors explored
         case "areas":
-          return computedStats.areasExplored;
+          return computedStats.areasExplored; // unique mentor areas
         case "engajamento":
           return computedStats.reviewsGiven;
         case "consistencia":
@@ -206,12 +207,13 @@ export const useAchievements = () => {
         result.uniqueContacts = new Set(completedSessions.map(s => s.mentor_id)).size;
 
         const mentorIds = [...new Set(completedSessions.map(s => s.mentor_id))];
+        // areasExplored = unique mentor areas (not tags)
         if (mentorIds.length > 0) {
-          const { data: tags } = await supabase
-            .from("mentor_tags")
-            .select("tag_id")
-            .in("mentor_id", mentorIds);
-          if (tags) result.areasExplored = new Set(tags.map(t => t.tag_id)).size;
+          const { data: mentorAreas } = await supabase
+            .from("mentors")
+            .select("area")
+            .in("id", mentorIds);
+          if (mentorAreas) result.areasExplored = new Set(mentorAreas.map(m => m.area)).size;
         }
 
         const { count: contentCount } = await supabase
