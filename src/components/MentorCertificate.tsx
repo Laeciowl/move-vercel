@@ -75,15 +75,31 @@ const MentorCertificate = ({
 
   if (!showPreview) {
     return (
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => setShowPreview(true)}
-        className="gap-2 rounded-xl"
+      <motion.div
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent rounded-xl p-4 border border-primary/20"
       >
-        <Award className="w-4 h-4 text-primary" />
-        Meu Certificado
-      </Button>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-primary/15 rounded-xl flex items-center justify-center">
+              <Award className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-foreground">Certificado de Mentor</p>
+              <p className="text-xs text-muted-foreground">Baixe e compartilhe seu impacto</p>
+            </div>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowPreview(true)}
+            className="gap-2 rounded-xl border-primary/30 text-primary hover:bg-primary/10"
+          >
+            Ver certificado
+          </Button>
+        </div>
+      </motion.div>
     );
   }
 
