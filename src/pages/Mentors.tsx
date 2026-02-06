@@ -20,6 +20,7 @@ import MentorReviewsList from "@/components/MentorReviewsList";
 import MentorShareButton from "@/components/MentorShareButton";
 import MentorTagFilter from "@/components/MentorTagFilter";
 import MentorMatchBadge from "@/components/MentorMatchBadge";
+import MentorFeaturedAchievements, { type FeaturedAchievement } from "@/components/MentorFeaturedAchievements";
 import { Button } from "@/components/ui/button";
 import type { TagItem } from "@/components/TagSelector";
 
