@@ -465,6 +465,13 @@ const MentorAgenda = () => {
                         <p className="text-sm text-muted-foreground">
                           📅 {format(new Date(session.scheduled_at), "EEEE, d 'de' MMMM 'às' HH:mm", { locale: ptBR })}
                         </p>
+
+                        {/* Mentor notes about this mentee */}
+                        <MentorMenteeNotes
+                          mentorId={mentorData.id}
+                          menteeUserId={session.user_id}
+                          menteeName={session.mentee_profile?.name || "Mentorado"}
+                        />
                       </div>
                     );
                   })}
