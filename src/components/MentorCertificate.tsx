@@ -28,10 +28,11 @@ const MentorCertificate = ({
     setGenerating(true);
     try {
       const canvas = await html2canvas(certRef.current, {
-        scale: 4,
+        scale: 6,
         backgroundColor: null,
         useCORS: true,
         logging: false,
+        allowTaint: false,
       });
       const link = document.createElement("a");
       link.download = `certificado-mentor-move-${mentorName.split(" ")[0].toLowerCase()}.png`;
@@ -49,10 +50,11 @@ const MentorCertificate = ({
       setGenerating(true);
       try {
         const canvas = await html2canvas(certRef.current, {
-          scale: 4,
+          scale: 6,
           backgroundColor: null,
           useCORS: true,
           logging: false,
+          allowTaint: false,
         });
         const link = document.createElement("a");
         link.download = `certificado-mentor-move-${mentorName.split(" ")[0].toLowerCase()}.png`;
@@ -163,25 +165,27 @@ const MentorCertificate = ({
           <h3 className="text-xl font-bold mb-1" style={{ color: "#fff" }}>{mentorName}</h3>
 
           {/* Quote */}
-          <p className="text-sm italic mb-5 whitespace-nowrap" style={{ color: "#fff" }}>
-            Eu faço parte dos que <span className="font-extrabold not-italic" style={{ color: "#f97316" }}>MOVEM</span> a sociedade.
-          </p>
+          <div className="mb-5 px-4 py-1.5 rounded-full whitespace-nowrap" style={{ background: "rgba(249, 115, 22, 0.12)", border: "1px solid rgba(249, 115, 22, 0.25)" }}>
+            <p className="text-sm italic" style={{ color: "#fff" }}>
+              Eu faço parte dos que <span className="font-extrabold not-italic" style={{ color: "#f97316" }}>MOVEM</span> a sociedade.
+            </p>
+          </div>
 
           {/* Impact metrics - horizontal row */}
           <div className="flex items-center justify-center gap-6 mb-6">
             <div className="flex flex-col items-center">
               <span className="text-3xl font-extrabold" style={{ color: "#f97316" }}>{completedSessions}</span>
-              <span className="text-[10px] font-medium uppercase tracking-wider mt-1" style={{ color: "#fff" }}>Mentorias realizadas</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider mt-1" style={{ color: "#fff" }}>Mentorias realizadas</span>
             </div>
             <div className="w-px h-10" style={{ background: "rgba(249, 115, 22, 0.3)" }} />
             <div className="flex flex-col items-center">
               <span className="text-3xl font-extrabold" style={{ color: "#f97316" }}>{uniqueMentees}</span>
-              <span className="text-[10px] font-medium uppercase tracking-wider mt-1" style={{ color: "#fff" }}>Vidas impactadas</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider mt-1" style={{ color: "#fff" }}>Vidas impactadas</span>
             </div>
             <div className="w-px h-10" style={{ background: "rgba(249, 115, 22, 0.3)" }} />
             <div className="flex flex-col items-center">
               <span className="text-3xl font-extrabold" style={{ color: "#f97316" }}>{totalMinutes}</span>
-              <span className="text-[10px] font-medium uppercase tracking-wider mt-1" style={{ color: "#fff" }}>Min. transformando vidas</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider mt-1" style={{ color: "#fff" }}>Min. transformando vidas</span>
             </div>
           </div>
 
