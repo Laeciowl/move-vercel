@@ -214,11 +214,11 @@ const Mentors = () => {
         const { data: featuredData } = await supabase.rpc("get_mentor_featured_achievements", {
           mentor_ids: allMentorIds,
         });
+        let featuredMap: Record<string, FeaturedAchievement[]> = {};
         if (featuredData) {
-          const map: Record<string, FeaturedAchievement[]> = {};
           (featuredData as any[]).forEach((row: any) => {
-            if (!map[row.mentor_id]) map[row.mentor_id] = [];
-            map[row.mentor_id].push({
+            if (!featuredMap[row.mentor_id]) featuredMap[row.mentor_id] = [];
+            featuredMap[row.mentor_id].push({
               achievement_id: row.achievement_id,
               icon: row.icon,
               achievement_name: row.achievement_name,
@@ -226,11 +226,10 @@ const Mentors = () => {
               display_order: row.display_order,
             });
           });
-          setMentorFeaturedMap(map);
+          setMentorFeaturedMap(featuredMap);
         }
 
         // Fallback: for mentors without featured achievements, use unlocked ones
-        const mentorFeaturedMapLocal = map as Record<string, FeaturedAchievement[]> || {};
         const { data: achData } = await supabase.rpc("get_mentor_unlocked_achievements", {
           mentor_ids: allMentorIds.filter(id => !mentorFeaturedMapLocal[id] || mentorFeaturedMapLocal[id].length === 0),
         });
