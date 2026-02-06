@@ -174,7 +174,7 @@ const MentorCertificate = ({
             <div className="w-px bg-orange-500/30" />
             <div className="text-center">
               <div className="text-3xl font-extrabold text-white">{totalMinutes}</div>
-              <div className="text-[10px] text-orange-300/70 uppercase tracking-wider mt-0.5">minutos</div>
+              <div className="text-[10px] text-orange-300/70 uppercase tracking-wider mt-0.5">min. transformando vidas</div>
             </div>
           </div>
 
