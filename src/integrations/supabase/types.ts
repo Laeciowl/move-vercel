@@ -943,6 +943,14 @@ export type Database = {
         Args: { _mentor_id: string }
         Returns: number
       }
+      get_mentor_unlocked_achievements: {
+        Args: { mentor_ids: string[] }
+        Returns: {
+          achievement_name: string
+          icon: string
+          mentor_id: string
+        }[]
+      }
       get_mentor_user_ids: {
         Args: { mentor_ids: string[] }
         Returns: {

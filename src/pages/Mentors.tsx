@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Calendar, Clock, User, Loader2, GraduationCap, MessageSquare, Award, Linkedin, Info, Star, Tag } from "lucide-react";
+import { ArrowLeft, Calendar, Clock, User, Loader2, GraduationCap, MessageSquare, Award, Linkedin, Info, Star, Tag, Trophy } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMentorCheck } from "@/hooks/useMentorCheck";
@@ -92,6 +92,7 @@ const Mentors = () => {
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
   const [selectedMentorForProfile, setSelectedMentorForProfile] = useState<Mentor | null>(null);
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+  const [mentorAchievementsMap, setMentorAchievementsMap] = useState<Record<string, { icon: string; name: string }[]>>({});
 
   const userInterestTagIds = useMemo(() => userInterests.map(t => t.id), [userInterests]);
 
@@ -205,6 +206,23 @@ const Mentors = () => {
 
       // Mentors are already sorted by match_count in the RPC function
       setMentors(formattedMentors);
+
+      // Fetch unlocked achievements for all mentors
+      const allMentorIds = formattedMentors.map(m => m.id);
+      if (allMentorIds.length > 0) {
+        const { data: achData } = await supabase.rpc("get_mentor_unlocked_achievements", {
+          mentor_ids: allMentorIds,
+        });
+        if (achData) {
+          const map: Record<string, { icon: string; name: string }[]> = {};
+          (achData as any[]).forEach((row: any) => {
+            if (!map[row.mentor_id]) map[row.mentor_id] = [];
+            map[row.mentor_id].push({ icon: row.icon, name: row.achievement_name });
+          });
+          setMentorAchievementsMap(map);
+        }
+      }
+
       setLoading(false);
     };
 
@@ -536,6 +554,19 @@ const Mentors = () => {
                       <span className="text-xs text-muted-foreground">0 reviews</span>
                     )}
                   </div>
+
+                  {/* Mentor Achievements */}
+                  {mentorAchievementsMap[mentor.id]?.length > 0 && (
+                    <div className="flex items-center gap-1.5 flex-wrap mb-3">
+                      <Trophy className="w-3.5 h-3.5 text-primary shrink-0" />
+                      {mentorAchievementsMap[mentor.id].slice(0, 6).map((ach, i) => (
+                        <span key={i} className="text-sm" title={ach.name}>{ach.icon}</span>
+                      ))}
+                      {mentorAchievementsMap[mentor.id].length > 6 && (
+                        <span className="text-xs text-muted-foreground">+{mentorAchievementsMap[mentor.id].length - 6}</span>
+                      )}
+                    </div>
+                  )}
 
                   {/* Stats bar: advance notice + LinkedIn */}
                   <div className="flex flex-wrap items-center gap-3 mb-3 text-xs text-muted-foreground">
