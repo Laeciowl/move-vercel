@@ -943,6 +943,13 @@ export type Database = {
         Args: { _mentor_id: string }
         Returns: number
       }
+      get_mentor_user_ids: {
+        Args: { mentor_ids: string[] }
+        Returns: {
+          mentor_id: string
+          user_id: string
+        }[]
+      }
       get_mentors_with_match: {
         Args: { user_id_param?: string }
         Returns: {
