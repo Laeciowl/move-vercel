@@ -55,6 +55,83 @@ export const useAchievements = () => {
 
   const userType = isMentor ? "mentor" : "mentorado";
 
+  const syncAchievementProgress = useCallback(async (
+    achievementsList: Achievement[],
+    computedStats: AchievementStats
+  ) => {
+    if (!user || achievementsList.length === 0) return;
+
+    const getProgressForAchievement = (ach: Achievement): number => {
+      switch (ach.category) {
+        case "mentorias":
+          return computedStats.totalMentorias;
+        case "tempo":
+          return computedStats.totalMinutes;
+        case "impacto":
+          return computedStats.uniqueContacts;
+        case "conteudo":
+          return ach.criteria_type === "count" ? computedStats.contentAccessed : computedStats.contentSaved;
+        case "exploracao":
+        case "areas":
+          return computedStats.areasExplored;
+        case "engajamento":
+          return computedStats.reviewsGiven;
+        case "consistencia":
+          return computedStats.currentStreak;
+        default:
+          return 0;
+      }
+    };
+
+    const upserts = achievementsList.map(ach => {
+      const progress = getProgressForAchievement(ach);
+      const isUnlocked = progress >= ach.criteria_value;
+      return {
+        user_id: user.id,
+        achievement_id: ach.id,
+        progress,
+        unlocked_at: isUnlocked ? new Date().toISOString() : null,
+      };
+    });
+
+    // Fetch existing to preserve original unlocked_at
+    const { data: existing } = await supabase
+      .from("user_achievements")
+      .select("*")
+      .eq("user_id", user.id);
+
+    const existingMap = new Map((existing || []).map(e => [e.achievement_id, e]));
+
+    for (const upsert of upserts) {
+      const prev = existingMap.get(upsert.achievement_id);
+      if (prev) {
+        // Update progress, preserve original unlocked_at if already unlocked
+        const updateData: any = { progress: upsert.progress };
+        if (!prev.unlocked_at && upsert.unlocked_at) {
+          updateData.unlocked_at = upsert.unlocked_at;
+        }
+        await supabase
+          .from("user_achievements")
+          .update(updateData)
+          .eq("id", prev.id);
+      } else {
+        await supabase
+          .from("user_achievements")
+          .insert(upsert);
+      }
+    }
+
+    // Re-fetch user achievements after sync
+    const { data: updatedData } = await supabase
+      .from("user_achievements")
+      .select("*")
+      .eq("user_id", user.id);
+
+    if (updatedData) {
+      setUserAchievements(updatedData as UserAchievement[]);
+    }
+  }, [user]);
+
   const fetchAchievements = useCallback(async () => {
     if (!user) return;
 
@@ -70,21 +147,16 @@ export const useAchievements = () => {
       setAchievements(achievementsData as Achievement[]);
     }
 
-    // Fetch user's achievement progress
-    const { data: userAchData } = await supabase
-      .from("user_achievements")
-      .select("*")
-      .eq("user_id", user.id);
+    // Calculate stats first
+    const computedStats = await calculateStats();
 
-    if (userAchData) {
-      setUserAchievements(userAchData as UserAchievement[]);
+    // Sync progress to DB
+    if (achievementsData && computedStats) {
+      await syncAchievementProgress(achievementsData as Achievement[], computedStats);
     }
 
-    // Calculate stats
-    await calculateStats();
-
     setLoading(false);
-  }, [user, userType, mentorId]);
+  }, [user, userType, mentorId, syncAchievementProgress]);
 
   const calculateStats = async () => {
     if (!user) return;
