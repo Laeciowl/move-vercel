@@ -34,8 +34,17 @@ const AppLayout = ({ children }: AppLayoutProps) => {
     navigate("/");
   };
 
-  // Role-based navigation items
+  // Role-based navigation items - stable while loading
   const getNavItems = () => {
+    if (rolesLoading) {
+      // Show minimal nav while roles are loading to prevent flicker
+      return [
+        { path: "/inicio", label: "Início", icon: Home },
+        { path: "/conquistas", label: "Conquistas", icon: Trophy },
+        { path: "/ajuda", label: "Ajuda", icon: HelpCircle },
+      ];
+    }
+
     if (isAdmin) {
       return [
         { path: "/inicio", label: "Dashboard", icon: Home },
