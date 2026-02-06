@@ -18,7 +18,7 @@ import VolunteerPanel from "@/components/VolunteerPanel";
 import BugReportButton from "@/components/BugReportButton";
 import ContentLibrary from "@/components/ContentLibrary";
 import OnboardingTour from "@/components/OnboardingTour";
-import FirstMentorshipMission from "@/components/FirstMentorshipMission";
+
 import PlatformGuide from "@/components/PlatformGuide";
 import PendingMentorBanner from "@/components/PendingMentorBanner";
 import MenteeInterestsEditor from "@/components/MenteeInterestsEditor";
@@ -403,10 +403,6 @@ const Dashboard = () => {
               />
             )}
 
-            {/* First Mentorship Mission - Only for non-volunteers who are NOT pending mentors */}
-            {!isVolunteer && !isPendingMentor && (
-              <FirstMentorshipMission isCompleted={profile?.first_mentorship_booked || false} />
-            )}
 
             {/* Pending Mentor Banner - Show for users who applied as mentors but aren't approved yet */}
             {isPendingMentor && !isVolunteer && <PendingMentorBanner />}

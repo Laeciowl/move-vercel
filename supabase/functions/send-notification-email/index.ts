@@ -19,6 +19,7 @@ type EmailType =
   | "session_cancelled_notification"
   | "session_rescheduled"
   | "session_request_mentor"
+  | "session_review_request"
   | "content_approved" 
   | "content_rejected" 
   | "mentor_approved" 
@@ -530,6 +531,29 @@ const emailTemplates: Record<string, { subject: string; html: (name: string, dat
         <p style="color: ${MOVE_COLORS.textMuted}; font-size: 14px; text-align: center; margin-top: 20px;">
           Obrigado por dedicar seu tempo para ajudar alguém em sua jornada profissional! 🧡
         </p>
+        ${founderSignature}
+        ${emailFooter}
+      </div>
+    `,
+  },
+  session_review_request: {
+    subject: "Sua mentoria aconteceu! Que tal avaliar? ⭐",
+    isTransactional: true,
+    html: (name, data) => `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #fffbf7;">
+        <h1 style="color: ${MOVE_COLORS.primary}; text-align: center;">Sua mentoria aconteceu! 🎉</h1>
+        <p style="color: ${MOVE_COLORS.text}; font-size: 16px; line-height: 1.6;">
+          Olá, ${name}! Que bom que sua mentoria com <strong style="color: ${MOVE_COLORS.primary};">${data?.mentorName || "seu mentor"}</strong> foi realizada!
+        </p>
+        <p style="color: ${MOVE_COLORS.text}; font-size: 16px; line-height: 1.6;">
+          Que tal deixar um feedback sobre essa experiência? Seu comentário ajuda outros jovens a encontrarem o mentor ideal e também reconhece o trabalho voluntário de quem te ajudou. 💜
+        </p>
+        <div style="text-align: center; margin-top: 30px;">
+          <a href="${Deno.env.get("SITE_URL") || "https://movesocial.lovable.app"}/dashboard#mentorship-section" 
+             style="background: linear-gradient(135deg, ${MOVE_COLORS.primary} 0%, #fb923c 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 12px; font-weight: bold; display: inline-block;">
+            Avaliar mentoria ⭐
+          </a>
+        </div>
         ${founderSignature}
         ${emailFooter}
       </div>
