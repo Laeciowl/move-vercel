@@ -18,7 +18,7 @@ import VolunteerPanel from "@/components/VolunteerPanel";
 import BugReportButton from "@/components/BugReportButton";
 import ContentLibrary from "@/components/ContentLibrary";
 import OnboardingTour from "@/components/OnboardingTour";
-import FirstMentorshipMission from "@/components/FirstMentorshipMission";
+
 import PlatformGuide from "@/components/PlatformGuide";
 import PendingMentorBanner from "@/components/PendingMentorBanner";
 import MenteeInterestsEditor from "@/components/MenteeInterestsEditor";
