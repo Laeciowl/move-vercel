@@ -366,26 +366,46 @@ const ContentLibrary = () => {
                       </p>
                     )}
 
-                    <div className="flex items-center gap-2 pt-1 flex-wrap">
-                      <Badge variant="secondary" className="text-xs">
-                        {content.item_type === "video" ? (
-                          <>
-                            <Video className="w-3 h-3 mr-1" />
-                            Vídeo
-                          </>
-                        ) : (
-                          <>
-                            <FileText className="w-3 h-3 mr-1" />
-                            Guia
-                          </>
+                    <div className="flex items-center justify-between pt-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Badge variant="secondary" className="text-xs">
+                          {content.item_type === "video" ? (
+                            <>
+                              <Video className="w-3 h-3 mr-1" />
+                              Vídeo
+                            </>
+                          ) : (
+                            <>
+                              <FileText className="w-3 h-3 mr-1" />
+                              Guia
+                            </>
+                          )}
+                        </Badge>
+                        <Badge variant="outline" className="text-xs">
+                          {areaLabels[content.area] || content.area}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {accessedIds.has(content.id) && (
+                          <span className="text-xs text-green-600 flex items-center gap-0.5" title="Visto">
+                            <Eye className="w-3.5 h-3.5" />
+                          </span>
                         )}
-                      </Badge>
-                      <Badge variant="outline" className="text-xs">
-                        {areaLabels[content.area] || content.area}
-                      </Badge>
-                      <Badge variant="outline" className="text-xs bg-muted/50">
-                        {themeLabels[content.category] || content.category}
-                      </Badge>
+                        <button
+                          onClick={(e) => toggleSave(e, content.id)}
+                          className={`p-1 rounded-lg transition-colors ${
+                            savedIds.has(content.id) 
+                              ? "text-primary" 
+                              : "text-muted-foreground hover:text-foreground"
+                          }`}
+                          title={savedIds.has(content.id) ? "Remover dos salvos" : "Salvar"}
+                        >
+                          {savedIds.has(content.id) 
+                            ? <BookmarkCheck className="w-4 h-4" /> 
+                            : <Bookmark className="w-4 h-4" />
+                          }
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </motion.div>
