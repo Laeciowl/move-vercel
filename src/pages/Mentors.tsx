@@ -617,9 +617,12 @@ const Mentors = () => {
                     </div>
                   )}
 
-                  {/* Featured Achievements Section */}
+                  {/* Achievements count hint */}
                   {mentorFeaturedMap[mentor.id]?.length > 0 && (
-                    <MentorFeaturedAchievements achievements={mentorFeaturedMap[mentor.id]} />
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
+                      <span>🏆</span>
+                      <span>{mentorFeaturedMap[mentor.id].length} conquista{mentorFeaturedMap[mentor.id].length > 1 ? 's' : ''}</span>
+                    </div>
                   )}
 
                   {/* Spacer to push content below to bottom */}
