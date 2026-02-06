@@ -1,16 +1,18 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Shield, Users, BookOpen, Loader2, FileCheck, Bug, BarChart3, Image } from "lucide-react";
+import { ArrowLeft, Shield, Users, BookOpen, Loader2, FileCheck, Bug, BarChart3, Image, Calendar } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import AppLayout from "@/components/AppLayout";
 import AdminContentPanel from "@/components/admin/AdminContentPanel";
 import AdminVolunteersPanel from "@/components/admin/AdminVolunteersPanel";
 import AdminSubmissionsPanel from "@/components/admin/AdminSubmissionsPanel";
 import AdminBugReportsPanel from "@/components/admin/AdminBugReportsPanel";
 import AdminMetricsPanel from "@/components/admin/AdminMetricsPanel";
 import AdminMentorCardsPanel from "@/components/admin/AdminMentorCardsPanel";
+import AdminMentorSessionsPanel from "@/components/admin/AdminMentorSessionsPanel";
 
 const Admin = () => {
   const navigate = useNavigate();
