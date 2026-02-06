@@ -41,14 +41,36 @@ const MentorCertificate = ({
     setGenerating(false);
   };
 
-  const shareOnLinkedIn = () => {
-    const text = `🏆 Sou Mentor Movê!\n\nEu faço um movimento que muda a sociedade.\n\n📊 ${uniqueMentees} mentorados únicos\n🌱 ${completedSessions} sessões realizadas\n\nO Movê é um hub gratuito de orientação profissional para jovens. Se você quer transformar vidas doando seu tempo e conhecimento, venha fazer parte!\n\n#MentorMovê #Mentoria #ImpactoSocial #Voluntariado`;
+  const shareOnLinkedIn = async () => {
+    // First download the PNG so the user has it ready to attach
+    if (certRef.current) {
+      setGenerating(true);
+      try {
+        const canvas = await html2canvas(certRef.current, {
+          scale: 4,
+          backgroundColor: null,
+          useCORS: true,
+          logging: false,
+        });
+        const link = document.createElement("a");
+        link.download = `certificado-mentor-move-${mentorName.split(" ")[0].toLowerCase()}.png`;
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+      } catch (err) {
+        console.error("Error generating certificate:", err);
+      }
+      setGenerating(false);
+    }
+
+    const text = `🏆 Sou Mentor Movê!\n\nEu faço parte dos que movem a sociedade.\n\n📊 ${completedSessions} mentorias realizadas\n🌱 ${uniqueMentees} vidas impactadas\n\nO Movê é um hub gratuito de orientação profissional para jovens. Se você quer transformar vidas doando seu tempo e conhecimento, venha fazer parte!\n\n#MentorMovê #Mentoria #ImpactoSocial #Voluntariado`;
     const url = "https://movesocial.lovable.app";
-    window.open(
-      `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`,
-      "_blank",
-      "width=600,height=500"
-    );
+    setTimeout(() => {
+      window.open(
+        `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`,
+        "_blank",
+        "width=600,height=500"
+      );
+    }, 500);
   };
 
   if (!showPreview) {
