@@ -377,6 +377,43 @@ const Mentors = () => {
   };
 
   const openBookingDialog = async (mentor: Mentor) => {
+    if (!user) {
+      toast.error("Crie uma conta ou faça login para agendar uma mentoria 😊");
+      navigate("/cadastro");
+      return;
+    }
+
+    // Check for completed sessions without reviews
+    const { data: unreviewedSessions } = await supabase
+      .from("mentor_sessions")
+      .select("id, session_reviews(id)")
+      .eq("user_id", user.id)
+      .eq("status", "completed")
+      .is("session_reviews", null);
+
+    // Fallback: query separately if the join approach doesn't work
+    const { data: completedSessions } = await supabase
+      .from("mentor_sessions")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("status", "completed");
+
+    if (completedSessions && completedSessions.length > 0) {
+      const { data: existingReviews } = await supabase
+        .from("session_reviews")
+        .select("session_id")
+        .eq("user_id", user.id)
+        .in("session_id", completedSessions.map(s => s.id));
+
+      const reviewedSessionIds = new Set((existingReviews || []).map(r => r.session_id));
+      const hasUnreviewed = completedSessions.some(s => !reviewedSessionIds.has(s.id));
+
+      if (hasUnreviewed) {
+        toast.error("Antes de agendar uma nova mentoria, avalie suas sessões concluídas! Acesse sua agenda para deixar seu feedback. 💜");
+        return;
+      }
+    }
+
     setSelectedMentor(mentor);
     setBlockedPeriods([]);
     setBookedSessions([]);
