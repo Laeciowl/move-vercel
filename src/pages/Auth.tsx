@@ -85,7 +85,7 @@ const Auth = () => {
       }
     } else {
       toast.success("Entrou! Bora lá 🚀");
-      navigate("/dashboard");
+      navigate("/inicio");
     }
     setLoading(false);
   };
