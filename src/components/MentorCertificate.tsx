@@ -163,8 +163,8 @@ const MentorCertificate = ({
           <h3 className="text-xl font-bold mb-1" style={{ color: "#fff" }}>{mentorName}</h3>
 
           {/* Quote */}
-          <p className="text-base font-bold mb-5 max-w-xs leading-relaxed tracking-wide uppercase" style={{ color: "#fff" }}>
-            Eu faço parte dos que movem a sociedade.
+          <p className="text-sm font-semibold mb-5 max-w-xs leading-relaxed tracking-wide uppercase" style={{ color: "#fff" }}>
+            Eu faço parte dos que <span className="font-extrabold" style={{ color: "#f97316" }}>MOVEM</span> a sociedade.
           </p>
 
           {/* Impact metrics - horizontal row */}
