@@ -337,24 +337,6 @@ const Home = () => {
             </div>
           </motion.div>
 
-          {/* Referral compact */}
-          {!isVolunteer && (
-            <motion.div
-              variants={{ initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 } }}
-              className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/30 p-4"
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <Star className="w-3.5 h-3.5 text-primary" />
-                </div>
-                <h3 className="font-semibold text-foreground text-sm">Indicar</h3>
-              </div>
-              <Link to="/inicio" className="w-full inline-flex items-center justify-center gap-1.5 bg-primary text-primary-foreground py-2 rounded-xl font-medium text-xs hover:bg-primary/90 transition-colors"
-                onClick={(e) => { e.preventDefault(); /* scroll to referral or open */ }}>
-                <Users className="w-3.5 h-3.5" /> Convidar amigo
-              </Link>
-            </motion.div>
-          )}
         </div>
 
         {/* Main Content */}

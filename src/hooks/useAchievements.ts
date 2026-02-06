@@ -106,10 +106,14 @@ export const useAchievements = () => {
     for (const upsert of upserts) {
       const prev = existingMap.get(upsert.achievement_id);
       if (prev) {
-        // Update progress, preserve original unlocked_at if already unlocked
+        // Update progress and unlocked_at
         const updateData: any = { progress: upsert.progress };
         if (!prev.unlocked_at && upsert.unlocked_at) {
+          // Newly unlocked
           updateData.unlocked_at = upsert.unlocked_at;
+        } else if (prev.unlocked_at && !upsert.unlocked_at) {
+          // Previously unlocked but no longer meets criteria - reset
+          updateData.unlocked_at = null;
         }
         await supabase
           .from("user_achievements")

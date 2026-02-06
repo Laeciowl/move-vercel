@@ -308,6 +308,27 @@ const Signup = () => {
 
       if (authData.user) {
         await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Process referral code if present
+        const refCode = searchParams.get("ref");
+        if (refCode) {
+          try {
+            const { data: referral } = await supabase
+              .from("referrals")
+              .select("id")
+              .eq("referral_code", refCode)
+              .is("referred_user_id", null)
+              .limit(1);
+            if (referral && referral.length > 0) {
+              await supabase
+                .from("referrals")
+                .update({ referred_user_id: authData.user.id, status: "completed" })
+                .eq("id", referral[0].id);
+            }
+          } catch (e) {
+            console.error("Error processing referral:", e);
+          }
+        }
         
         try {
           await supabase.functions.invoke("send-notification-email", {
