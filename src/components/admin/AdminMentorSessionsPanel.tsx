@@ -20,6 +20,8 @@ interface SessionRow {
   confirmed_by_mentor: boolean | null;
   notes: string | null;
   mentee_objective: string | null;
+  mentee_formation: string | null;
+  mentor_notes: string | null;
 }
 
 const AdminMentorSessionsPanel = () => {
