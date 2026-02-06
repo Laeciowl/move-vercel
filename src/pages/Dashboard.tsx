@@ -403,10 +403,6 @@ const Dashboard = () => {
               />
             )}
 
-            {/* First Mentorship Mission - Only for non-volunteers who are NOT pending mentors */}
-            {!isVolunteer && !isPendingMentor && (
-              <FirstMentorshipMission isCompleted={profile?.first_mentorship_booked || false} />
-            )}
 
             {/* Pending Mentor Banner - Show for users who applied as mentors but aren't approved yet */}
             {isPendingMentor && !isVolunteer && <PendingMentorBanner />}
