@@ -21,11 +21,13 @@ interface AppLayoutProps {
 const AppLayout = ({ children }: AppLayoutProps) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, profile, signOut } = useAuth();
-  const { isAdmin } = useAdminCheck();
-  const { isVolunteer } = useVolunteerCheck();
-  const { isMentor } = useMentorCheck();
+  const { user, profile, signOut, loading: authLoading } = useAuth();
+  const { isAdmin, loading: adminLoading } = useAdminCheck();
+  const { isVolunteer, loading: volunteerLoading } = useVolunteerCheck();
+  const { isMentor, loading: mentorLoading } = useMentorCheck();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const rolesLoading = adminLoading || volunteerLoading || mentorLoading;
 
   const handleLogout = async () => {
     await signOut();
