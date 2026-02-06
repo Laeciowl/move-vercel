@@ -41,27 +41,65 @@ const MentorCertificate = ({
     setGenerating(false);
   };
 
-  const shareOnLinkedIn = () => {
-    const text = `🏆 Sou Mentor Movê!\n\nEu faço um movimento que muda a sociedade.\n\n📊 ${uniqueMentees} mentorados únicos\n🌱 ${completedSessions} sessões realizadas\n\nO Movê é um hub gratuito de orientação profissional para jovens. Se você quer transformar vidas doando seu tempo e conhecimento, venha fazer parte!\n\n#MentorMovê #Mentoria #ImpactoSocial #Voluntariado`;
+  const shareOnLinkedIn = async () => {
+    // First download the PNG so the user has it ready to attach
+    if (certRef.current) {
+      setGenerating(true);
+      try {
+        const canvas = await html2canvas(certRef.current, {
+          scale: 4,
+          backgroundColor: null,
+          useCORS: true,
+          logging: false,
+        });
+        const link = document.createElement("a");
+        link.download = `certificado-mentor-move-${mentorName.split(" ")[0].toLowerCase()}.png`;
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+      } catch (err) {
+        console.error("Error generating certificate:", err);
+      }
+      setGenerating(false);
+    }
+
+    const text = `🏆 Sou Mentor Movê!\n\nEu faço parte dos que movem a sociedade.\n\n📊 ${completedSessions} mentorias realizadas\n🌱 ${uniqueMentees} vidas impactadas\n\nO Movê é um hub gratuito de orientação profissional para jovens. Se você quer transformar vidas doando seu tempo e conhecimento, venha fazer parte!\n\n#MentorMovê #Mentoria #ImpactoSocial #Voluntariado`;
     const url = "https://movesocial.lovable.app";
-    window.open(
-      `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`,
-      "_blank",
-      "width=600,height=500"
-    );
+    setTimeout(() => {
+      window.open(
+        `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`,
+        "_blank",
+        "width=600,height=500"
+      );
+    }, 500);
   };
 
   if (!showPreview) {
     return (
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => setShowPreview(true)}
-        className="gap-2 rounded-xl"
+      <motion.div
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent rounded-xl p-4 border border-primary/20"
       >
-        <Award className="w-4 h-4 text-primary" />
-        Meu Certificado
-      </Button>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-primary/15 rounded-xl flex items-center justify-center">
+              <Award className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-foreground">Certificado de Mentor</p>
+              <p className="text-xs text-muted-foreground">Baixe e compartilhe seu impacto</p>
+            </div>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowPreview(true)}
+            className="gap-2 rounded-xl border-primary/30 text-primary hover:bg-primary/10"
+          >
+            Ver certificado
+          </Button>
+        </div>
+      </motion.div>
     );
   }
 
@@ -117,7 +155,7 @@ const MentorCertificate = ({
 
           {/* Quote */}
           <p className="text-sm text-orange-200/80 italic mb-6 max-w-xs leading-relaxed">
-            "Eu faço um movimento que muda a sociedade."
+            Eu faço parte dos que movem a sociedade.
           </p>
 
           {/* Impact metrics */}
@@ -156,12 +194,13 @@ const MentorCertificate = ({
         </Button>
         <Button
           onClick={shareOnLinkedIn}
+          disabled={generating}
           variant="outline"
           size="sm"
           className="gap-2 rounded-xl text-[#0A66C2] border-[#0A66C2]/30 hover:bg-[#0A66C2]/10"
         >
-          <Linkedin className="w-4 h-4" />
-          LinkedIn
+          {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Linkedin className="w-4 h-4" />}
+          Compartilhar no LinkedIn
         </Button>
         <Button
           variant="ghost"
