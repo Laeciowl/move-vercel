@@ -187,6 +187,13 @@ export const useAchievements = () => {
         result.totalMinutes = completedSessions.reduce((acc, s) => acc + (s.duration || 30), 0);
         result.uniqueContacts = new Set(completedSessions.map(s => s.user_id)).size;
       }
+
+      // For mentors, areasExplored = their own tags count
+      const { data: myTags } = await supabase
+        .from("mentor_tags")
+        .select("tag_id")
+        .eq("mentor_id", mentorId);
+      if (myTags) result.areasExplored = myTags.length;
     } else {
       const { data: sessions } = await supabase
         .from("mentor_sessions")
