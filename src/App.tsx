@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
+import Home from "./pages/Home";
 import Volunteer from "./pages/Volunteer";
 import VolunteerOnboarding from "./pages/VolunteerOnboarding";
 import Mentors from "./pages/Mentors";
@@ -16,6 +17,9 @@ import Admin from "./pages/Admin";
 import Terms from "./pages/Terms";
 import ForMentees from "./pages/ForMentees";
 import ForMentors from "./pages/ForMentors";
+import Achievements from "./pages/Achievements";
+import Contents from "./pages/Contents";
+import Help from "./pages/Help";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +36,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/cadastro" element={<Signup />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/inicio" element={<Home />} />
             <Route path="/voluntario" element={<Volunteer />} />
             <Route path="/onboarding-voluntario" element={<VolunteerOnboarding />} />
             <Route path="/mentores" element={<Mentors />} />
@@ -40,6 +45,9 @@ const App = () => (
             <Route path="/termos" element={<Terms />} />
             <Route path="/para-mentorados" element={<ForMentees />} />
             <Route path="/para-mentores" element={<ForMentors />} />
+            <Route path="/conquistas" element={<Achievements />} />
+            <Route path="/conteudos" element={<Contents />} />
+            <Route path="/ajuda" element={<Help />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
