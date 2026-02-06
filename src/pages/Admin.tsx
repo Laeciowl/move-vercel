@@ -95,20 +95,27 @@ const Admin = () => {
 
         <motion.div variants={itemVariants}>
           <Tabs defaultValue="volunteers" className="w-full">
-            <TabsList className="grid w-full grid-cols-6 mb-6 bg-card/80 backdrop-blur-sm border border-border/50 p-1 rounded-2xl h-auto">
-              <TabsTrigger 
-                value="volunteers" 
-                className="gap-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-button transition-all duration-300"
-              >
-                <Users className="w-4 h-4" />
-                <span className="hidden sm:inline">Voluntários</span>
-              </TabsTrigger>
+            <TabsList className="grid w-full grid-cols-7 mb-6 bg-card/80 backdrop-blur-sm border border-border/50 p-1 rounded-2xl h-auto overflow-x-auto">
               <TabsTrigger 
                 value="metrics" 
                 className="gap-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-button transition-all duration-300"
               >
                 <BarChart3 className="w-4 h-4" />
                 <span className="hidden sm:inline">Métricas</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="sessions" 
+                className="gap-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-button transition-all duration-300"
+              >
+                <Calendar className="w-4 h-4" />
+                <span className="hidden sm:inline">Mentorias</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="volunteers" 
+                className="gap-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-button transition-all duration-300"
+              >
+                <Users className="w-4 h-4" />
+                <span className="hidden sm:inline">Voluntários</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="cards" 
