@@ -93,7 +93,7 @@ const Mentors = () => {
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
   const [selectedMentorForProfile, setSelectedMentorForProfile] = useState<Mentor | null>(null);
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
-  const [mentorAchievementsMap, setMentorAchievementsMap] = useState<Record<string, { icon: string; name: string }[]>>({});
+  const [mentorFeaturedMap, setMentorFeaturedMap] = useState<Record<string, FeaturedAchievement[]>>({});
 
   const userInterestTagIds = useMemo(() => userInterests.map(t => t.id), [userInterests]);
 
