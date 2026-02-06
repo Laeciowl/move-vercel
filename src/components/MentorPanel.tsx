@@ -266,6 +266,8 @@ const MentorPanel = () => {
           mentorId={mentorData.id}
           onUpdate={fetchMentorData}
         />
+
+        <MentorFeaturedAchievementsEditor mentorId={mentorData.id} />
       </motion.div>
 
       {/* Agenda */}
