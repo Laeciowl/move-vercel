@@ -583,10 +583,6 @@ const Mentors = () => {
                     )}
                   </div>
 
-                  {/* Featured Achievements Section */}
-                  {mentorFeaturedMap[mentor.id]?.length > 0 && (
-                    <MentorFeaturedAchievements achievements={mentorFeaturedMap[mentor.id]} />
-                  )}
 
                   {/* Stats bar: advance notice + LinkedIn */}
                   <div className="flex flex-wrap items-center gap-3 mb-3 text-xs text-muted-foreground">
