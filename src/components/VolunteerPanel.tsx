@@ -12,6 +12,8 @@ import MentorProfileEditor from "./MentorProfileEditor";
 import MentorTagsEditor from "./MentorTagsEditor";
 import ContentSubmissionModal from "./ContentSubmissionModal";
 import MentorProgressMilestones from "./MentorProgressMilestones";
+import { useMentorTags } from "@/hooks/useTags";
+import MentorCertificate from "./MentorCertificate";
 import { isPast } from "date-fns";
 
 interface Submission {
@@ -91,6 +93,8 @@ const VolunteerPanel = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { isVolunteer, loading: checkingVolunteer } = useVolunteerCheck();
+  const [mentorIdForTags, setMentorIdForTags] = useState<string | null>(null);
+  const { mentorTags } = useMentorTags(mentorIdForTags);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [mentorData, setMentorData] = useState<MentorData | null>(null);
   const [sessions, setSessions] = useState<MentorSession[]>([]);
@@ -156,6 +160,7 @@ const VolunteerPanel = () => {
       .maybeSingle();
 
     if (mentor) {
+      setMentorIdForTags(mentor.id);
       setMentorData({
         ...mentor,
         description: mentor.description || "",
@@ -280,9 +285,19 @@ const VolunteerPanel = () => {
           </motion.div>
           <div>
             <h3 className="font-semibold text-foreground">Área do voluntário</h3>
-            <p className="text-xs text-muted-foreground">
-              {mentorData ? mentorData.area : "Suas contribuições"}
-            </p>
+            {mentorTags.length > 0 ? (
+              <div className="flex flex-wrap gap-1 mt-0.5">
+                {mentorTags.map((tag) => (
+                  <span key={tag.id} className="text-[10px] px-1.5 py-0.5 rounded-md bg-primary/10 text-primary font-medium">
+                    {tag.name}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                {mentorData ? mentorData.area : "Suas contribuições"}
+              </p>
+            )}
           </div>
         </div>
         {mentorData && (
@@ -372,6 +387,16 @@ const VolunteerPanel = () => {
                   </span>
                 </div>
               </div>
+            )}
+
+            {/* Mentor Certificate */}
+            {mentorData && mentorData.status === "approved" && stats.completedSessions > 0 && (
+              <MentorCertificate
+                mentorName={mentorData.name}
+                mentorPhotoUrl={mentorData.photo_url ?? null}
+                uniqueMentees={stats.uniqueMentees}
+                completedSessions={stats.completedSessions}
+              />
             )}
 
             {/* Content Stats - Minimal */}

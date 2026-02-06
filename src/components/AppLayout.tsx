@@ -21,19 +21,30 @@ interface AppLayoutProps {
 const AppLayout = ({ children }: AppLayoutProps) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, profile, signOut } = useAuth();
-  const { isAdmin } = useAdminCheck();
-  const { isVolunteer } = useVolunteerCheck();
-  const { isMentor } = useMentorCheck();
+  const { user, profile, signOut, loading: authLoading } = useAuth();
+  const { isAdmin, loading: adminLoading } = useAdminCheck();
+  const { isVolunteer, loading: volunteerLoading } = useVolunteerCheck();
+  const { isMentor, loading: mentorLoading } = useMentorCheck();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const rolesLoading = adminLoading || volunteerLoading || mentorLoading;
 
   const handleLogout = async () => {
     await signOut();
     navigate("/");
   };
 
-  // Role-based navigation items
+  // Role-based navigation items - stable while loading
   const getNavItems = () => {
+    if (rolesLoading) {
+      // Show minimal nav while roles are loading to prevent flicker
+      return [
+        { path: "/inicio", label: "Início", icon: Home },
+        { path: "/conquistas", label: "Conquistas", icon: Trophy },
+        { path: "/ajuda", label: "Ajuda", icon: HelpCircle },
+      ];
+    }
+
     if (isAdmin) {
       return [
         { path: "/inicio", label: "Dashboard", icon: Home },
