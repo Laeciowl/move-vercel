@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Video, FileText, BookOpen, Loader2, Play, ExternalLink, 
-  X, Filter, ChevronDown, SortDesc
+  X, Filter, ChevronDown, SortDesc, Bookmark, BookmarkCheck, Eye
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -19,6 +20,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { toast } from "sonner";
 
 interface ContentItem {
   id: string;
