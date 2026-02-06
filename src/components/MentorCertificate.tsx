@@ -141,20 +141,20 @@ const MentorCertificate = ({
 
         <div className="relative z-10 flex flex-col items-center justify-center h-full p-8 text-center">
           {/* Title */}
-          <div className="mb-5">
+          <div className="mb-4">
             <p className="text-[10px] tracking-[0.4em] uppercase font-semibold mb-1.5" style={{ color: "#fb923c" }}>Certificado</p>
             <h2 className="text-3xl font-extrabold tracking-tight" style={{ color: "#fff" }}>
               MENTOR <span style={{ color: "#f97316" }}>MOVÊ</span>
             </h2>
           </div>
 
-          {/* Photo */}
-          <div className="w-28 h-28 rounded-full overflow-hidden mb-4 shadow-2xl" style={{ border: "3px solid #f97316", boxShadow: "0 0 30px rgba(249, 115, 22, 0.3)" }}>
+          {/* Photo - prominent */}
+          <div className="w-36 h-36 rounded-full overflow-hidden mb-4 shadow-2xl flex-shrink-0" style={{ border: "4px solid #f97316", boxShadow: "0 0 40px rgba(249, 115, 22, 0.35)" }}>
             {mentorPhotoUrl ? (
               <img src={mentorPhotoUrl} alt={mentorName} className="w-full h-full object-cover" crossOrigin="anonymous" />
             ) : (
               <div className="w-full h-full flex items-center justify-center" style={{ background: "rgba(249, 115, 22, 0.15)" }}>
-                <Award className="w-10 h-10" style={{ color: "#f97316" }} />
+                <Award className="w-14 h-14" style={{ color: "#f97316" }} />
               </div>
             )}
           </div>
@@ -163,30 +163,32 @@ const MentorCertificate = ({
           <h3 className="text-xl font-bold mb-1" style={{ color: "#fff" }}>{mentorName}</h3>
 
           {/* Quote */}
-          <p className="text-sm italic mb-6 max-w-xs leading-relaxed" style={{ color: "rgba(251, 146, 60, 0.85)" }}>
+          <p className="text-sm italic mb-5 max-w-xs leading-relaxed" style={{ color: "rgba(251, 146, 60, 0.85)" }}>
             "Eu faço parte dos que movem a sociedade."
           </p>
 
-          {/* Impact metrics - vertical stack */}
-          <div className="w-full max-w-xs space-y-3 mb-6">
-            <div className="flex items-center justify-between px-4 py-2.5 rounded-xl" style={{ background: "rgba(249, 115, 22, 0.1)", border: "1px solid rgba(249, 115, 22, 0.15)" }}>
-              <span className="text-xs font-medium uppercase tracking-wider" style={{ color: "rgba(251, 146, 60, 0.7)" }}>Mentorias realizadas</span>
-              <span className="text-2xl font-extrabold" style={{ color: "#f97316" }}>{completedSessions}</span>
+          {/* Impact metrics - horizontal row */}
+          <div className="flex items-center justify-center gap-6 mb-6">
+            <div className="flex flex-col items-center">
+              <span className="text-3xl font-extrabold" style={{ color: "#f97316" }}>{completedSessions}</span>
+              <span className="text-[10px] font-medium uppercase tracking-wider mt-1" style={{ color: "#fff" }}>Mentorias realizadas</span>
             </div>
-            <div className="flex items-center justify-between px-4 py-2.5 rounded-xl" style={{ background: "rgba(249, 115, 22, 0.1)", border: "1px solid rgba(249, 115, 22, 0.15)" }}>
-              <span className="text-xs font-medium uppercase tracking-wider" style={{ color: "rgba(251, 146, 60, 0.7)" }}>Vidas impactadas</span>
-              <span className="text-2xl font-extrabold" style={{ color: "#f97316" }}>{uniqueMentees}</span>
+            <div className="w-px h-10" style={{ background: "rgba(249, 115, 22, 0.3)" }} />
+            <div className="flex flex-col items-center">
+              <span className="text-3xl font-extrabold" style={{ color: "#f97316" }}>{uniqueMentees}</span>
+              <span className="text-[10px] font-medium uppercase tracking-wider mt-1" style={{ color: "#fff" }}>Vidas impactadas</span>
             </div>
-            <div className="flex items-center justify-between px-4 py-2.5 rounded-xl" style={{ background: "rgba(249, 115, 22, 0.1)", border: "1px solid rgba(249, 115, 22, 0.15)" }}>
-              <span className="text-xs font-medium uppercase tracking-wider" style={{ color: "rgba(251, 146, 60, 0.7)" }}>Min. transformando vidas</span>
-              <span className="text-2xl font-extrabold" style={{ color: "#f97316" }}>{totalMinutes}</span>
+            <div className="w-px h-10" style={{ background: "rgba(249, 115, 22, 0.3)" }} />
+            <div className="flex flex-col items-center">
+              <span className="text-3xl font-extrabold" style={{ color: "#f97316" }}>{totalMinutes}</span>
+              <span className="text-[10px] font-medium uppercase tracking-wider mt-1" style={{ color: "#fff" }}>Min. transformando vidas</span>
             </div>
           </div>
 
           {/* Footer */}
           <div className="mt-auto">
             <p className="text-lg font-extrabold" style={{ color: "#f97316" }}>Movê</p>
-            <p className="text-[9px] mt-0.5" style={{ color: "rgba(251, 146, 60, 0.5)" }}>
+            <p className="text-[9px] mt-0.5" style={{ color: "#fff" }}>
               Hub gratuito de orientação profissional para jovens
             </p>
           </div>
