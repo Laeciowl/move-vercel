@@ -139,7 +139,7 @@ const MentorCertificate = ({
 
           {/* Quote */}
           <p className="text-sm text-orange-200/80 italic mb-6 max-w-xs leading-relaxed">
-            "Eu faço um movimento que muda a sociedade."
+            Eu faço parte dos que movem a sociedade.
           </p>
 
           {/* Impact metrics */}
