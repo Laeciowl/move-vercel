@@ -165,9 +165,11 @@ const MentorCertificate = ({
           <h3 className="text-xl font-bold mb-3" style={{ color: "#fff" }}>{mentorName}</h3>
 
           {/* Quote */}
-          <div className="mb-5 rounded-full whitespace-nowrap" style={{ background: "rgba(249, 115, 22, 0.12)", border: "1px solid rgba(249, 115, 22, 0.25)", textAlign: "center", paddingTop: "10px", paddingBottom: "10px", paddingLeft: "20px", paddingRight: "20px" }}>
-            <span className="text-sm italic" style={{ color: "#fff" }}>
-              Eu faço parte dos que <span className="font-extrabold not-italic" style={{ color: "#f97316" }}>MOVEM</span> a sociedade.
+          <div className="mb-5 rounded-full whitespace-nowrap" style={{ background: "rgba(249, 115, 22, 0.12)", border: "1px solid rgba(249, 115, 22, 0.25)", textAlign: "center", padding: "10px 20px", display: "flex", alignItems: "center", justifyContent: "center", lineHeight: "1" }}>
+            <span className="text-sm" style={{ color: "#fff", fontStyle: "italic", lineHeight: "1", verticalAlign: "middle" }}>
+              Eu faço parte dos que{" "}
+              <span style={{ color: "#f97316", fontWeight: 800, fontStyle: "normal", lineHeight: "1", verticalAlign: "middle" }}>MOVEM</span>
+              {" "}a sociedade.
             </span>
           </div>
 
