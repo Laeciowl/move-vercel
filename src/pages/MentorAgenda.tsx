@@ -149,24 +149,27 @@ const MentorAgenda = () => {
 
         setSessions(sessionsWithProfiles);
 
-        const completed = sessionsData.filter((s) => {
-          if (s.status === "completed" || s.status === "cancelled") return s.status === "completed";
+        // Filter out cancelled sessions for stats
+        const activeSessions = sessionsData.filter((s) => s.status !== "cancelled");
+
+        const completed = activeSessions.filter((s) => {
+          if (s.status === "completed") return true;
           const endTime = new Date(s.scheduled_at);
           endTime.setMinutes(endTime.getMinutes() + (s.duration || 30));
-          return endTime <= new Date();
+          return s.status === "scheduled" && endTime <= new Date();
         }).length;
 
-        const upcoming = sessionsData.filter((s) => {
+        const upcoming = activeSessions.filter((s) => {
           if (s.status !== "scheduled") return false;
           const endTime = new Date(s.scheduled_at);
           endTime.setMinutes(endTime.getMinutes() + (s.duration || 30));
           return endTime > new Date();
         }).length;
 
-        const uniqueMentees = new Set(sessionsData.map((s) => s.user_id)).size;
+        const uniqueMentees = new Set(activeSessions.map((s) => s.user_id)).size;
 
         setStats({
-          totalSessions: sessionsData.length,
+          totalSessions: activeSessions.length,
           completedSessions: completed,
           upcomingSessions: upcoming,
           uniqueMentees,
