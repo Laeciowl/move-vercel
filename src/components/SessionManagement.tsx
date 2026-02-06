@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Calendar, X, Loader2, RefreshCw, MessageSquare, Clock } from "lucide-react";
+import { Calendar, X, Loader2, RefreshCw, MessageSquare, Clock, CheckCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
