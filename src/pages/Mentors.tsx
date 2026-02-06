@@ -208,19 +208,46 @@ const Mentors = () => {
       // Mentors are already sorted by match_count in the RPC function
       setMentors(formattedMentors);
 
-      // Fetch unlocked achievements for all mentors
+      // Fetch featured achievements for all mentors
       const allMentorIds = formattedMentors.map(m => m.id);
       if (allMentorIds.length > 0) {
-        const { data: achData } = await supabase.rpc("get_mentor_unlocked_achievements", {
+        const { data: featuredData } = await supabase.rpc("get_mentor_featured_achievements", {
           mentor_ids: allMentorIds,
         });
-        if (achData) {
-          const map: Record<string, { icon: string; name: string }[]> = {};
-          (achData as any[]).forEach((row: any) => {
+        if (featuredData) {
+          const map: Record<string, FeaturedAchievement[]> = {};
+          (featuredData as any[]).forEach((row: any) => {
             if (!map[row.mentor_id]) map[row.mentor_id] = [];
-            map[row.mentor_id].push({ icon: row.icon, name: row.achievement_name });
+            map[row.mentor_id].push({
+              achievement_id: row.achievement_id,
+              icon: row.icon,
+              achievement_name: row.achievement_name,
+              description: row.description,
+              display_order: row.display_order,
+            });
           });
-          setMentorAchievementsMap(map);
+          setMentorFeaturedMap(map);
+        }
+
+        // Fallback: for mentors without featured achievements, use unlocked ones
+        const { data: achData } = await supabase.rpc("get_mentor_unlocked_achievements", {
+          mentor_ids: allMentorIds.filter(id => !map[id] || map[id].length === 0),
+        });
+        if (achData) {
+          const fallbackMap: Record<string, FeaturedAchievement[]> = {};
+          (achData as any[]).forEach((row: any) => {
+            if (!fallbackMap[row.mentor_id]) fallbackMap[row.mentor_id] = [];
+            if (fallbackMap[row.mentor_id].length < 4) {
+              fallbackMap[row.mentor_id].push({
+                achievement_id: row.mentor_id + row.icon,
+                icon: row.icon,
+                achievement_name: row.achievement_name,
+                description: "",
+                display_order: fallbackMap[row.mentor_id].length + 1,
+              });
+            }
+          });
+          setMentorFeaturedMap(prev => ({ ...prev, ...fallbackMap }));
         }
       }
 
