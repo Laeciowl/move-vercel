@@ -555,6 +555,19 @@ const Mentors = () => {
                     )}
                   </div>
 
+                  {/* Mentor Achievements */}
+                  {mentorAchievementsMap[mentor.id]?.length > 0 && (
+                    <div className="flex items-center gap-1.5 flex-wrap mb-3">
+                      <Trophy className="w-3.5 h-3.5 text-primary shrink-0" />
+                      {mentorAchievementsMap[mentor.id].slice(0, 6).map((ach, i) => (
+                        <span key={i} className="text-sm" title={ach.name}>{ach.icon}</span>
+                      ))}
+                      {mentorAchievementsMap[mentor.id].length > 6 && (
+                        <span className="text-xs text-muted-foreground">+{mentorAchievementsMap[mentor.id].length - 6}</span>
+                      )}
+                    </div>
+                  )}
+
                   {/* Stats bar: advance notice + LinkedIn */}
                   <div className="flex flex-wrap items-center gap-3 mb-3 text-xs text-muted-foreground">
                     <span className="flex items-center gap-1">
