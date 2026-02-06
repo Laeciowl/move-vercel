@@ -149,7 +149,7 @@ const MentorCertificate = ({
           </div>
 
           {/* Photo */}
-          <div className="w-24 h-24 rounded-full overflow-hidden mb-4 shadow-2xl" style={{ border: "3px solid #f97316", boxShadow: "0 0 30px rgba(249, 115, 22, 0.3)" }}>
+          <div className="w-28 h-28 rounded-full overflow-hidden mb-4 shadow-2xl" style={{ border: "3px solid #f97316", boxShadow: "0 0 30px rgba(249, 115, 22, 0.3)" }}>
             {mentorPhotoUrl ? (
               <img src={mentorPhotoUrl} alt={mentorName} className="w-full h-full object-cover" crossOrigin="anonymous" />
             ) : (
