@@ -156,11 +156,14 @@ const Admin = () => {
                 transition={{ duration: 0.2 }}
                 className="bg-card/80 backdrop-blur-sm rounded-3xl shadow-card border border-border/50 p-6"
               >
-                <TabsContent value="volunteers" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
-                  <AdminVolunteersPanel />
-                </TabsContent>
                 <TabsContent value="metrics" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
                   <AdminMetricsPanel />
+                </TabsContent>
+                <TabsContent value="sessions" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+                  <AdminMentorSessionsPanel />
+                </TabsContent>
+                <TabsContent value="volunteers" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+                  <AdminVolunteersPanel />
                 </TabsContent>
                 <TabsContent value="cards" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
                   <AdminMentorCardsPanel />
