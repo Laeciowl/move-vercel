@@ -158,11 +158,16 @@ export const useAchievements = () => {
     setLoading(false);
   }, [user, userType, mentorId, syncAchievementProgress]);
 
-  const calculateStats = async () => {
-    if (!user) return;
+  const calculateStats = async (): Promise<AchievementStats | null> => {
+    if (!user) return null;
+
+    const result: AchievementStats = {
+      totalMentorias: 0, totalMinutes: 0, uniqueContacts: 0,
+      areasExplored: 0, contentAccessed: 0, contentSaved: 0,
+      reviewsGiven: 0, currentStreak: 0,
+    };
 
     if (isMentor && mentorId) {
-      // Mentor stats
       const { data: sessions } = await supabase
         .from("mentor_sessions")
         .select("user_id, duration, scheduled_at, status")
@@ -177,18 +182,11 @@ export const useAchievements = () => {
           return endTime <= now;
         });
 
-        const totalMinutes = completedSessions.reduce((acc, s) => acc + (s.duration || 30), 0);
-        const uniqueMentees = new Set(completedSessions.map(s => s.user_id)).size;
-
-        setStats(prev => ({
-          ...prev,
-          totalMentorias: completedSessions.length,
-          totalMinutes,
-          uniqueContacts: uniqueMentees,
-        }));
+        result.totalMentorias = completedSessions.length;
+        result.totalMinutes = completedSessions.reduce((acc, s) => acc + (s.duration || 30), 0);
+        result.uniqueContacts = new Set(completedSessions.map(s => s.user_id)).size;
       }
     } else {
-      // Mentee stats
       const { data: sessions } = await supabase
         .from("mentor_sessions")
         .select("mentor_id, duration, scheduled_at, status")
@@ -203,23 +201,19 @@ export const useAchievements = () => {
           return endTime <= now;
         });
 
-        const totalMinutes = completedSessions.reduce((acc, s) => acc + (s.duration || 30), 0);
-        const uniqueMentors = new Set(completedSessions.map(s => s.mentor_id)).size;
+        result.totalMentorias = completedSessions.length;
+        result.totalMinutes = completedSessions.reduce((acc, s) => acc + (s.duration || 30), 0);
+        result.uniqueContacts = new Set(completedSessions.map(s => s.mentor_id)).size;
 
-        // Count areas explored via mentor tags
         const mentorIds = [...new Set(completedSessions.map(s => s.mentor_id))];
-        let areasExplored = 0;
         if (mentorIds.length > 0) {
           const { data: tags } = await supabase
             .from("mentor_tags")
             .select("tag_id")
             .in("mentor_id", mentorIds);
-          if (tags) {
-            areasExplored = new Set(tags.map(t => t.tag_id)).size;
-          }
+          if (tags) result.areasExplored = new Set(tags.map(t => t.tag_id)).size;
         }
 
-        // Content stats
         const { count: contentCount } = await supabase
           .from("content_access_log")
           .select("*", { count: "exact", head: true })
@@ -230,24 +224,19 @@ export const useAchievements = () => {
           .select("*", { count: "exact", head: true })
           .eq("user_id", user.id);
 
-        // Reviews
         const { count: reviewCount } = await supabase
           .from("session_reviews")
           .select("*", { count: "exact", head: true })
           .eq("user_id", user.id);
 
-        setStats(prev => ({
-          ...prev,
-          totalMentorias: completedSessions.length,
-          totalMinutes,
-          uniqueContacts: uniqueMentors,
-          areasExplored,
-          contentAccessed: contentCount || 0,
-          contentSaved: saveCount || 0,
-          reviewsGiven: reviewCount || 0,
-        }));
+        result.contentAccessed = contentCount || 0;
+        result.contentSaved = saveCount || 0;
+        result.reviewsGiven = reviewCount || 0;
       }
     }
+
+    setStats(result);
+    return result;
   };
 
   useEffect(() => {

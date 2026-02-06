@@ -260,34 +260,126 @@ const Home = () => {
           )}
         </div>
 
-        {/* Main Grid */}
-        <div className="grid lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
-            {/* Interests Banner */}
-            {!isVolunteer && !isPendingMentor && (
-              <InterestsNotificationBanner onOpenInterestsEditor={() => setShowInterestsOnboarding(true)} />
-            )}
+        {/* Quick Links Row */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {/* Community */}
+          <motion.div
+            variants={{ initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 } }}
+            className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/30 p-4 hover:border-green-500/30 transition-colors"
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-7 h-7 rounded-lg bg-green-500/10 flex items-center justify-center">
+                <MessageCircle className="w-3.5 h-3.5 text-green-600" />
+              </div>
+              <h3 className="font-semibold text-foreground text-sm">Comunidade</h3>
+            </div>
+            <a href="https://chat.whatsapp.com/BFDDkhbwz5aFdg6WhIFU6C" target="_blank" rel="noopener noreferrer"
+              className="w-full inline-flex items-center justify-center gap-1.5 bg-green-600 text-white py-2 rounded-xl font-medium text-xs hover:bg-green-700 transition-colors">
+              <MessageCircle className="w-3.5 h-3.5" /> Entrar
+            </a>
+          </motion.div>
 
-            {/* First Mission */}
-            {!isVolunteer && !isPendingMentor && (
-              <FirstMentorshipMission isCompleted={profile?.first_mentorship_booked || false} />
-            )}
+          {/* TEM VAGA? */}
+          {!isVolunteer && !isPendingMentor && (
+            <motion.div
+              variants={{ initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 } }}
+              className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/30 p-4 hover:border-blue-500/30 transition-colors"
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-7 h-7 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                  <Briefcase className="w-3.5 h-3.5 text-blue-600" />
+                </div>
+                <h3 className="font-semibold text-foreground text-sm">TEM VAGA?</h3>
+              </div>
+              <a href="https://chat.whatsapp.com/JugF130879CH7Lgo2Ycs1b" target="_blank" rel="noopener noreferrer"
+                className="w-full inline-flex items-center justify-center gap-1.5 bg-blue-600 text-white py-2 rounded-xl font-medium text-xs hover:bg-blue-700 transition-colors">
+                <MessageCircle className="w-3.5 h-3.5" /> Entrar
+              </a>
+            </motion.div>
+          )}
 
-            {isPendingMentor && !isVolunteer && <PendingMentorBanner />}
+          {/* Mentors Group */}
+          {isVolunteer && (
+            <motion.div
+              variants={{ initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 } }}
+              className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/30 p-4 hover:border-purple-500/30 transition-colors"
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-7 h-7 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                  <Heart className="w-3.5 h-3.5 text-purple-600" />
+                </div>
+                <h3 className="font-semibold text-foreground text-sm">Mentores</h3>
+              </div>
+              <a href="https://chat.whatsapp.com/LKpz2hr7FnZDpCgNXdxwHl" target="_blank" rel="noopener noreferrer"
+                className="w-full inline-flex items-center justify-center gap-1.5 bg-purple-600 text-white py-2 rounded-xl font-medium text-xs hover:bg-purple-700 transition-colors">
+                <MessageCircle className="w-3.5 h-3.5" /> Entrar
+              </a>
+            </motion.div>
+          )}
 
-            <VolunteerPanel />
+          {/* About */}
+          <motion.div
+            variants={{ initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 } }}
+            className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/30 p-4"
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Sparkles className="w-3.5 h-3.5 text-primary" />
+              </div>
+              <h3 className="font-semibold text-foreground text-sm">Sobre o Movê</h3>
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed mb-1">Conectamos jovens a mentores.</p>
+            <div className="flex gap-2 text-[10px]">
+              <a href="https://www.linkedin.com/in/laecio-rodrigues" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">@laecio</a>
+              <a href="/termos" className="text-muted-foreground hover:text-foreground">Termos</a>
+            </div>
+          </motion.div>
 
-            {!isVolunteer && !isMentor && !isPendingMentor && <MentorPanel />}
+          {/* Referral compact */}
+          {!isVolunteer && (
+            <motion.div
+              variants={{ initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 } }}
+              className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/30 p-4"
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Star className="w-3.5 h-3.5 text-primary" />
+                </div>
+                <h3 className="font-semibold text-foreground text-sm">Indicar</h3>
+              </div>
+              <Link to="/inicio" className="w-full inline-flex items-center justify-center gap-1.5 bg-primary text-primary-foreground py-2 rounded-xl font-medium text-xs hover:bg-primary/90 transition-colors"
+                onClick={(e) => { e.preventDefault(); /* scroll to referral or open */ }}>
+                <Users className="w-3.5 h-3.5" /> Convidar amigo
+              </Link>
+            </motion.div>
+          )}
+        </div>
 
-            {(!isVolunteer || isMentor) && <MentorshipSection />}
-          </div>
+        {/* Main Content */}
+        <div className="space-y-6">
+          {/* Interests Banner */}
+          {!isVolunteer && !isPendingMentor && (
+            <InterestsNotificationBanner onOpenInterestsEditor={() => setShowInterestsOnboarding(true)} />
+          )}
 
-          {/* Sidebar */}
-          <div className="space-y-4">
-            {/* Evolution */}
-            {!isVolunteer && !isPendingMentor && (
+          {/* First Mission */}
+          {!isVolunteer && !isPendingMentor && (
+            <FirstMentorshipMission isCompleted={profile?.first_mentorship_booked || false} />
+          )}
+
+          {isPendingMentor && !isVolunteer && <PendingMentorBanner />}
+
+          <VolunteerPanel />
+
+          {!isVolunteer && !isMentor && !isPendingMentor && <MentorPanel />}
+
+          {(!isVolunteer || isMentor) && <MentorshipSection />}
+
+          {/* Evolution + Interests side-by-side on desktop */}
+          {!isVolunteer && !isPendingMentor && (
+            <div className="grid md:grid-cols-2 gap-4">
               <motion.div
-                variants={{ initial: { opacity: 0, x: 16 }, animate: { opacity: 1, x: 0 } }}
+                variants={{ initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 } }}
                 className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/30 p-5"
               >
                 <div className="flex items-center gap-3 mb-4">
@@ -320,100 +412,17 @@ const Home = () => {
                   </Button>
                 )}
               </motion.div>
-            )}
 
-            {/* Interests */}
-            {!isVolunteer && (
               <motion.div
-                variants={{ initial: { opacity: 0, x: 16 }, animate: { opacity: 1, x: 0 } }}
+                variants={{ initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 } }}
                 className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/30 p-5"
               >
                 <MenteeInterestsEditor />
               </motion.div>
-            )}
+            </div>
+          )}
 
-            {/* Referral */}
-            {!isVolunteer && <ReferralSection />}
-
-            {/* WhatsApp Community */}
-            <motion.div
-              variants={{ initial: { opacity: 0, x: 16 }, animate: { opacity: 1, x: 0 } }}
-              className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/30 p-5 group hover:border-green-500/30 transition-colors"
-            >
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-9 h-9 rounded-xl bg-green-500/10 flex items-center justify-center">
-                  <MessageCircle className="w-4 h-4 text-green-600" />
-                </div>
-                <h3 className="font-semibold text-foreground">Comunidade</h3>
-              </div>
-              <p className="text-sm text-muted-foreground mb-4">Entre no nosso grupo do WhatsApp!</p>
-              <a href="https://chat.whatsapp.com/BFDDkhbwz5aFdg6WhIFU6C" target="_blank" rel="noopener noreferrer"
-                className="w-full inline-flex items-center justify-center gap-2 bg-green-600 text-white py-2.5 rounded-xl font-medium text-sm hover:bg-green-700 transition-colors">
-                <MessageCircle className="w-4 h-4" /> Entrar no grupo
-              </a>
-            </motion.div>
-
-            {/* TEM VAGA? */}
-            {!isVolunteer && !isPendingMentor && (
-              <motion.div
-                variants={{ initial: { opacity: 0, x: 16 }, animate: { opacity: 1, x: 0 } }}
-                className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/30 p-5 group hover:border-blue-500/30 transition-colors"
-              >
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-9 h-9 rounded-xl bg-blue-500/10 flex items-center justify-center">
-                    <Briefcase className="w-4 h-4 text-blue-600" />
-                  </div>
-                  <h3 className="font-semibold text-foreground">TEM VAGA?</h3>
-                </div>
-                <p className="text-sm text-muted-foreground mb-4">Comunidade com vagas de estágio até analista! 🚀</p>
-                <a href="https://chat.whatsapp.com/JugF130879CH7Lgo2Ycs1b" target="_blank" rel="noopener noreferrer"
-                  className="w-full inline-flex items-center justify-center gap-2 bg-blue-600 text-white py-2.5 rounded-xl font-medium text-sm hover:bg-blue-700 transition-colors">
-                  <MessageCircle className="w-4 h-4" /> Entrar no grupo
-                </a>
-              </motion.div>
-            )}
-
-            {/* Mentors WhatsApp */}
-            {isVolunteer && (
-              <motion.div
-                variants={{ initial: { opacity: 0, x: 16 }, animate: { opacity: 1, x: 0 } }}
-                className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/30 p-5 group hover:border-purple-500/30 transition-colors"
-              >
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-9 h-9 rounded-xl bg-purple-500/10 flex items-center justify-center">
-                    <Heart className="w-4 h-4 text-purple-600" />
-                  </div>
-                  <h3 className="font-semibold text-foreground">Mentores</h3>
-                </div>
-                <p className="text-sm text-muted-foreground mb-4">Grupo exclusivo para mentores.</p>
-                <a href="https://chat.whatsapp.com/LKpz2hr7FnZDpCgNXdxwHl" target="_blank" rel="noopener noreferrer"
-                  className="w-full inline-flex items-center justify-center gap-2 bg-purple-600 text-white py-2.5 rounded-xl font-medium text-sm hover:bg-purple-700 transition-colors">
-                  <MessageCircle className="w-4 h-4" /> Entrar no grupo
-                </a>
-              </motion.div>
-            )}
-
-            {/* About */}
-            <motion.div
-              variants={{ initial: { opacity: 0, x: 16 }, animate: { opacity: 1, x: 0 } }}
-              className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/30 p-5"
-            >
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <Sparkles className="w-4 h-4 text-primary" />
-                </div>
-                <h3 className="font-semibold text-foreground">Sobre o Movê</h3>
-              </div>
-              <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-                Conectamos jovens a mentores e recursos para impulsionar carreiras.
-              </p>
-              <div className="flex flex-wrap gap-2 text-xs">
-                <a href="https://www.linkedin.com/in/laecio-rodrigues" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">@laecio-rodrigues</a>
-                <span className="text-muted-foreground">•</span>
-                <a href="/termos" className="text-muted-foreground hover:text-foreground transition-colors">Termos</a>
-              </div>
-            </motion.div>
-          </div>
+          {!isVolunteer && <ReferralSection />}
         </div>
       </motion.div>
 
