@@ -18,7 +18,9 @@ interface SessionManagementProps {
   mentorEmail?: string;
   userRole: "mentor" | "mentee";
   confirmedByMentor?: boolean;
+  isPastSession?: boolean;
   onUpdate: () => void;
+  onConfirmCompletion?: () => void;
 }
 
 const SessionManagement = ({
