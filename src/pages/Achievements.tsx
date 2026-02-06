@@ -212,6 +212,16 @@ const AchievementCard = ({ achievement, index }: AchievementCardProps) => {
     ? Math.min((achievement.progress / achievement.criteria_value) * 100, 100)
     : 0;
 
+  const shareOnLinkedIn = () => {
+    const text = `🏆 Acabei de desbloquear a conquista "${achievement.name}" na plataforma Movê!\n\n${achievement.icon} ${achievement.description}\n\nO Movê conecta jovens a mentores voluntários para orientação profissional gratuita.\n\n#Movê #Mentoria #DesenvolvimentoProfissional`;
+    const url = "https://movesocial.lovable.app";
+    window.open(
+      `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`,
+      "_blank",
+      "width=600,height=500"
+    );
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -257,10 +267,23 @@ const AchievementCard = ({ achievement, index }: AchievementCardProps) => {
             </div>
           )}
 
-          {achievement.isUnlocked && achievement.unlocked_at && (
-            <p className="text-[10px] text-muted-foreground mt-1.5">
-              Desbloqueado em {new Date(achievement.unlocked_at).toLocaleDateString("pt-BR")}
-            </p>
+          {achievement.isUnlocked && (
+            <div className="flex items-center justify-between mt-1.5">
+              {achievement.unlocked_at && (
+                <p className="text-[10px] text-muted-foreground">
+                  Desbloqueado em {new Date(achievement.unlocked_at).toLocaleDateString("pt-BR")}
+                </p>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={shareOnLinkedIn}
+                className="h-6 px-2 text-[10px] text-[#0A66C2] hover:bg-[#0A66C2]/10 gap-1"
+              >
+                <Linkedin className="w-3 h-3" />
+                Compartilhar
+              </Button>
+            </div>
           )}
         </div>
       </div>
