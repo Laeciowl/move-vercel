@@ -274,7 +274,7 @@ const MentorshipSection = () => {
         >
           <Button
             onClick={() => navigate("/mentores")}
-            disabled={hasPendingConfirmations}
+            disabled={isBookingBlocked}
             className="bg-gradient-hero text-primary-foreground shadow-button hover:shadow-lg transition-all duration-300 gap-2"
           >
             <Users className="w-4 h-4" />
@@ -297,6 +297,25 @@ const MentorshipSection = () => {
               <h4 className="font-semibold text-foreground text-sm">Confirme suas mentorias realizadas</h4>
               <p className="text-xs text-muted-foreground mt-1">
                 Você precisa confirmar se suas mentorias passadas foram realizadas antes de agendar uma nova sessão.
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Unreviewed sessions warning */}
+      {!hasPendingConfirmations && hasUnreviewedSessions && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 rounded-2xl p-4"
+        >
+          <div className="flex items-start gap-3">
+            <Star className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+            <div>
+              <h4 className="font-semibold text-foreground text-sm">Avalie suas mentorias</h4>
+              <p className="text-xs text-muted-foreground mt-1">
+                Você precisa avaliar suas mentorias concluídas antes de agendar uma nova sessão. Seu feedback é essencial!
               </p>
             </div>
           </div>
