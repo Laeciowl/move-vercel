@@ -855,6 +855,11 @@ const Mentors = () => {
                   </div>
                 )}
 
+                {/* Featured Achievements - inside profile dialog */}
+                {mentorFeaturedMap[selectedMentorForProfile.id]?.length > 0 && (
+                  <MentorFeaturedAchievements achievements={mentorFeaturedMap[selectedMentorForProfile.id]} />
+                )}
+
                 <div className="mb-4">
                   <MentorRatingDisplay
                     totalReviews={selectedMentorForProfile.totalReviews}
