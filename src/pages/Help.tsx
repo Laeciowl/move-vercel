@@ -79,14 +79,13 @@ const Help = () => {
             </div>
           </div>
           <a
-            href="https://chat.whatsapp.com/BFDDkhbwz5aFdg6WhIFU6C"
+            href="https://www.linkedin.com/in/laecio-rodrigues"
             target="_blank"
             rel="noopener noreferrer"
           >
-            <Button className="w-full bg-green-600 hover:bg-green-700 text-white gap-2 rounded-xl">
-              <MessageCircle className="w-4 h-4" />
-              Falar com Suporte
-              <ExternalLink className="w-3 h-3" />
+            <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white gap-2 rounded-xl">
+              <ExternalLink className="w-4 h-4" />
+              Falar com Suporte no LinkedIn
             </Button>
           </a>
         </motion.div>
