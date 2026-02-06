@@ -165,12 +165,21 @@ const MentorCertificate = ({
           <h3 className="text-xl font-bold mb-3" style={{ color: "#fff" }}>{mentorName}</h3>
 
           {/* Quote */}
-          <div className="mb-5 rounded-full whitespace-nowrap" style={{ background: "rgba(249, 115, 22, 0.12)", border: "1px solid rgba(249, 115, 22, 0.25)", textAlign: "center", padding: "10px 20px", display: "flex", alignItems: "center", justifyContent: "center", lineHeight: "1" }}>
-            <span className="text-sm" style={{ color: "#fff", fontStyle: "italic", lineHeight: "1", verticalAlign: "middle" }}>
-              Eu faço parte dos que{" "}
-              <span style={{ color: "#f97316", fontWeight: 800, fontStyle: "normal", lineHeight: "1", verticalAlign: "middle" }}>MOVEM</span>
-              {" "}a sociedade.
-            </span>
+          <div className="mb-5 rounded-full whitespace-nowrap" style={{
+            background: "rgba(249, 115, 22, 0.12)",
+            border: "1px solid rgba(249, 115, 22, 0.25)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "12px 24px",
+            lineHeight: "1.2",
+            fontSize: "14px",
+            fontStyle: "italic",
+            color: "#fff",
+          }}>
+            <span style={{ lineHeight: "1.2", verticalAlign: "middle" }}>Eu faço parte dos que </span>
+            <span style={{ color: "#f97316", fontWeight: 800, fontStyle: "normal", lineHeight: "1.2", verticalAlign: "middle" }}>MOVEM</span>
+            <span style={{ lineHeight: "1.2", verticalAlign: "middle" }}> a sociedade.</span>
           </div>
 
           {/* Impact metrics - horizontal row */}
@@ -191,12 +200,16 @@ const MentorCertificate = ({
             </div>
           </div>
 
-          {/* Footer */}
-          <div className="mt-auto">
-            <p className="text-lg font-extrabold" style={{ color: "#f97316" }}>Movê</p>
-            <p className="text-[9px] mt-0.5" style={{ color: "#fff" }}>
-              Hub gratuito de orientação profissional para jovens
-            </p>
+          {/* Footer with link and logo */}
+          <div className="mt-auto w-full flex items-end justify-between">
+            <span style={{ color: "rgba(255,255,255,0.5)", fontSize: "8px", lineHeight: "1" }}>movecarreiras.org</span>
+            <div style={{ textAlign: "center", flex: 1 }}>
+              <p className="text-lg font-extrabold" style={{ color: "#f97316" }}>Movê</p>
+              <p style={{ color: "#fff", fontSize: "9px", marginTop: "2px" }}>
+                Hub gratuito de orientação profissional para jovens
+              </p>
+            </div>
+            <span style={{ fontSize: "8px", visibility: "hidden" }}>movecarreiras.org</span>
           </div>
         </div>
       </div>
