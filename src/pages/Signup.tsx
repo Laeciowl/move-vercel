@@ -113,7 +113,7 @@ const Signup = () => {
   useEffect(() => {
     // Don't redirect if we're in the middle of a mentor signup flow
     if (!authLoading && user && !submitted && userType !== "mentor") {
-      navigate("/dashboard");
+      navigate("/inicio");
     }
   }, [user, authLoading, navigate, submitted, userType]);
 
