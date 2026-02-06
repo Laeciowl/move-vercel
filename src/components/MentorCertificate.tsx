@@ -194,12 +194,13 @@ const MentorCertificate = ({
         </Button>
         <Button
           onClick={shareOnLinkedIn}
+          disabled={generating}
           variant="outline"
           size="sm"
           className="gap-2 rounded-xl text-[#0A66C2] border-[#0A66C2]/30 hover:bg-[#0A66C2]/10"
         >
-          <Linkedin className="w-4 h-4" />
-          LinkedIn
+          {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Linkedin className="w-4 h-4" />}
+          Compartilhar no LinkedIn
         </Button>
         <Button
           variant="ghost"

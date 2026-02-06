@@ -210,13 +210,14 @@ const VolunteerPanel = () => {
         setSessions(sessionsWithProfiles);
 
         // Calculate stats - count sessions as completed if time has passed
-        const completed = sessionsData.filter((s) => {
+        const completedSessionsList = sessionsData.filter((s) => {
           if (s.status === "completed" || s.status === "cancelled") return s.status === "completed";
           // For scheduled sessions, check if time has passed
           const endTime = new Date(s.scheduled_at);
           endTime.setMinutes(endTime.getMinutes() + (s.duration || 30));
           return endTime <= new Date();
-        }).length;
+        });
+        const completed = completedSessionsList.length;
 
         const upcoming = sessionsData.filter((s) => {
           if (s.status !== "scheduled") return false;
@@ -225,7 +226,8 @@ const VolunteerPanel = () => {
           return endTime > new Date();
         }).length;
 
-        const uniqueMentees = new Set(sessionsData.map((s) => s.user_id)).size;
+        // Unique mentees only from completed sessions
+        const uniqueMentees = new Set(completedSessionsList.map((s) => s.user_id)).size;
 
         setStats({
           totalSessions: sessionsData.length,
