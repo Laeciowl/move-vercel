@@ -617,6 +617,11 @@ const Mentors = () => {
                     </div>
                   )}
 
+                  {/* Featured Achievements Section */}
+                  {mentorFeaturedMap[mentor.id]?.length > 0 && (
+                    <MentorFeaturedAchievements achievements={mentorFeaturedMap[mentor.id]} />
+                  )}
+
                   {/* Spacer to push content below to bottom */}
                   <div className="flex-1" />
 
