@@ -71,25 +71,13 @@ const Admin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-warm py-8 px-4 relative overflow-hidden">
-      {/* Decorative elements */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-      <div className="absolute bottom-0 left-0 w-80 h-80 bg-accent/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
-
+    <AppLayout>
       <motion.div 
-        className="container mx-auto max-w-5xl relative z-10"
+        className="max-w-5xl mx-auto"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
-        <motion.button
-          variants={itemVariants}
-          onClick={() => navigate("/dashboard")}
-          className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-all duration-300 hover:-translate-x-1 group"
-        >
-          <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
-          Voltar ao Dashboard
-        </motion.button>
 
         <motion.div variants={itemVariants} className="mb-8">
           <div className="flex items-center gap-4 mb-3">
