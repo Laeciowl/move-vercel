@@ -33,7 +33,9 @@ const SessionManagement = ({
   mentorEmail,
   userRole,
   confirmedByMentor = false,
+  isPastSession = false,
   onUpdate,
+  onConfirmCompletion,
 }: SessionManagementProps) => {
   const [showModal, setShowModal] = useState(false);
   const [action, setAction] = useState<"cancel" | "reschedule">("cancel");
