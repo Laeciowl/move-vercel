@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Loader2, User, Calendar, Users, Trophy, BookOpen, ArrowRight,
-  Clock, Star, Sparkles, Heart, Shield, Edit, RefreshCw, History,
+  Clock, Sparkles, Heart, Shield, Edit, RefreshCw, History,
   MessageCircle, Briefcase, Settings, LogOut, ExternalLink
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
