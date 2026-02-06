@@ -72,8 +72,9 @@ export const useAchievements = () => {
         case "conteudo":
           return ach.criteria_type === "count" ? computedStats.contentAccessed : computedStats.contentSaved;
         case "exploracao":
+          return computedStats.uniqueContacts; // unique mentors explored
         case "areas":
-          return computedStats.areasExplored;
+          return computedStats.areasExplored; // unique mentor areas
         case "engajamento":
           return computedStats.reviewsGiven;
         case "consistencia":
