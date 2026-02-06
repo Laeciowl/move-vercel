@@ -231,7 +231,7 @@ const Mentors = () => {
 
         // Fallback: for mentors without featured achievements, use unlocked ones
         const { data: achData } = await supabase.rpc("get_mentor_unlocked_achievements", {
-          mentor_ids: allMentorIds.filter(id => !mentorFeaturedMapLocal[id] || mentorFeaturedMapLocal[id].length === 0),
+          mentor_ids: allMentorIds.filter(id => !featuredMap[id] || featuredMap[id].length === 0),
         });
         if (achData) {
           const fallbackMap: Record<string, FeaturedAchievement[]> = {};
