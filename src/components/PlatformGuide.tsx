@@ -164,6 +164,26 @@ const MentorGuideContent = () => {
             </WarningBox>
           </AccordionContent>
         </AccordionItem>
+
+        <AccordionItem value="confirm-session" className="bg-muted/30 border-0 rounded-xl px-4">
+          <AccordionTrigger className="text-left hover:no-underline py-3 text-sm">
+            <div className="flex items-center gap-2">
+              <CheckSquare className="w-4 h-4 text-primary shrink-0" />
+              <span className="font-medium">Confirme Sessões Realizadas</span>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="text-muted-foreground text-sm space-y-3 pb-4">
+            <p>Após o horário da sessão, <strong>lembre-se de confirmar se ela foi realizada</strong>. Isso é essencial para contabilizar suas métricas de impacto.</p>
+            <ol className="list-decimal ml-5 space-y-1">
+              <li>Acesse "Minhas Mentorias" na agenda</li>
+              <li>Localize a sessão pendente de confirmação</li>
+              <li>Clique em "Confirmar Realização" ou "Não realizada"</li>
+            </ol>
+            <TipBox>
+              💡 Tanto você quanto o mentorado podem confirmar a realização — basta um dos lados confirmar!
+            </TipBox>
+          </AccordionContent>
+        </AccordionItem>
       </Accordion>
     </div>
   );
@@ -294,8 +314,28 @@ const MenteeGuideContent = () => {
                   <li>• Ficar no celular</li>
                   <li>• Perguntas genéricas</li>
                 </ul>
-              </div>
+             </div>
             </div>
+          </AccordionContent>
+        </AccordionItem>
+
+        <AccordionItem value="after-session" className="bg-muted/30 border-0 rounded-xl px-4">
+          <AccordionTrigger className="text-left hover:no-underline py-3 text-sm">
+            <div className="flex items-center gap-2">
+              <CheckSquare className="w-4 h-4 text-primary shrink-0" />
+              <span className="font-medium">Após a Mentoria: Confirme e Avalie</span>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="text-muted-foreground text-sm space-y-3 pb-4">
+            <p>Depois que a sessão acontecer, você ou o mentor devem <strong>confirmar que ela foi realizada</strong>. Basta um dos lados confirmar!</p>
+            <WarningBox>
+              ⚠️ <strong>Importante:</strong> Você precisa avaliar (escrever um review) de cada sessão concluída antes de poder agendar uma nova mentoria. Isso ajuda outros mentorados e valoriza o mentor!
+            </WarningBox>
+            <ol className="list-decimal ml-5 space-y-1">
+              <li>Confirme a realização da sessão (se o mentor ainda não confirmou)</li>
+              <li>Escreva sua avaliação sobre a experiência</li>
+              <li>Depois de avaliar, você poderá agendar novas mentorias</li>
+            </ol>
           </AccordionContent>
         </AccordionItem>
       </Accordion>
@@ -319,8 +359,16 @@ const FAQContent = () => {
       answer: "Sim, mas precisa cancelar a atual e agendar nova, respeitando 24h de antecedência."
     },
     {
+      question: "Preciso avaliar a mentoria?",
+      answer: "Sim! Mentorados devem avaliar cada sessão concluída antes de agendar uma nova mentoria. Isso garante feedback valioso para os mentores."
+    },
+    {
+      question: "Quem confirma que a sessão aconteceu?",
+      answer: "Tanto o mentor quanto o mentorado podem confirmar a realização da sessão. Basta um dos lados confirmar para que ela seja marcada como concluída."
+    },
+    {
       question: "O que fazer se o mentor não aparecer?",
-      answer: "Aguarde 10 minutos e entre em contato via WhatsApp. Se não houver resposta, reporte o problema."
+      answer: "Aguarde 10 minutos e entre em contato via WhatsApp. Se não houver resposta, marque a sessão como 'Não realizada'."
     },
     {
       question: "Como faço para me tornar mentor?",

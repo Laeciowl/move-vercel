@@ -66,6 +66,7 @@ interface MentorStats {
   completedSessions: number;
   upcomingSessions: number;
   uniqueMentees: number;
+  totalMinutes: number;
 }
 
 const categoryLabels: Record<string, string> = {
@@ -98,7 +99,7 @@ const VolunteerPanel = () => {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [mentorData, setMentorData] = useState<MentorData | null>(null);
   const [sessions, setSessions] = useState<MentorSession[]>([]);
-  const [stats, setStats] = useState<MentorStats>({ totalSessions: 0, completedSessions: 0, upcomingSessions: 0, uniqueMentees: 0 });
+  const [stats, setStats] = useState<MentorStats>({ totalSessions: 0, completedSessions: 0, upcomingSessions: 0, uniqueMentees: 0, totalMinutes: 0 });
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"overview" | "profile" | "agenda" | "content">("overview");
   const [submissionModal, setSubmissionModal] = useState<{ isOpen: boolean; category: "aulas_lives" | "templates_arquivos" }>({
@@ -229,11 +230,15 @@ const VolunteerPanel = () => {
         // Unique mentees only from completed sessions
         const uniqueMentees = new Set(completedSessionsList.map((s) => s.user_id)).size;
 
+        // Total minutes from completed sessions
+        const totalMinutes = completedSessionsList.reduce((sum, s) => sum + (s.duration || 30), 0);
+
         setStats({
           totalSessions: sessionsData.length,
           completedSessions: completed,
           upcomingSessions: upcoming,
           uniqueMentees,
+          totalMinutes,
         });
       }
     }
@@ -398,6 +403,7 @@ const VolunteerPanel = () => {
                 mentorPhotoUrl={mentorData.photo_url ?? null}
                 uniqueMentees={stats.uniqueMentees}
                 completedSessions={stats.completedSessions}
+                totalMinutes={stats.totalMinutes}
               />
             )}
 
