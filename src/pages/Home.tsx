@@ -29,6 +29,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Link } from "react-router-dom";
+import ReferralSection from "@/components/ReferralSection";
 import type { Enums } from "@/integrations/supabase/types";
 
 type ProfessionalStatus = Enums<"professional_status">;

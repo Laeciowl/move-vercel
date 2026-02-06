@@ -182,7 +182,7 @@ const Admin = () => {
           </Tabs>
         </motion.div>
       </motion.div>
-    </div>
+    </AppLayout>
   );
 };
 
