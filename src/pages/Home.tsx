@@ -253,7 +253,7 @@ const Home = () => {
                 variants={{ initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 } }}
                 className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/30 p-4 flex flex-col items-center justify-center text-center"
               >
-                <span className="text-2xl font-bold text-primary">{stats.uniqueMentees}</span>
+                <span className="text-2xl font-bold text-primary">{stats.uniqueContacts}</span>
                 <span className="text-xs text-muted-foreground">Vidas impactadas</span>
               </motion.div>
             </>

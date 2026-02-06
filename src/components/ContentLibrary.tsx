@@ -70,6 +70,7 @@ const typeLabels: Record<string, string> = {
 const ITEMS_PER_PAGE = 9;
 
 const ContentLibrary = () => {
+  const { user } = useAuth();
   const [contents, setContents] = useState<ContentItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedType, setSelectedType] = useState<string>("all");
@@ -77,10 +78,16 @@ const ContentLibrary = () => {
   const [selectedTheme, setSelectedTheme] = useState<string>("all");
   const [page, setPage] = useState(1);
   const [selectedContent, setSelectedContent] = useState<ContentItem | null>(null);
+  const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
+  const [accessedIds, setAccessedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetchContents();
-  }, []);
+    if (user) {
+      fetchSaves();
+      fetchAccessed();
+    }
+  }, [user]);
 
   const fetchContents = async () => {
     setLoading(true);
@@ -93,6 +100,44 @@ const ContentLibrary = () => {
       setContents(data as ContentItem[]);
     }
     setLoading(false);
+  };
+
+  const fetchSaves = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("content_saves")
+      .select("content_id")
+      .eq("user_id", user.id);
+    if (data) setSavedIds(new Set(data.map(d => d.content_id)));
+  };
+
+  const fetchAccessed = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("content_access_log")
+      .select("content_id")
+      .eq("user_id", user.id);
+    if (data) setAccessedIds(new Set(data.map(d => d.content_id)));
+  };
+
+  const toggleSave = async (e: React.MouseEvent, contentId: string) => {
+    e.stopPropagation();
+    if (!user) return;
+    if (savedIds.has(contentId)) {
+      await supabase.from("content_saves").delete().eq("user_id", user.id).eq("content_id", contentId);
+      setSavedIds(prev => { const n = new Set(prev); n.delete(contentId); return n; });
+      toast("Conteúdo removido dos salvos");
+    } else {
+      await supabase.from("content_saves").insert({ user_id: user.id, content_id: contentId });
+      setSavedIds(prev => new Set(prev).add(contentId));
+      toast("Conteúdo salvo!");
+    }
+  };
+
+  const logAccess = async (contentId: string) => {
+    if (!user || accessedIds.has(contentId)) return;
+    await supabase.from("content_access_log").insert({ user_id: user.id, content_id: contentId });
+    setAccessedIds(prev => new Set(prev).add(contentId));
   };
 
   // Filter and sort
@@ -126,6 +171,7 @@ const ContentLibrary = () => {
   };
 
   const handleContentClick = (content: ContentItem) => {
+    logAccess(content.id);
     if (content.item_type === "video") {
       setSelectedContent(content);
     } else {
