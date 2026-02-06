@@ -376,6 +376,13 @@ const MentorAgenda = () => {
                           )}
                         </div>
 
+                        {/* Mentor notes about this mentee */}
+                        <MentorMenteeNotes
+                          mentorId={mentorData.id}
+                          menteeUserId={session.user_id}
+                          menteeName={session.mentee_profile?.name || "Mentorado"}
+                        />
+
                         {session.confirmed_by_mentor && (
                           <WhatsAppTemplates
                             menteeName={session.mentee_profile?.name || "Mentorado"}
