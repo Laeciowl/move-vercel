@@ -160,8 +160,16 @@ const MentorshipSection = () => {
     return requiresManualConfirmation(s.created_at);
   });
 
-  // Check if mentee has pending confirmations (blocks new bookings)
+  // Check for unreviewed completed sessions
+  const unreviewedCompletedSessions = sessions.filter(s => {
+    const completed = s.status === "completed" || isEffectivelyCompleted(s);
+    return completed && !s.hasReview && s.status !== "cancelled";
+  });
+
+  // Check if mentee has pending confirmations OR unreviewed sessions (blocks new bookings)
   const hasPendingConfirmations = pendingCompletionSessions.length > 0;
+  const hasUnreviewedSessions = unreviewedCompletedSessions.length > 0;
+  const isBookingBlocked = hasPendingConfirmations || hasUnreviewedSessions;
 
   // Confirm session as completed
   const handleConfirmCompletion = async (session: MentorSession) => {
