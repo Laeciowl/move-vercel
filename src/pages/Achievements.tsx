@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Trophy, Lock, Star, BarChart3, Loader2, Share2, ChevronRight } from "lucide-react";
+import { Trophy, Lock, Star, BarChart3, Loader2, Share2, ChevronRight, Linkedin } from "lucide-react";
 import { useAchievements } from "@/hooks/useAchievements";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
