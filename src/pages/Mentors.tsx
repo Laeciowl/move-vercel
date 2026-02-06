@@ -206,6 +206,23 @@ const Mentors = () => {
 
       // Mentors are already sorted by match_count in the RPC function
       setMentors(formattedMentors);
+
+      // Fetch unlocked achievements for all mentors
+      const allMentorIds = formattedMentors.map(m => m.id);
+      if (allMentorIds.length > 0) {
+        const { data: achData } = await supabase.rpc("get_mentor_unlocked_achievements", {
+          mentor_ids: allMentorIds,
+        });
+        if (achData) {
+          const map: Record<string, { icon: string; name: string }[]> = {};
+          (achData as any[]).forEach((row: any) => {
+            if (!map[row.mentor_id]) map[row.mentor_id] = [];
+            map[row.mentor_id].push({ icon: row.icon, name: row.achievement_name });
+          });
+          setMentorAchievementsMap(map);
+        }
+      }
+
       setLoading(false);
     };
 
