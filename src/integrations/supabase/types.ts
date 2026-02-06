@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievements: {
+        Row: {
+          active: boolean
+          category: Database["public"]["Enums"]["achievement_category"]
+          created_at: string
+          criteria_type: Database["public"]["Enums"]["achievement_criteria_type"]
+          criteria_value: number
+          description: string
+          icon: string
+          id: string
+          name: string
+          sort_order: number
+          user_type: Database["public"]["Enums"]["achievement_user_type"]
+        }
+        Insert: {
+          active?: boolean
+          category: Database["public"]["Enums"]["achievement_category"]
+          created_at?: string
+          criteria_type: Database["public"]["Enums"]["achievement_criteria_type"]
+          criteria_value: number
+          description: string
+          icon: string
+          id?: string
+          name: string
+          sort_order?: number
+          user_type: Database["public"]["Enums"]["achievement_user_type"]
+        }
+        Update: {
+          active?: boolean
+          category?: Database["public"]["Enums"]["achievement_category"]
+          created_at?: string
+          criteria_type?: Database["public"]["Enums"]["achievement_criteria_type"]
+          criteria_value?: number
+          description?: string
+          icon?: string
+          id?: string
+          name?: string
+          sort_order?: number
+          user_type?: Database["public"]["Enums"]["achievement_user_type"]
+        }
+        Relationships: []
+      }
       bug_reports: {
         Row: {
           admin_notes: string | null
@@ -59,6 +101,35 @@ export type Database = {
         }
         Relationships: []
       }
+      content_access_log: {
+        Row: {
+          accessed_at: string
+          content_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          accessed_at?: string
+          content_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          accessed_at?: string
+          content_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_access_log_content_id_fkey"
+            columns: ["content_id"]
+            isOneToOne: false
+            referencedRelation: "content_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       content_items: {
         Row: {
           area: string
@@ -91,6 +162,35 @@ export type Database = {
           url?: string
         }
         Relationships: []
+      }
+      content_saves: {
+        Row: {
+          content_id: string
+          id: string
+          saved_at: string
+          user_id: string
+        }
+        Insert: {
+          content_id: string
+          id?: string
+          saved_at?: string
+          user_id: string
+        }
+        Update: {
+          content_id?: string
+          id?: string
+          saved_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_saves_content_id_fkey"
+            columns: ["content_id"]
+            isOneToOne: false
+            referencedRelation: "content_items"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       impact_history: {
         Row: {
@@ -446,6 +546,33 @@ export type Database = {
         }
         Relationships: []
       }
+      referrals: {
+        Row: {
+          created_at: string
+          id: string
+          referral_code: string
+          referred_user_id: string | null
+          referrer_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          referral_code: string
+          referred_user_id?: string | null
+          referrer_id: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          referral_code?: string
+          referred_user_id?: string | null
+          referrer_id?: string
+          status?: string
+        }
+        Relationships: []
+      }
       session_reviews: {
         Row: {
           comment: string | null
@@ -531,6 +658,41 @@ export type Database = {
           slug?: string
         }
         Relationships: []
+      }
+      user_achievements: {
+        Row: {
+          achievement_id: string
+          created_at: string
+          id: string
+          progress: number
+          unlocked_at: string | null
+          user_id: string
+        }
+        Insert: {
+          achievement_id: string
+          created_at?: string
+          id?: string
+          progress?: number
+          unlocked_at?: string | null
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string
+          created_at?: string
+          id?: string
+          progress?: number
+          unlocked_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -827,6 +989,24 @@ export type Database = {
       is_own_profile: { Args: { profile_user_id: string }; Returns: boolean }
     }
     Enums: {
+      achievement_category:
+        | "mentorias"
+        | "tempo"
+        | "impacto"
+        | "consistencia"
+        | "conteudo"
+        | "exploracao"
+        | "areas"
+        | "preparacao"
+        | "engajamento"
+        | "especial"
+      achievement_criteria_type:
+        | "count"
+        | "sum"
+        | "streak"
+        | "unique"
+        | "special"
+      achievement_user_type: "mentor" | "mentorado" | "ambos"
       app_role: "admin" | "moderator" | "user" | "voluntario"
       income_range: "sem_renda" | "ate_1500" | "1500_3000" | "acima_3000"
       mentor_status: "pending" | "approved" | "rejected"
@@ -965,6 +1145,26 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      achievement_category: [
+        "mentorias",
+        "tempo",
+        "impacto",
+        "consistencia",
+        "conteudo",
+        "exploracao",
+        "areas",
+        "preparacao",
+        "engajamento",
+        "especial",
+      ],
+      achievement_criteria_type: [
+        "count",
+        "sum",
+        "streak",
+        "unique",
+        "special",
+      ],
+      achievement_user_type: ["mentor", "mentorado", "ambos"],
       app_role: ["admin", "moderator", "user", "voluntario"],
       income_range: ["sem_renda", "ate_1500", "1500_3000", "acima_3000"],
       mentor_status: ["pending", "approved", "rejected"],
