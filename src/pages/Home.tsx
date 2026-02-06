@@ -261,7 +261,7 @@ const Home = () => {
         </div>
 
         {/* Quick Links Row */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className={`grid gap-3 ${isVolunteer ? 'grid-cols-2 lg:grid-cols-4' : 'grid-cols-2 lg:grid-cols-4'}`}>
           {/* Community */}
           <motion.div
             variants={{ initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 } }}
@@ -273,14 +273,14 @@ const Home = () => {
               </div>
               <h3 className="font-semibold text-foreground text-sm">Comunidade</h3>
             </div>
-            <p className="text-xs text-muted-foreground leading-relaxed mb-2">Grupo geral para trocar ideias e se conectar com outros membros.</p>
+            <p className="text-xs text-muted-foreground leading-relaxed mb-2">Grupo geral para trocar ideias e se conectar.</p>
             <a href="https://chat.whatsapp.com/BFDDkhbwz5aFdg6WhIFU6C" target="_blank" rel="noopener noreferrer"
               className="w-full inline-flex items-center justify-center gap-1.5 bg-green-600 text-white py-2 rounded-xl font-medium text-xs hover:bg-green-700 transition-colors">
               <MessageCircle className="w-3.5 h-3.5" /> Entrar
             </a>
           </motion.div>
 
-          {/* TEM VAGA? */}
+          {/* TEM VAGA? - only for mentees */}
           {!isVolunteer && !isPendingMentor && (
             <motion.div
               variants={{ initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 } }}
@@ -300,7 +300,7 @@ const Home = () => {
             </motion.div>
           )}
 
-          {/* Mentors Group */}
+          {/* Mentors Group - only for volunteers */}
           {isVolunteer && (
             <motion.div
               variants={{ initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 } }}
@@ -312,10 +312,31 @@ const Home = () => {
                 </div>
                 <h3 className="font-semibold text-foreground text-sm">Mentores</h3>
               </div>
+              <p className="text-xs text-muted-foreground leading-relaxed mb-2">Grupo exclusivo para mentores Movê.</p>
               <a href="https://chat.whatsapp.com/LKpz2hr7FnZDpCgNXdxwHl" target="_blank" rel="noopener noreferrer"
                 className="w-full inline-flex items-center justify-center gap-1.5 bg-purple-600 text-white py-2 rounded-xl font-medium text-xs hover:bg-purple-700 transition-colors">
                 <MessageCircle className="w-3.5 h-3.5" /> Entrar
               </a>
+            </motion.div>
+          )}
+
+          {/* Minha Agenda - only for mentors */}
+          {isMentor && (
+            <motion.div
+              variants={{ initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 } }}
+              className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/30 p-4 hover:border-primary/30 transition-colors cursor-pointer"
+              onClick={() => navigate("/mentor/agenda")}
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Calendar className="w-3.5 h-3.5 text-primary" />
+                </div>
+                <h3 className="font-semibold text-foreground text-sm">Minha Agenda</h3>
+              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed mb-2">Gerencie suas sessões e disponibilidade.</p>
+              <Button variant="outline" size="sm" className="w-full rounded-xl text-xs">
+                <ArrowRight className="w-3.5 h-3.5 mr-1.5" /> Abrir agenda
+              </Button>
             </motion.div>
           )}
 

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Calendar, Clock, CheckCircle, ArrowLeft, Mail, Phone, User, Settings, Award, Loader2, Tag } from "lucide-react";
+import MentorMenteeNotes from "@/components/MentorMenteeNotes";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useVolunteerCheck } from "@/hooks/useVolunteerCheck";
@@ -375,6 +376,13 @@ const MentorAgenda = () => {
                           )}
                         </div>
 
+                        {/* Mentor notes about this mentee */}
+                        <MentorMenteeNotes
+                          mentorId={mentorData.id}
+                          menteeUserId={session.user_id}
+                          menteeName={session.mentee_profile?.name || "Mentorado"}
+                        />
+
                         {session.confirmed_by_mentor && (
                           <WhatsAppTemplates
                             menteeName={session.mentee_profile?.name || "Mentorado"}
@@ -457,6 +465,13 @@ const MentorAgenda = () => {
                         <p className="text-sm text-muted-foreground">
                           📅 {format(new Date(session.scheduled_at), "EEEE, d 'de' MMMM 'às' HH:mm", { locale: ptBR })}
                         </p>
+
+                        {/* Mentor notes about this mentee */}
+                        <MentorMenteeNotes
+                          mentorId={mentorData.id}
+                          menteeUserId={session.user_id}
+                          menteeName={session.mentee_profile?.name || "Mentorado"}
+                        />
                       </div>
                     );
                   })}

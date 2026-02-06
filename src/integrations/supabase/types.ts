@@ -333,6 +333,48 @@ export type Database = {
           },
         ]
       }
+      mentor_mentee_notes: {
+        Row: {
+          created_at: string
+          id: string
+          mentee_user_id: string
+          mentor_id: string
+          note: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          mentee_user_id: string
+          mentor_id: string
+          note: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          mentee_user_id?: string
+          mentor_id?: string
+          note?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mentor_mentee_notes_mentor_id_fkey"
+            columns: ["mentor_id"]
+            isOneToOne: false
+            referencedRelation: "mentors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mentor_mentee_notes_mentor_id_fkey"
+            columns: ["mentor_id"]
+            isOneToOne: false
+            referencedRelation: "mentors_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mentor_sessions: {
         Row: {
           completed_at: string | null
