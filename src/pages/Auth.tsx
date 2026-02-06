@@ -54,7 +54,7 @@ const Auth = () => {
 
   useEffect(() => {
     if (!authLoading && user && view !== "reset-password") {
-      navigate("/dashboard");
+      navigate("/inicio");
     }
   }, [user, authLoading, navigate, view]);
 
@@ -85,7 +85,7 @@ const Auth = () => {
       }
     } else {
       toast.success("Entrou! Bora lá 🚀");
-      navigate("/dashboard");
+      navigate("/inicio");
     }
     setLoading(false);
   };
@@ -146,7 +146,7 @@ const Auth = () => {
       toast.error(error.message);
     } else {
       toast.success("Senha nova salva! Agora você já pode usar.");
-      navigate("/dashboard");
+      navigate("/inicio");
     }
     
     setLoading(false);

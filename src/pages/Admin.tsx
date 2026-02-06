@@ -1,16 +1,18 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Shield, Users, BookOpen, Loader2, FileCheck, Bug, BarChart3, Image } from "lucide-react";
+import { ArrowLeft, Shield, Users, BookOpen, Loader2, FileCheck, Bug, BarChart3, Image, Calendar } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import AppLayout from "@/components/AppLayout";
 import AdminContentPanel from "@/components/admin/AdminContentPanel";
 import AdminVolunteersPanel from "@/components/admin/AdminVolunteersPanel";
 import AdminSubmissionsPanel from "@/components/admin/AdminSubmissionsPanel";
 import AdminBugReportsPanel from "@/components/admin/AdminBugReportsPanel";
 import AdminMetricsPanel from "@/components/admin/AdminMetricsPanel";
 import AdminMentorCardsPanel from "@/components/admin/AdminMentorCardsPanel";
+import AdminMentorSessionsPanel from "@/components/admin/AdminMentorSessionsPanel";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -25,7 +27,7 @@ const Admin = () => {
 
   useEffect(() => {
     if (!adminLoading && !isAdmin && user) {
-      navigate("/dashboard");
+      navigate("/inicio");
     }
   }, [isAdmin, adminLoading, user, navigate]);
 
@@ -69,25 +71,13 @@ const Admin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-warm py-8 px-4 relative overflow-hidden">
-      {/* Decorative elements */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-      <div className="absolute bottom-0 left-0 w-80 h-80 bg-accent/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
-
+    <AppLayout>
       <motion.div 
-        className="container mx-auto max-w-5xl relative z-10"
+        className="max-w-5xl mx-auto"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
-        <motion.button
-          variants={itemVariants}
-          onClick={() => navigate("/dashboard")}
-          className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-all duration-300 hover:-translate-x-1 group"
-        >
-          <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
-          Voltar ao Dashboard
-        </motion.button>
 
         <motion.div variants={itemVariants} className="mb-8">
           <div className="flex items-center gap-4 mb-3">
@@ -105,20 +95,27 @@ const Admin = () => {
 
         <motion.div variants={itemVariants}>
           <Tabs defaultValue="volunteers" className="w-full">
-            <TabsList className="grid w-full grid-cols-6 mb-6 bg-card/80 backdrop-blur-sm border border-border/50 p-1 rounded-2xl h-auto">
-              <TabsTrigger 
-                value="volunteers" 
-                className="gap-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-button transition-all duration-300"
-              >
-                <Users className="w-4 h-4" />
-                <span className="hidden sm:inline">Voluntários</span>
-              </TabsTrigger>
+            <TabsList className="grid w-full grid-cols-7 mb-6 bg-card/80 backdrop-blur-sm border border-border/50 p-1 rounded-2xl h-auto overflow-x-auto">
               <TabsTrigger 
                 value="metrics" 
                 className="gap-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-button transition-all duration-300"
               >
                 <BarChart3 className="w-4 h-4" />
                 <span className="hidden sm:inline">Métricas</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="sessions" 
+                className="gap-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-button transition-all duration-300"
+              >
+                <Calendar className="w-4 h-4" />
+                <span className="hidden sm:inline">Mentorias</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="volunteers" 
+                className="gap-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-button transition-all duration-300"
+              >
+                <Users className="w-4 h-4" />
+                <span className="hidden sm:inline">Voluntários</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="cards" 
@@ -159,11 +156,14 @@ const Admin = () => {
                 transition={{ duration: 0.2 }}
                 className="bg-card/80 backdrop-blur-sm rounded-3xl shadow-card border border-border/50 p-6"
               >
-                <TabsContent value="volunteers" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
-                  <AdminVolunteersPanel />
-                </TabsContent>
                 <TabsContent value="metrics" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
                   <AdminMetricsPanel />
+                </TabsContent>
+                <TabsContent value="sessions" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+                  <AdminMentorSessionsPanel />
+                </TabsContent>
+                <TabsContent value="volunteers" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+                  <AdminVolunteersPanel />
                 </TabsContent>
                 <TabsContent value="cards" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
                   <AdminMentorCardsPanel />
@@ -182,7 +182,7 @@ const Admin = () => {
           </Tabs>
         </motion.div>
       </motion.div>
-    </div>
+    </AppLayout>
   );
 };
 

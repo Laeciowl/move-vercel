@@ -99,7 +99,7 @@ const VolunteerOnboarding = () => {
   };
 
   const finishOnboarding = () => {
-    navigate("/dashboard");
+    navigate("/inicio");
   };
 
   if (authLoading || checkingStatus) {

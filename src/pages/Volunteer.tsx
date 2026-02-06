@@ -449,7 +449,7 @@ const Volunteer = () => {
               </button>
             ) : (
               <button
-                onClick={() => navigate("/dashboard")}
+                onClick={() => navigate("/inicio")}
                 className="bg-gradient-hero text-primary-foreground px-8 py-3 rounded-xl font-bold shadow-button hover:opacity-90 transition-opacity"
               >
                 Ir para o Dashboard

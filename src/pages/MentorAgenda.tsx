@@ -188,7 +188,7 @@ const MentorAgenda = () => {
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <p className="text-muted-foreground mb-4">Você não tem acesso a esta página.</p>
-          <Button onClick={() => navigate("/dashboard")}>Voltar ao Dashboard</Button>
+          <Button onClick={() => navigate("/inicio")}>Voltar ao Dashboard</Button>
         </div>
       </div>
     );
@@ -208,7 +208,7 @@ const MentorAgenda = () => {
           className="mb-8"
         >
           <button
-            onClick={() => navigate("/dashboard")}
+            onClick={() => navigate("/inicio")}
             className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-4 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
