@@ -472,22 +472,31 @@ const MentorAgenda = () => {
                 <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
                   {pastSessions.map((session) => {
                     const sessionDuration = session.duration || 30;
+                    const needsConfirmation = session.status === "scheduled";
 
                     return (
                       <div
                         key={session.id}
-                        className="bg-gradient-to-br from-green-50/50 to-green-100/30 dark:from-green-900/20 dark:to-green-800/10 rounded-xl p-4 space-y-2 border border-green-200/50 dark:border-green-700/30"
+                        className={`rounded-xl p-4 space-y-2 border ${
+                          needsConfirmation
+                            ? "bg-amber-50/50 dark:bg-amber-900/10 border-amber-200/50 dark:border-amber-700/30"
+                            : "bg-gradient-to-br from-green-50/50 to-green-100/30 dark:from-green-900/20 dark:to-green-800/10 border-green-200/50 dark:border-green-700/30"
+                        }`}
                       >
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500/20 to-green-500/10 flex items-center justify-center overflow-hidden border-2 border-green-500/30 shrink-0">
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center overflow-hidden border-2 shrink-0 ${
+                            needsConfirmation
+                              ? "bg-amber-500/10 border-amber-500/30"
+                              : "bg-gradient-to-br from-green-500/20 to-green-500/10 border-green-500/30"
+                          }`}>
                             {session.mentee_profile?.photo_url ? (
                               <img
                                 src={session.mentee_profile.photo_url}
-                                alt={session.mentee_profile.name || "Mentorado"}
+                                alt={session.mentee_profile?.name || "Mentorado"}
                                 className="w-full h-full object-cover"
                               />
                             ) : (
-                              <User className="w-5 h-5 text-green-600/60" />
+                              <User className={`w-5 h-5 ${needsConfirmation ? "text-amber-600/60" : "text-green-600/60"}`} />
                             )}
                           </div>
                           <div className="flex-1 min-w-0">
@@ -495,10 +504,17 @@ const MentorAgenda = () => {
                               {session.mentee_profile?.name || "Mentorado"}
                             </span>
                             <div className="flex items-center gap-2 flex-wrap">
-                              <Badge variant="secondary" className="text-xs bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                                <CheckCircle className="w-3 h-3 mr-1" />
-                                Realizada
-                              </Badge>
+                              {needsConfirmation ? (
+                                <Badge variant="secondary" className="text-xs bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                                  <AlertTriangle className="w-3 h-3 mr-1" />
+                                  Aguardando confirmação
+                                </Badge>
+                              ) : (
+                                <Badge variant="secondary" className="text-xs bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                                  <CheckCircle className="w-3 h-3 mr-1" />
+                                  Realizada
+                                </Badge>
+                              )}
                               <Badge className="text-xs bg-primary/15 text-primary border border-primary/30">
                                 {sessionDuration} min
                               </Badge>
@@ -508,6 +524,28 @@ const MentorAgenda = () => {
                         <p className="text-sm text-muted-foreground">
                           📅 {format(new Date(session.scheduled_at), "EEEE, d 'de' MMMM 'às' HH:mm", { locale: ptBR })}
                         </p>
+
+                        {/* Confirm/Not completed buttons for unconfirmed past sessions */}
+                        {needsConfirmation && (
+                          <div className="flex gap-2 pt-2">
+                            <Button
+                              size="sm"
+                              onClick={() => handleConfirmCompletion(session.id)}
+                              className="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs"
+                            >
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              Confirmar Realização
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleMarkNotCompleted(session.id)}
+                              className="flex-1 text-xs text-destructive border-destructive/50 hover:bg-destructive/10"
+                            >
+                              Não realizada
+                            </Button>
+                          </div>
+                        )}
 
                         {/* Mentor notes about this mentee */}
                         <MentorMenteeNotes
