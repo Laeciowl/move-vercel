@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Calendar, X, Loader2, RefreshCw, MessageSquare, Clock } from "lucide-react";
+import { Calendar, X, Loader2, RefreshCw, MessageSquare, Clock, CheckCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -18,7 +18,9 @@ interface SessionManagementProps {
   mentorEmail?: string;
   userRole: "mentor" | "mentee";
   confirmedByMentor?: boolean;
+  isPastSession?: boolean;
   onUpdate: () => void;
+  onConfirmCompletion?: () => void;
 }
 
 const SessionManagement = ({
@@ -31,7 +33,9 @@ const SessionManagement = ({
   mentorEmail,
   userRole,
   confirmedByMentor = false,
+  isPastSession = false,
   onUpdate,
+  onConfirmCompletion,
 }: SessionManagementProps) => {
   const [showModal, setShowModal] = useState(false);
   const [action, setAction] = useState<"cancel" | "reschedule">("cancel");
@@ -168,37 +172,62 @@ const SessionManagement = ({
   return (
     <>
       <div className="flex gap-2">
-        {canReschedule ? (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => openModal("reschedule")}
-            className="text-xs"
-          >
-            <RefreshCw className="w-3 h-3 mr-1" />
-            Remarcar
-          </Button>
+        {isPastSession ? (
+          <>
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => onConfirmCompletion?.()}
+              className="text-xs bg-green-600 hover:bg-green-700 text-white"
+            >
+              <CheckCircle className="w-3 h-3 mr-1" />
+              Confirmar Realização
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => openModal("cancel")}
+              className="text-xs text-destructive border-destructive/50 hover:bg-destructive/10"
+            >
+              <X className="w-3 h-3 mr-1" />
+              Não realizada
+            </Button>
+          </>
         ) : (
-          <Button
-            variant="outline"
-            size="sm"
-            disabled
-            className="text-xs opacity-50 cursor-not-allowed"
-            title="Aguarde a confirmação do mentor para remarcar"
-          >
-            <RefreshCw className="w-3 h-3 mr-1" />
-            Remarcar
-          </Button>
+          <>
+            {canReschedule ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => openModal("reschedule")}
+                className="text-xs"
+              >
+                <RefreshCw className="w-3 h-3 mr-1" />
+                Remarcar
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                disabled
+                className="text-xs opacity-50 cursor-not-allowed"
+                title="Aguarde a confirmação do mentor para remarcar"
+              >
+                <RefreshCw className="w-3 h-3 mr-1" />
+                Remarcar
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => openModal("cancel")}
+              className="text-xs text-destructive border-destructive/50 hover:bg-destructive/10"
+            >
+              <X className="w-3 h-3 mr-1" />
+              Cancelar
+            </Button>
+          </>
         )}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => openModal("cancel")}
-          className="text-xs text-destructive border-destructive/50 hover:bg-destructive/10"
-        >
-          <X className="w-3 h-3 mr-1" />
-          Cancelar
-        </Button>
       </div>
 
       <AnimatePresence>

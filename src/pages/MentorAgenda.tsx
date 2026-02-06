@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Calendar, Clock, CheckCircle, ArrowLeft, Mail, Phone, User, Settings, Award, Loader2, Tag } from "lucide-react";
+import { Calendar, Clock, CheckCircle, ArrowLeft, Mail, Phone, User, Settings, Award, Loader2, Tag, AlertTriangle } from "lucide-react";
 import MentorMenteeNotes from "@/components/MentorMenteeNotes";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -17,6 +17,7 @@ import SessionManagement from "@/components/SessionManagement";
 import WhatsAppTemplates from "@/components/WhatsAppTemplates";
 import { format, isPast } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { toast } from "sonner";
 
 interface MentorData {
   id: string;
@@ -148,24 +149,27 @@ const MentorAgenda = () => {
 
         setSessions(sessionsWithProfiles);
 
-        const completed = sessionsData.filter((s) => {
-          if (s.status === "completed" || s.status === "cancelled") return s.status === "completed";
+        // Filter out cancelled sessions for stats
+        const activeSessions = sessionsData.filter((s) => s.status !== "cancelled");
+
+        const completed = activeSessions.filter((s) => {
+          if (s.status === "completed") return true;
           const endTime = new Date(s.scheduled_at);
           endTime.setMinutes(endTime.getMinutes() + (s.duration || 30));
-          return endTime <= new Date();
+          return s.status === "scheduled" && endTime <= new Date();
         }).length;
 
-        const upcoming = sessionsData.filter((s) => {
+        const upcoming = activeSessions.filter((s) => {
           if (s.status !== "scheduled") return false;
           const endTime = new Date(s.scheduled_at);
           endTime.setMinutes(endTime.getMinutes() + (s.duration || 30));
           return endTime > new Date();
         }).length;
 
-        const uniqueMentees = new Set(sessionsData.map((s) => s.user_id)).size;
+        const uniqueMentees = new Set(activeSessions.map((s) => s.user_id)).size;
 
         setStats({
-          totalSessions: sessionsData.length,
+          totalSessions: activeSessions.length,
           completedSessions: completed,
           upcomingSessions: upcoming,
           uniqueMentees,
@@ -196,8 +200,47 @@ const MentorAgenda = () => {
   }
 
   const scheduledSessions = sessions.filter((s) => s.status === "scheduled");
-  const pastSessions = scheduledSessions.filter((s) => isSessionPast(s.scheduled_at, s.duration || 30));
+  const completedSessions = sessions.filter((s) => s.status === "completed");
+  const pastScheduledSessions = scheduledSessions.filter((s) => isSessionPast(s.scheduled_at, s.duration || 30));
   const upcomingSessions = scheduledSessions.filter((s) => !isSessionPast(s.scheduled_at, s.duration || 30));
+  // Past sessions: completed + past scheduled (needing confirmation)
+  const pastSessions = [...completedSessions, ...pastScheduledSessions];
+
+  const handleConfirmCompletion = async (sessionId: string) => {
+    const { error } = await supabase
+      .from("mentor_sessions")
+      .update({
+        status: "completed",
+        completed_at: new Date().toISOString(),
+      })
+      .eq("id", sessionId);
+
+    if (error) {
+      toast.error("Erro ao confirmar sessão: " + error.message);
+      return;
+    }
+
+    toast.success("Sessão confirmada como realizada! 🎉");
+    fetchData();
+  };
+
+  const handleMarkNotCompleted = async (sessionId: string) => {
+    const { error } = await supabase
+      .from("mentor_sessions")
+      .update({
+        status: "cancelled",
+        mentor_notes: "Sessão não realizada (confirmado pelo mentor)",
+      })
+      .eq("id", sessionId);
+
+    if (error) {
+      toast.error("Erro: " + error.message);
+      return;
+    }
+
+    toast.success("Sessão marcada como não realizada");
+    fetchData();
+  };
 
   return (
     <div className="min-h-screen bg-gradient-warm py-8 px-4">
@@ -429,22 +472,31 @@ const MentorAgenda = () => {
                 <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
                   {pastSessions.map((session) => {
                     const sessionDuration = session.duration || 30;
+                    const needsConfirmation = session.status === "scheduled";
 
                     return (
                       <div
                         key={session.id}
-                        className="bg-gradient-to-br from-green-50/50 to-green-100/30 dark:from-green-900/20 dark:to-green-800/10 rounded-xl p-4 space-y-2 border border-green-200/50 dark:border-green-700/30"
+                        className={`rounded-xl p-4 space-y-2 border ${
+                          needsConfirmation
+                            ? "bg-amber-50/50 dark:bg-amber-900/10 border-amber-200/50 dark:border-amber-700/30"
+                            : "bg-gradient-to-br from-green-50/50 to-green-100/30 dark:from-green-900/20 dark:to-green-800/10 border-green-200/50 dark:border-green-700/30"
+                        }`}
                       >
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500/20 to-green-500/10 flex items-center justify-center overflow-hidden border-2 border-green-500/30 shrink-0">
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center overflow-hidden border-2 shrink-0 ${
+                            needsConfirmation
+                              ? "bg-amber-500/10 border-amber-500/30"
+                              : "bg-gradient-to-br from-green-500/20 to-green-500/10 border-green-500/30"
+                          }`}>
                             {session.mentee_profile?.photo_url ? (
                               <img
                                 src={session.mentee_profile.photo_url}
-                                alt={session.mentee_profile.name || "Mentorado"}
+                                alt={session.mentee_profile?.name || "Mentorado"}
                                 className="w-full h-full object-cover"
                               />
                             ) : (
-                              <User className="w-5 h-5 text-green-600/60" />
+                              <User className={`w-5 h-5 ${needsConfirmation ? "text-amber-600/60" : "text-green-600/60"}`} />
                             )}
                           </div>
                           <div className="flex-1 min-w-0">
@@ -452,10 +504,17 @@ const MentorAgenda = () => {
                               {session.mentee_profile?.name || "Mentorado"}
                             </span>
                             <div className="flex items-center gap-2 flex-wrap">
-                              <Badge variant="secondary" className="text-xs bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                                <CheckCircle className="w-3 h-3 mr-1" />
-                                Realizada
-                              </Badge>
+                              {needsConfirmation ? (
+                                <Badge variant="secondary" className="text-xs bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                                  <AlertTriangle className="w-3 h-3 mr-1" />
+                                  Aguardando confirmação
+                                </Badge>
+                              ) : (
+                                <Badge variant="secondary" className="text-xs bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                                  <CheckCircle className="w-3 h-3 mr-1" />
+                                  Realizada
+                                </Badge>
+                              )}
                               <Badge className="text-xs bg-primary/15 text-primary border border-primary/30">
                                 {sessionDuration} min
                               </Badge>
@@ -465,6 +524,28 @@ const MentorAgenda = () => {
                         <p className="text-sm text-muted-foreground">
                           📅 {format(new Date(session.scheduled_at), "EEEE, d 'de' MMMM 'às' HH:mm", { locale: ptBR })}
                         </p>
+
+                        {/* Confirm/Not completed buttons for unconfirmed past sessions */}
+                        {needsConfirmation && (
+                          <div className="flex gap-2 pt-2">
+                            <Button
+                              size="sm"
+                              onClick={() => handleConfirmCompletion(session.id)}
+                              className="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs"
+                            >
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              Confirmar Realização
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleMarkNotCompleted(session.id)}
+                              className="flex-1 text-xs text-destructive border-destructive/50 hover:bg-destructive/10"
+                            >
+                              Não realizada
+                            </Button>
+                          </div>
+                        )}
 
                         {/* Mentor notes about this mentee */}
                         <MentorMenteeNotes
