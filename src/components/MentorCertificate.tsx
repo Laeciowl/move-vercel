@@ -123,12 +123,12 @@ const MentorCertificate = ({
           {/* Impact metrics */}
           <div className="flex gap-8 mb-6">
             <div className="text-center">
-              <div className="text-3xl font-extrabold text-white">{uniqueMentees}</div>
-              <div className="text-[10px] text-orange-300/70 uppercase tracking-wider mt-0.5">mentorados únicos</div>
+              <div className="text-3xl font-extrabold text-white">{completedSessions}</div>
+              <div className="text-[10px] text-orange-300/70 uppercase tracking-wider mt-0.5">mentorias realizadas</div>
             </div>
             <div className="w-px bg-orange-500/30" />
             <div className="text-center">
-              <div className="text-3xl font-extrabold text-white">{completedSessions}</div>
+              <div className="text-3xl font-extrabold text-white">{uniqueMentees}</div>
               <div className="text-[10px] text-orange-300/70 uppercase tracking-wider mt-0.5">vidas impactadas</div>
             </div>
           </div>
