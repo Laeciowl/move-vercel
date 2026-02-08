@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { User, Calendar, Clock, Settings, Shield, Loader2, Phone, CheckCircle, Mail } from "lucide-react";
+import { User, Calendar, Clock, Settings, Shield, Loader2, Phone, CheckCircle, Mail, PauseCircle, PlayCircle } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -18,6 +19,7 @@ import { ptBR } from "date-fns/locale";
 interface Availability {
   day: string;
   times: string[];
+  duration?: number;
 }
 
 interface MentorData {
@@ -34,6 +36,7 @@ interface MentorData {
   disclaimer_accepted_at: string | null;
   min_advance_hours?: number;
   linkedin_url?: string | null;
+  temporarily_unavailable?: boolean;
 }
 
 interface MentorSession {
@@ -100,6 +103,7 @@ const MentorPanel = () => {
         availability: (mentor.availability as unknown as Availability[]) || [],
         min_advance_hours: (mentor as any).min_advance_hours ?? 24,
         linkedin_url: (mentor as any).linkedin_url ?? null,
+        temporarily_unavailable: (mentor as any).temporarily_unavailable ?? false,
       });
 
       // Fetch upcoming sessions with mentee info
@@ -245,6 +249,55 @@ const MentorPanel = () => {
         </motion.div>
       )}
 
+      {/* Temporarily Unavailable Toggle */}
+      {mentorData.status === "approved" && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.16 }}
+          className={`flex items-center justify-between p-4 rounded-2xl border transition-colors ${
+            mentorData.temporarily_unavailable
+              ? "bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700/50"
+              : "bg-card/60 border-border/50"
+          }`}
+        >
+          <div className="flex items-center gap-3">
+            {mentorData.temporarily_unavailable ? (
+              <PauseCircle className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+            ) : (
+              <PlayCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+            )}
+            <div>
+              <p className="text-sm font-medium text-foreground">
+                {mentorData.temporarily_unavailable ? "Agenda desativada" : "Agenda ativa"}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {mentorData.temporarily_unavailable 
+                  ? "Você está aparecendo como indisponível para mentorados"
+                  : "Mentorados podem agendar sessões com você"
+                }
+              </p>
+            </div>
+          </div>
+          <Switch
+            checked={!mentorData.temporarily_unavailable}
+            onCheckedChange={async (checked) => {
+              const { error } = await supabase
+                .from("mentors")
+                .update({ temporarily_unavailable: !checked })
+                .eq("id", mentorData.id);
+
+              if (error) {
+                toast.error("Erro ao atualizar status: " + error.message);
+              } else {
+                toast.success(checked ? "Agenda reativada! 🎉" : "Agenda desativada temporariamente");
+                fetchMentorData();
+              }
+            }}
+          />
+        </motion.div>
+      )}
+
       {/* Perfil */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
@@ -289,25 +342,28 @@ const MentorPanel = () => {
         />
 
         {/* Availability summary */}
-        <div>
-          <h5 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-            <Clock className="w-4 h-4 text-primary" />
-            Sua disponibilidade
-          </h5>
-          <div className="flex flex-wrap gap-2">
-            {mentorData.availability.map((avail, index) => (
-              <motion.div
-                key={avail.day}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.25 + index * 0.05 }}
-                className="bg-muted/50 px-3 py-2 rounded-xl text-xs text-foreground border border-border/50 hover:border-primary/30 transition-colors"
-              >
-                <span className="font-medium">{dayLabels[avail.day]}:</span> {avail.times.join(", ")}
-              </motion.div>
-            ))}
+          <div>
+            <h5 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+              <Clock className="w-4 h-4 text-primary" />
+              Sua disponibilidade
+            </h5>
+            <div className="flex flex-wrap gap-2">
+              {mentorData.availability.map((avail, index) => (
+                <motion.div
+                  key={avail.day}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.25 + index * 0.05 }}
+                  className="bg-muted/50 px-3 py-2 rounded-xl text-xs text-foreground border border-border/50 hover:border-primary/30 transition-colors"
+                >
+                  <span className="font-medium">{dayLabels[avail.day]}:</span> {avail.times.join(", ")}
+                  {avail.duration && (
+                    <span className="text-muted-foreground ml-1">({avail.duration === 60 ? "1h" : `${avail.duration}min`})</span>
+                  )}
+                </motion.div>
+              ))}
+            </div>
           </div>
-        </div>
 
         <MentorAvailabilityEditor
           mentorId={mentorData.id}

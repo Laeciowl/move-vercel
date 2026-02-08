@@ -54,6 +54,7 @@ const timeSlots = [
 interface Availability {
   day: string;
   times: string[];
+  duration?: number;
 }
 
 
@@ -127,7 +128,7 @@ const Volunteer = () => {
   };
 
   const addAvailability = () => {
-    setAvailability([...availability, { day: "monday", times: [] }]);
+    setAvailability([...availability, { day: "monday", times: [], duration: 30 }]);
   };
 
   const removeAvailability = (index: number) => {
@@ -744,7 +745,7 @@ const Volunteer = () => {
                     <div className="space-y-4">
                       {availability.map((avail, index) => (
                         <div key={index} className="border border-input rounded-xl p-4">
-                          <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center justify-between mb-3 gap-2">
                             <select
                               value={avail.day}
                               onChange={(e) => updateAvailabilityDay(index, e.target.value)}
@@ -755,6 +756,19 @@ const Volunteer = () => {
                                   {day.label}
                                 </option>
                               ))}
+                            </select>
+                            <select
+                              value={avail.duration || 30}
+                              onChange={(e) => {
+                                const newAvailability = [...availability];
+                                newAvailability[index].duration = Number(e.target.value);
+                                setAvailability(newAvailability);
+                              }}
+                              className="px-3 py-2 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                            >
+                              <option value={30}>30 min</option>
+                              <option value={45}>45 min</option>
+                              <option value={60}>1 hora</option>
                             </select>
                             <button
                               type="button"

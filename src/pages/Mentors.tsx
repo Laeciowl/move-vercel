@@ -27,6 +27,7 @@ import type { TagItem } from "@/components/TagSelector";
 interface Availability {
   day: string;
   times: string[];
+  duration?: number;
 }
 
 interface BlockedPeriod {
@@ -57,6 +58,7 @@ interface Mentor {
   tags: TagItem[];
   matchCount: number;
   matchingTags: TagItem[];
+  temporarily_unavailable: boolean;
 }
 
 const dayLabels: Record<string, string> = {
@@ -146,6 +148,7 @@ const Mentors = () => {
               tags: [],
               matchCount: 0,
               matchingTags: [],
+              temporarily_unavailable: (m as any).temporarily_unavailable ?? false,
             };
           });
           setMentors(formattedMentors);
@@ -202,6 +205,7 @@ const Mentors = () => {
           tags: (m.tags as unknown as TagItem[]) || [],
           matchCount: m.match_count ?? 0,
           matchingTags: (m.matching_tags as unknown as TagItem[]) || [],
+          temporarily_unavailable: (m as any).temporarily_unavailable ?? false,
         };
       });
 
@@ -519,7 +523,9 @@ const Mentors = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-card rounded-2xl shadow-card overflow-hidden group flex flex-col h-full"
+                className={`bg-card rounded-2xl shadow-card overflow-hidden group flex flex-col h-full ${
+                  mentor.temporarily_unavailable ? "opacity-60 grayscale" : ""
+                }`}
               >
                 {/* Fixed aspect ratio photo container */}
                 <div 
@@ -679,13 +685,20 @@ const Mentors = () => {
 
                   {/* Booking button always at bottom */}
                   <div className="pt-2">
-                    <button
-                      onClick={() => openBookingDialog(mentor)}
-                      className="w-full bg-gradient-hero text-primary-foreground py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
-                    >
-                      <Calendar className="w-4 h-4" />
-                      Agendar mentoria
-                    </button>
+                    {mentor.temporarily_unavailable ? (
+                      <div className="w-full bg-muted text-muted-foreground py-3 rounded-xl font-semibold flex items-center justify-center gap-2 cursor-not-allowed">
+                        <Clock className="w-4 h-4" />
+                        Mentor indisponível no momento
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => openBookingDialog(mentor)}
+                        className="w-full bg-gradient-hero text-primary-foreground py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+                      >
+                        <Calendar className="w-4 h-4" />
+                        Agendar mentoria
+                      </button>
+                    )}
                   </div>
                 </div>
               </motion.div>
@@ -785,9 +798,27 @@ const Mentors = () => {
                   <h2 className="text-2xl font-bold text-foreground">
                     {selectedMentorForProfile.name}
                   </h2>
-                  <p className="text-primary font-medium">
-                    {selectedMentorForProfile.area}
-                  </p>
+                  {selectedMentorForProfile.temporarily_unavailable && (
+                    <span className="inline-flex items-center gap-1 px-3 py-1 mt-1 rounded-full text-xs font-semibold bg-muted text-muted-foreground">
+                      Indisponível no momento
+                    </span>
+                  )}
+                  {selectedMentorForProfile.tags.length > 0 ? (
+                    <div className="flex flex-wrap gap-1.5 mt-2 justify-center">
+                      {selectedMentorForProfile.tags.map((tag) => (
+                        <span
+                          key={tag.id}
+                          className="px-2.5 py-1 rounded-lg text-xs font-medium bg-primary/10 text-primary border border-primary/20"
+                        >
+                          {tag.name}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-primary font-medium">
+                      {selectedMentorForProfile.area}
+                    </p>
+                  )}
                 </div>
 
                 {selectedMentorForProfile.education && (
@@ -930,13 +961,20 @@ const Mentors = () => {
                   </div>
                 )}
 
-                <button
-                  onClick={() => handleBookFromProfile(selectedMentorForProfile)}
-                  className="w-full bg-gradient-hero text-primary-foreground py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
-                >
-                  <Calendar className="w-4 h-4" />
-                  Agendar mentoria
-                </button>
+                {selectedMentorForProfile.temporarily_unavailable ? (
+                  <div className="w-full bg-muted text-muted-foreground py-3 rounded-xl font-semibold flex items-center justify-center gap-2 cursor-not-allowed">
+                    <Clock className="w-4 h-4" />
+                    Mentor indisponível no momento
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => handleBookFromProfile(selectedMentorForProfile)}
+                    className="w-full bg-gradient-hero text-primary-foreground py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+                  >
+                    <Calendar className="w-4 h-4" />
+                    Agendar mentoria
+                  </button>
+                )}
               </>
             )}
           </DialogContent>

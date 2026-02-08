@@ -12,6 +12,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 interface Availability {
   day: string;
   times: string[];
+  duration?: number;
 }
 
 interface BlockedPeriod {
@@ -75,6 +76,19 @@ const BookingCalendar = ({
   const [formation, setFormation] = useState<string>("");
   const [objective, setObjective] = useState<string>("");
 
+  // Check if all availability days have a fixed duration
+  const hasMentorDefinedDuration = useMemo(() => {
+    return availability.some(a => a.duration && a.duration > 0);
+  }, [availability]);
+
+  // Get duration for a specific day from mentor's availability
+  const getDurationForDay = (date: Date): number => {
+    const dayName = getDayName(date);
+    if (!dayName) return 30;
+    const dayAvail = availability.find(a => a.day === dayName);
+    return dayAvail?.duration || 30;
+  };
+
   const MIN_ADVANCE_HOURS = minAdvanceHours;
 
   // Get available weekdays from mentor's availability
@@ -101,11 +115,12 @@ const BookingCalendar = ({
   };
 
   // Check if a time slot conflicts with existing sessions
-  const isTimeSlotBooked = (date: Date, time: string): boolean => {
+  const isTimeSlotBooked = (date: Date, time: string, slotDuration?: number): boolean => {
     const [hours, minutes] = time.split(":").map(Number);
     const slotStart = new Date(date);
     slotStart.setHours(hours, minutes, 0, 0);
-    const slotEnd = addMinutes(slotStart, 30);
+    const duration = slotDuration || getDurationForDay(date);
+    const slotEnd = addMinutes(slotStart, duration);
     
     // Check against all booked sessions
     for (const session of bookedSessions) {
@@ -215,6 +230,11 @@ const BookingCalendar = ({
           onSelect={(date) => {
             setSelectedDate(date);
             setSelectedTime("");
+            // Auto-set duration if mentor defines it for this day
+            if (date) {
+              const dayDuration = getDurationForDay(date);
+              setSelectedDuration(dayDuration);
+            }
           }}
           disabled={isDateDisabled}
           locale={ptBR}
@@ -274,29 +294,40 @@ const BookingCalendar = ({
             <Timer className="w-4 h-4 text-primary" />
             Duração da mentoria
           </label>
-          <div className="grid grid-cols-3 gap-2">
-            {DURATION_OPTIONS.map((option) => (
-              <motion.button
-                key={option.value}
-                type="button"
-                onClick={() => setSelectedDuration(option.value)}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className={`p-3 rounded-xl text-center transition-all border ${
-                  selectedDuration === option.value
-                    ? "bg-primary text-primary-foreground border-primary shadow-button"
-                    : "bg-muted text-foreground hover:bg-muted/80 border-border/50"
-                }`}
-              >
-                <span className="block font-semibold text-sm">{option.label}</span>
-                <span className={`block text-xs mt-0.5 ${
-                  selectedDuration === option.value ? "text-primary-foreground/80" : "text-muted-foreground"
-                }`}>
-                  {option.description}
-                </span>
-              </motion.button>
-            ))}
-          </div>
+          {hasMentorDefinedDuration ? (
+            <div className="bg-primary/10 border border-primary/20 rounded-xl p-3 text-center">
+              <span className="font-semibold text-primary text-sm">
+                {DURATION_OPTIONS.find(d => d.value === selectedDuration)?.label || `${selectedDuration} min`}
+              </span>
+              <span className="block text-xs text-muted-foreground mt-0.5">
+                Duração definida pelo mentor
+              </span>
+            </div>
+          ) : (
+            <div className="grid grid-cols-3 gap-2">
+              {DURATION_OPTIONS.map((option) => (
+                <motion.button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setSelectedDuration(option.value)}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`p-3 rounded-xl text-center transition-all border ${
+                    selectedDuration === option.value
+                      ? "bg-primary text-primary-foreground border-primary shadow-button"
+                      : "bg-muted text-foreground hover:bg-muted/80 border-border/50"
+                  }`}
+                >
+                  <span className="block font-semibold text-sm">{option.label}</span>
+                  <span className={`block text-xs mt-0.5 ${
+                    selectedDuration === option.value ? "text-primary-foreground/80" : "text-muted-foreground"
+                  }`}>
+                    {option.description}
+                  </span>
+                </motion.button>
+              ))}
+            </div>
+          )}
         </motion.div>
       )}
 
