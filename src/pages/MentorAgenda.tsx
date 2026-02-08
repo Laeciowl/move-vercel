@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Calendar, Clock, CheckCircle, ArrowLeft, Mail, Phone, User, Settings, Award, Loader2, Tag, AlertTriangle, ChevronDown, ChevronRight } from "lucide-react";
+import { Calendar, Clock, CheckCircle, ArrowLeft, Mail, Phone, User, Settings, Award, Loader2, Tag, AlertTriangle, ChevronDown, ChevronRight, PauseCircle, PlayCircle } from "lucide-react";
 import MentorMenteeNotes from "@/components/MentorMenteeNotes";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useVolunteerCheck } from "@/hooks/useVolunteerCheck";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import MentorBlockedPeriodsManager from "@/components/MentorBlockedPeriodsManager";
 import MentorSessionConfirmation from "@/components/MentorSessionConfirmation";
 import MentorAvailabilityEditor from "@/components/MentorAvailabilityEditor";
@@ -27,6 +28,7 @@ interface MentorData {
   status: string;
   availability: any[];
   min_advance_hours?: number;
+  temporarily_unavailable?: boolean;
 }
 
 interface MentorSession {
@@ -114,6 +116,7 @@ const MentorAgenda = () => {
         ...mentor,
         availability: (mentor.availability as any[]) || [],
         min_advance_hours: (mentor as any).min_advance_hours ?? 24,
+        temporarily_unavailable: (mentor as any).temporarily_unavailable ?? false,
       });
 
       const { data: sessionsData } = await supabase
@@ -283,6 +286,50 @@ const MentorAgenda = () => {
                 {mentorData.status === "approved" ? "Mentor Ativo" : "Pendente"}
               </Badge>
             </div>
+
+            {/* Temporarily Unavailable Toggle */}
+            {mentorData.status === "approved" && (
+              <div className={`flex items-center justify-between p-4 mt-4 rounded-xl border transition-colors ${
+                mentorData.temporarily_unavailable
+                  ? "bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700/50"
+                  : "bg-muted/30 border-border/50"
+              }`}>
+                <div className="flex items-center gap-3">
+                  {mentorData.temporarily_unavailable ? (
+                    <PauseCircle className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                  ) : (
+                    <PlayCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+                  )}
+                  <div>
+                    <p className="text-sm font-medium text-foreground">
+                      {mentorData.temporarily_unavailable ? "Agenda desativada" : "Agenda ativa"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {mentorData.temporarily_unavailable 
+                        ? "Você está indisponível para mentorados"
+                        : "Mentorados podem agendar com você"
+                      }
+                    </p>
+                  </div>
+                </div>
+                <Switch
+                  checked={!mentorData.temporarily_unavailable}
+                  onCheckedChange={async (checked) => {
+                    const { error } = await supabase
+                      .from("mentors")
+                      .update({ temporarily_unavailable: !checked })
+                      .eq("id", mentorData.id);
+
+                    if (error) {
+                      toast.error("Erro ao atualizar status: " + error.message);
+                    } else {
+                      toast.success(checked ? "Agenda reativada! 🎉" : "Agenda desativada temporariamente");
+                      fetchData();
+                    }
+                  }}
+                />
+              </div>
+            )}
 
             {/* Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
@@ -672,8 +719,15 @@ const MentorAgenda = () => {
                       key={avail.day}
                       className="bg-muted/50 px-4 py-3 rounded-xl border border-border/50"
                     >
-                      <span className="font-medium text-foreground">{dayLabels[avail.day]}</span>
-                      <div className="flex flex-wrap gap-2 mt-2">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-medium text-foreground">{dayLabels[avail.day]}</span>
+                        {avail.duration && (
+                          <Badge variant="outline" className="text-xs">
+                            {avail.duration === 60 ? "1h" : `${avail.duration} min`}
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap gap-2">
                         {avail.times?.map((time: string) => (
                           <Badge key={time} variant="secondary" className="text-xs">
                             {time}

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 interface Availability {
   day: string;
   times: string[];
+  duration?: number;
 }
 
 interface MentorAvailabilityEditorProps {
@@ -32,6 +33,12 @@ const timeSlots = [
   "19:00", "20:00", "21:00", "22:00",
 ];
 
+const durationOptions = [
+  { value: 30, label: "30 min" },
+  { value: 45, label: "45 min" },
+  { value: 60, label: "1 hora" },
+];
+
 const MentorAvailabilityEditor = ({
   mentorId,
   initialAvailability,
@@ -51,7 +58,7 @@ const MentorAvailabilityEditor = ({
     const nextDay = dayOptions.find((d) => !usedDays.includes(d.value));
     
     if (nextDay) {
-      setAvailability([...availability, { day: nextDay.value, times: [] }]);
+      setAvailability([...availability, { day: nextDay.value, times: [], duration: 30 }]);
     } else {
       toast.error("Todos os dias já foram adicionados");
     }
@@ -76,6 +83,12 @@ const MentorAvailabilityEditor = ({
           : [...a.times, time].sort();
         return { ...a, times };
       })
+    );
+  };
+
+  const updateDuration = (day: string, duration: number) => {
+    setAvailability(
+      availability.map((a) => (a.day === day ? { ...a, duration } : a))
     );
   };
 
@@ -160,7 +173,7 @@ const MentorAvailabilityEditor = ({
                     exit={{ opacity: 0, y: -10 }}
                     className="bg-card rounded-xl p-4 border border-border/50"
                   >
-                    <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center justify-between mb-3 gap-2">
                       <select
                         value={avail.day}
                         onChange={(e) => updateDay(avail.day, e.target.value)}
@@ -176,6 +189,17 @@ const MentorAvailabilityEditor = ({
                             }
                           >
                             {day.label}
+                          </option>
+                        ))}
+                      </select>
+                      <select
+                        value={avail.duration || 30}
+                        onChange={(e) => updateDuration(avail.day, Number(e.target.value))}
+                        className="px-3 py-2 rounded-lg border border-input bg-background text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      >
+                        {durationOptions.map((opt) => (
+                          <option key={opt.value} value={opt.value}>
+                            {opt.label}
                           </option>
                         ))}
                       </select>
