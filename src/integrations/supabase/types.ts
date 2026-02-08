@@ -501,6 +501,7 @@ export type Database = {
           photo_url: string | null
           sessions_completed_count: number
           status: Database["public"]["Enums"]["mentor_status"]
+          temporarily_unavailable: boolean
           updated_at: string
         }
         Insert: {
@@ -519,6 +520,7 @@ export type Database = {
           photo_url?: string | null
           sessions_completed_count?: number
           status?: Database["public"]["Enums"]["mentor_status"]
+          temporarily_unavailable?: boolean
           updated_at?: string
         }
         Update: {
@@ -537,6 +539,7 @@ export type Database = {
           photo_url?: string | null
           sessions_completed_count?: number
           status?: Database["public"]["Enums"]["mentor_status"]
+          temporarily_unavailable?: boolean
           updated_at?: string
         }
         Relationships: []
@@ -958,6 +961,7 @@ export type Database = {
           photo_url: string | null
           sessions_completed_count: number | null
           status: Database["public"]["Enums"]["mentor_status"] | null
+          temporarily_unavailable: boolean | null
         }
         Insert: {
           area?: string | null
@@ -974,6 +978,7 @@ export type Database = {
           photo_url?: string | null
           sessions_completed_count?: number | null
           status?: Database["public"]["Enums"]["mentor_status"] | null
+          temporarily_unavailable?: boolean | null
         }
         Update: {
           area?: string | null
@@ -990,6 +995,7 @@ export type Database = {
           photo_url?: string | null
           sessions_completed_count?: number | null
           status?: Database["public"]["Enums"]["mentor_status"] | null
+          temporarily_unavailable?: boolean | null
         }
         Relationships: []
       }
@@ -1073,6 +1079,7 @@ export type Database = {
           photo_url: string
           sessions_completed_count: number
           tags: Json
+          temporarily_unavailable: boolean
         }[]
       }
       get_public_members_count: { Args: never; Returns: number }
@@ -1089,6 +1096,7 @@ export type Database = {
           name: string
           photo_url: string
           sessions_completed_count: number
+          temporarily_unavailable: boolean
         }[]
       }
       get_public_mentors_count: { Args: never; Returns: number }
