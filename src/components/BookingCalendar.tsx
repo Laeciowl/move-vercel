@@ -76,18 +76,24 @@ const BookingCalendar = ({
   const [formation, setFormation] = useState<string>("");
   const [objective, setObjective] = useState<string>("");
 
-  // Check if all availability days have a fixed duration
-  const hasMentorDefinedDuration = useMemo(() => {
-    return availability.some(a => a.duration && a.duration > 0);
-  }, [availability]);
-
-  // Get duration for a specific day from mentor's availability
-  const getDurationForDay = (date: Date): number => {
+  // Get max duration for a specific day from mentor's availability
+  const getMaxDurationForDay = (date: Date): number => {
     const dayName = getDayName(date);
     if (!dayName) return 30;
     const dayAvail = availability.find(a => a.day === dayName);
     return dayAvail?.duration || 30;
   };
+
+  // Get available duration options based on mentor's max duration for the day
+  const getDurationOptionsForDay = (date: Date): typeof DURATION_OPTIONS => {
+    const maxDuration = getMaxDurationForDay(date);
+    return DURATION_OPTIONS.filter(opt => opt.value <= maxDuration);
+  };
+
+  // Check if mentor has defined custom durations
+  const hasMentorDefinedDuration = useMemo(() => {
+    return availability.some(a => a.duration && a.duration > 0);
+  }, [availability]);
 
   const MIN_ADVANCE_HOURS = minAdvanceHours;
 
@@ -119,7 +125,7 @@ const BookingCalendar = ({
     const [hours, minutes] = time.split(":").map(Number);
     const slotStart = new Date(date);
     slotStart.setHours(hours, minutes, 0, 0);
-    const duration = slotDuration || getDurationForDay(date);
+    const duration = slotDuration || getMaxDurationForDay(date);
     const slotEnd = addMinutes(slotStart, duration);
     
     // Check against all booked sessions
@@ -230,10 +236,9 @@ const BookingCalendar = ({
           onSelect={(date) => {
             setSelectedDate(date);
             setSelectedTime("");
-            // Auto-set duration if mentor defines it for this day
+            // Auto-set duration to minimum available
             if (date) {
-              const dayDuration = getDurationForDay(date);
-              setSelectedDuration(dayDuration);
+              setSelectedDuration(30);
             }
           }}
           disabled={isDateDisabled}
@@ -294,40 +299,50 @@ const BookingCalendar = ({
             <Timer className="w-4 h-4 text-primary" />
             Duração da mentoria
           </label>
-          {hasMentorDefinedDuration ? (
-            <div className="bg-primary/10 border border-primary/20 rounded-xl p-3 text-center">
-              <span className="font-semibold text-primary text-sm">
-                {DURATION_OPTIONS.find(d => d.value === selectedDuration)?.label || `${selectedDuration} min`}
-              </span>
-              <span className="block text-xs text-muted-foreground mt-0.5">
-                Duração definida pelo mentor
-              </span>
-            </div>
-          ) : (
-            <div className="grid grid-cols-3 gap-2">
-              {DURATION_OPTIONS.map((option) => (
-                <motion.button
-                  key={option.value}
-                  type="button"
-                  onClick={() => setSelectedDuration(option.value)}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className={`p-3 rounded-xl text-center transition-all border ${
-                    selectedDuration === option.value
-                      ? "bg-primary text-primary-foreground border-primary shadow-button"
-                      : "bg-muted text-foreground hover:bg-muted/80 border-border/50"
-                  }`}
-                >
-                  <span className="block font-semibold text-sm">{option.label}</span>
-                  <span className={`block text-xs mt-0.5 ${
-                    selectedDuration === option.value ? "text-primary-foreground/80" : "text-muted-foreground"
-                  }`}>
-                    {option.description}
+          {(() => {
+            const availableOptions = hasMentorDefinedDuration
+              ? getDurationOptionsForDay(selectedDate)
+              : DURATION_OPTIONS;
+            
+            if (availableOptions.length === 1) {
+              return (
+                <div className="bg-primary/10 border border-primary/20 rounded-xl p-3 text-center">
+                  <span className="font-semibold text-primary text-sm">
+                    {availableOptions[0].label}
                   </span>
-                </motion.button>
-              ))}
-            </div>
-          )}
+                  <span className="block text-xs text-muted-foreground mt-0.5">
+                    Duração definida pelo mentor
+                  </span>
+                </div>
+              );
+            }
+            
+            return (
+              <div className={`grid gap-2`} style={{ gridTemplateColumns: `repeat(${availableOptions.length}, 1fr)` }}>
+                {availableOptions.map((option) => (
+                  <motion.button
+                    key={option.value}
+                    type="button"
+                    onClick={() => setSelectedDuration(option.value)}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className={`p-3 rounded-xl text-center transition-all border ${
+                      selectedDuration === option.value
+                        ? "bg-primary text-primary-foreground border-primary shadow-button"
+                        : "bg-muted text-foreground hover:bg-muted/80 border-border/50"
+                    }`}
+                  >
+                    <span className="block font-semibold text-sm">{option.label}</span>
+                    <span className={`block text-xs mt-0.5 ${
+                      selectedDuration === option.value ? "text-primary-foreground/80" : "text-muted-foreground"
+                    }`}>
+                      {option.description}
+                    </span>
+                  </motion.button>
+                ))}
+              </div>
+            );
+          })()}
         </motion.div>
       )}
 
