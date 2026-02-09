@@ -5,6 +5,7 @@ import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { useMentorTags } from "@/hooks/useTags";
 import MentorBlockedPeriodsManager from "./MentorBlockedPeriodsManager";
 import MentorDisclaimerModal from "./MentorDisclaimerModal";
 import MentorSessionConfirmation from "./MentorSessionConfirmation";
@@ -80,6 +81,7 @@ const MentorPanel = () => {
   const [loading, setLoading] = useState(true);
   const [showDisclaimerModal, setShowDisclaimerModal] = useState(false);
   const [showBlockedPeriods, setShowBlockedPeriods] = useState(false);
+  const { mentorTags } = useMentorTags(mentorData?.id || null);
 
   useEffect(() => {
     if (!user?.email) return;
@@ -201,7 +203,17 @@ const MentorPanel = () => {
           </motion.div>
           <div>
             <h3 className="font-bold text-lg text-foreground">Sua área de mentor</h3>
-            <p className="text-sm text-muted-foreground">{mentorData.area}</p>
+            {mentorTags.length > 0 ? (
+              <div className="flex flex-wrap gap-1 mt-0.5">
+                {mentorTags.map((tag) => (
+                  <span key={tag.id} className="text-[10px] px-1.5 py-0.5 rounded-md bg-primary/10 text-primary font-medium">
+                    {tag.name}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">{mentorData.area}</p>
+            )}
           </div>
         </div>
         <motion.span
