@@ -351,7 +351,7 @@ const Home = () => {
               </div>
               <h3 className="font-semibold text-foreground text-sm">Sobre o Movê</h3>
             </div>
-            <p className="text-xs text-muted-foreground leading-relaxed mb-1">Conectamos jovens a mentores.</p>
+            <p className="text-xs text-muted-foreground leading-relaxed mb-1">Hub de orientação profissional para jovens.</p>
             <div className="flex gap-2 text-[10px]">
               <a href="https://www.linkedin.com/in/laecio-rodrigues" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">@laecio</a>
               <a href="/termos" className="text-muted-foreground hover:text-foreground">Termos</a>

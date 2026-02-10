@@ -289,6 +289,7 @@ const Volunteer = () => {
           .insert({
             name: formData.name.trim(),
             email: formData.email.trim(),
+            phone: formData.phone.trim(),
             area: selectedTags.map(t => t.name).join(", ") || "Mentoria",
             how_to_help: "Mentoria, Aulas/Lives, Templates",
             categories: ["mentoria", "aulas_lives", "templates_arquivos"],
@@ -382,7 +383,7 @@ const Volunteer = () => {
       }
 
       setSubmitted(true);
-      toast.success("Tudo certo! Cadastro enviado. Logo entramos em contato.");
+      toast.success("Tudo certo! Cadastro enviado. Nossa equipe entrará em contato.");
     } catch (error: any) {
       toast.error("Erro ao enviar: " + error.message);
     }
@@ -430,7 +431,8 @@ const Volunteer = () => {
           </h2>
           <p className="text-muted-foreground mb-6">
             Recebemos sua inscrição e estamos muito felizes! 
-            Assim que aprovada, você terá acesso à área de voluntários.
+            Nossa equipe entrará em contato para validar sua inscrição. 
+            Após a confirmação, você terá acesso à área de voluntários.
           </p>
           {createdAccount && (
             <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6 text-left">

@@ -622,7 +622,7 @@ const Dashboard = () => {
                 <h3 className="font-semibold text-foreground">Sobre o Movê</h3>
               </div>
               <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-                Conectamos jovens a mentores e recursos para impulsionar carreiras.
+                Hub de orientação profissional: mentorias, conteúdos e conexões para impulsionar carreiras.
               </p>
               <div className="flex flex-wrap gap-2 text-xs">
                 <a 
