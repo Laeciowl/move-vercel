@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Mail, Briefcase, Check, X, Clock, User } from "lucide-react";
+import { Loader2, Mail, Briefcase, Check, X, Clock, User, Phone, ChevronDown, ChevronUp } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -9,6 +9,7 @@ interface VolunteerApplication {
   id: string;
   name: string;
   email: string;
+  phone: string | null;
   area: string;
   how_to_help: string;
   categories: string[] | null;
@@ -35,6 +36,16 @@ const AdminVolunteersPanel = () => {
   const [mentorsByEmail, setMentorsByEmail] = useState<Record<string, MentorInfo>>({});
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [expandedDescriptions, setExpandedDescriptions] = useState<Set<string>>(new Set());
+
+  const toggleDescription = (id: string) => {
+    setExpandedDescriptions(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   const fetchApplications = async () => {
     const { data, error } = await supabase
@@ -301,10 +312,33 @@ const AdminVolunteersPanel = () => {
                     <span>{app.area}</span>
                   </div>
 
+                  {app.phone && (
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Phone className="w-4 h-4" />
+                      <a href={`https://wa.me/55${app.phone.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="hover:underline text-green-600">
+                        {app.phone}
+                      </a>
+                    </div>
+                  )}
+
                   {mentorsByEmail[app.email]?.description && (
-                    <p className="text-muted-foreground mt-2 line-clamp-2">
-                      {mentorsByEmail[app.email].description}
-                    </p>
+                    <div className="mt-2">
+                      <button
+                        onClick={() => toggleDescription(app.id)}
+                        className="flex items-center gap-1 text-xs text-primary hover:underline"
+                      >
+                        {expandedDescriptions.has(app.id) ? (
+                          <><ChevronUp className="w-3 h-3" /> Ocultar descrição</>
+                        ) : (
+                          <><ChevronDown className="w-3 h-3" /> Ver descrição completa</>
+                        )}
+                      </button>
+                      {expandedDescriptions.has(app.id) && (
+                        <p className="text-muted-foreground mt-1 text-sm whitespace-pre-wrap">
+                          {mentorsByEmail[app.email].description}
+                        </p>
+                      )}
+                    </div>
                   )}
 
                   <div className="flex gap-2 mt-4">
@@ -392,6 +426,14 @@ const AdminVolunteersPanel = () => {
                     <span>{app.area}</span>
                   </div>
 
+                  {app.phone && (
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Phone className="w-4 h-4" />
+                      <a href={`https://wa.me/55${app.phone.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="hover:underline text-green-600">
+                        {app.phone}
+                      </a>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

@@ -814,6 +814,7 @@ export type Database = {
           how_to_help: string
           id: string
           name: string
+          phone: string | null
           status: string
           submitted_at: string
           user_id: string | null
@@ -825,6 +826,7 @@ export type Database = {
           how_to_help: string
           id?: string
           name: string
+          phone?: string | null
           status?: string
           submitted_at?: string
           user_id?: string | null
@@ -836,6 +838,7 @@ export type Database = {
           how_to_help?: string
           id?: string
           name?: string
+          phone?: string | null
           status?: string
           submitted_at?: string
           user_id?: string | null
