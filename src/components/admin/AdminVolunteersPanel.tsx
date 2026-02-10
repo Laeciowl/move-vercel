@@ -169,11 +169,11 @@ const AdminVolunteersPanel = () => {
           }
         }
 
-        // Create notification for the user
+        // Create notification for the user with WhatsApp group invite
         await supabase.from("notifications").insert({
           user_id: app.user_id,
           title: "Parabéns! Você foi aprovado como voluntário! 🎉",
-          message: "Agora você pode oferecer mentorias e contribuir com conteúdos. Acesse seu dashboard para começar!",
+          message: "Agora você pode oferecer mentorias e contribuir com conteúdos. Entre no grupo de WhatsApp dos mentores: https://chat.whatsapp.com/MENTORES_GROUP_LINK — Acesse seu dashboard para começar!",
           type: "volunteer_approval",
         });
       }

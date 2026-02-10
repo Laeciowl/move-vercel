@@ -224,16 +224,6 @@ const VolunteerOnboarding = () => {
               </Button>
             )}
           </div>
-
-          {/* Skip option */}
-          {!isLastStep && (
-            <button
-              onClick={finishOnboarding}
-              className="w-full mt-4 text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Pular onboarding e ir para o dashboard
-            </button>
-          )}
         </div>
       </motion.div>
     </div>

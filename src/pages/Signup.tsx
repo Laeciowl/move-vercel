@@ -9,6 +9,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import PasswordStrengthIndicator from "@/components/PasswordStrengthIndicator";
 import UserTypeSelector, { UserType } from "@/components/UserTypeSelector";
 import MentorDisclaimerModal from "@/components/MentorDisclaimerModal";
+import TagSelector, { type TagItem } from "@/components/TagSelector";
+import { useTags } from "@/hooks/useTags";
 import type { Enums } from "@/integrations/supabase/types";
 
 const emailSchema = z.string().email("E-mail inválido").max(255);
@@ -99,10 +101,12 @@ const Signup = () => {
 
   // Mentor specific fields
   const [mentorData, setMentorData] = useState({
-    area: "",
     description: "",
     education: "",
   });
+
+  const [selectedTags, setSelectedTags] = useState<TagItem[]>([]);
+  const { tags: availableTags, loading: tagsLoading } = useTags();
 
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -237,8 +241,8 @@ const Signup = () => {
       return false;
     }
 
-    if (!mentorData.area.trim()) {
-      toast.error("Conta pra gente qual é sua área de atuação!");
+    if (selectedTags.length === 0) {
+      toast.error("Selecione pelo menos uma área de atuação!");
       return false;
     }
 
@@ -428,7 +432,8 @@ const Signup = () => {
           .insert({
             name: formData.name.trim(),
             email: formData.email.trim(),
-            area: mentorData.area.trim(),
+            phone: formData.phone.trim(),
+            area: selectedTags.map(t => t.name).join(", ") || "Mentoria",
             how_to_help: "Mentoria, Aulas/Lives, Templates",
             categories: ["mentoria", "aulas_lives", "templates_arquivos"],
             user_id: authData.user.id,
@@ -456,18 +461,17 @@ const Signup = () => {
           }
         }
 
-        // Insert into mentors table
-        const { error: mentorError } = await supabase.from("mentors").insert([{
+        const { data: mentorInsertData, error: mentorError } = await supabase.from("mentors").insert([{
           name: formData.name.trim(),
           email: formData.email.trim(),
-          area: mentorData.area.trim(),
+          area: selectedTags.map(t => t.name).join(", ") || "Mentoria",
           description: mentorData.description.trim(),
           education: mentorData.education.trim() || null,
           photo_url: photoUrl,
           availability: JSON.parse(JSON.stringify(availability)),
           disclaimer_accepted: true,
           disclaimer_accepted_at: new Date().toISOString(),
-        }]);
+        }]).select('id').single();
 
         if (mentorError) {
           if (mentorError.code === '23505' || mentorError.message.includes('duplicate')) {
@@ -479,6 +483,15 @@ const Signup = () => {
           return;
         }
 
+        // Insert mentor tags
+        if (mentorInsertData && selectedTags.length > 0) {
+          const tagInserts = selectedTags.map(tag => ({
+            mentor_id: mentorInsertData.id,
+            tag_id: tag.id,
+          }));
+          await supabase.from("mentor_tags").insert(tagInserts);
+        }
+
         try {
           await supabase.functions.invoke("send-notification-email", {
             body: {
@@ -486,7 +499,7 @@ const Signup = () => {
               name: formData.name.trim(),
               type: "mentor_application_received",
               data: {
-                area: mentorData.area.trim(),
+                area: selectedTags.map(t => t.name).join(", ") || "Mentoria",
               },
               skipPreferenceCheck: true,
             },
@@ -496,7 +509,7 @@ const Signup = () => {
         }
 
         setSubmitted(true);
-        toast.success("Tudo certo! Cadastro enviado. Logo entramos em contato.");
+        toast.success("Tudo certo! Cadastro enviado. Nossa equipe entrará em contato.");
       }
     } catch (error: any) {
       toast.error("Erro ao enviar: " + error.message);
@@ -529,7 +542,8 @@ const Signup = () => {
           </h2>
           <p className="text-muted-foreground mb-6">
             Recebemos sua inscrição e estamos muito felizes! 
-            Assim que aprovada, você terá acesso à área de voluntários.
+            Nossa equipe entrará em contato para validar sua inscrição.
+            Após a confirmação, você terá acesso à área de voluntários.
           </p>
           <div className="bg-accent border border-border rounded-xl p-4 mb-6 text-left">
             <p className="text-sm text-accent-foreground">
@@ -959,17 +973,24 @@ const Signup = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    Área de atuação *
+                    Áreas de atuação * (selecione de 1 a 5)
                   </label>
-                  <input
-                    type="text"
-                    value={mentorData.area}
-                    onChange={(e) => setMentorData({ ...mentorData, area: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
-                    placeholder="Ex: Tecnologia, Marketing, Finanças..."
-                    required
-                    maxLength={100}
-                  />
+                  {tagsLoading ? (
+                    <div className="flex items-center gap-2 py-4">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span className="text-sm text-muted-foreground">Carregando áreas...</span>
+                    </div>
+                  ) : (
+                    <TagSelector
+                      availableTags={availableTags}
+                      selectedTags={selectedTags}
+                      onTagsChange={setSelectedTags}
+                      maxTags={5}
+                      minTags={1}
+                      title=""
+                      subtitle="Escolha as áreas em que você pode ajudar os mentorados"
+                    />
+                  )}
                 </div>
 
                 <div>
