@@ -431,8 +431,8 @@ const Volunteer = () => {
           </h2>
           <p className="text-muted-foreground mb-6">
             Recebemos sua inscrição e estamos muito felizes! 
-            Nossa equipe entrará em contato para validar sua inscrição. 
-            Após a confirmação, você terá acesso à área de voluntários.
+            Sua aprovação está pendente de uma reunião com nossa equipe para entendermos o fit com o projeto.
+            Entraremos em contato via WhatsApp para agendar essa conversa inicial. Fique de olho! 📱
           </p>
           {createdAccount && (
             <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6 text-left">
@@ -547,7 +547,7 @@ const Volunteer = () => {
                 maxLength={20}
               />
               <p className="text-xs text-muted-foreground mt-1">
-                Usado para comunicação com a equipe e mentorados.
+                Nossa equipe entrará em contato via WhatsApp para agendar uma conversa inicial e validar sua inscrição antes da aprovação.
               </p>
             </div>
 
