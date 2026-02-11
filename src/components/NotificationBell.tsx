@@ -64,8 +64,8 @@ const NotificationBell = () => {
       case "volunteer_approval":
         return { route: "/dashboard", tab: "overview", scrollTo: "volunteer-panel" };
       case "content":
-        // New content available: scroll to content library
-        return { route: "/dashboard", scrollTo: "content-library" };
+        // New content available: go to content page
+        return { route: "/conteudos" };
       default:
         return null;
     }

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   X, ArrowRight, ArrowLeft, Users, BookOpen, 
@@ -14,21 +15,23 @@ interface OnboardingStep {
   description: string;
   icon: React.ReactNode;
   highlight?: string;
+  route?: string;
 }
 
 const steps: OnboardingStep[] = [
   {
     id: "welcome",
     title: "Bem-vindo(a) ao Movê! 🎉",
-    description: "O Movê conecta você a mentores incríveis e recursos para impulsionar sua carreira. Vamos fazer um tour rápido pela plataforma!",
+    description: "O Movê é seu hub de orientação profissional. Conectamos você a mentores, conteúdos e uma comunidade para impulsionar sua carreira. Vamos fazer um tour rápido!",
     icon: <Sparkles className="w-8 h-8" />,
   },
   {
     id: "mentors",
     title: "Encontre seu mentor",
-    description: "Na seção de Mentoria, você pode explorar mentores de diversas áreas e agendar sessões gratuitas de orientação profissional.",
+    description: "Explore mentores de diversas áreas e agende sessões gratuitas de orientação profissional. Vamos te levar até lá!",
     icon: <Users className="w-8 h-8" />,
     highlight: "mentorship-section",
+    route: "/mentores",
   },
   {
     id: "content",
@@ -36,6 +39,7 @@ const steps: OnboardingStep[] = [
     description: "Acesse vídeos, artigos e materiais exclusivos criados por voluntários para ajudar no seu desenvolvimento.",
     icon: <BookOpen className="w-8 h-8" />,
     highlight: "content-library",
+    route: "/conteudos",
   },
   {
     id: "guide",
@@ -60,6 +64,7 @@ const steps: OnboardingStep[] = [
     title: "Sua primeira missão! 🎯",
     description: "Agora que você conhece a plataforma, sua missão é agendar sua primeira mentoria! Escolha um mentor e dê o primeiro passo na sua jornada.",
     icon: <Target className="w-8 h-8" />,
+    route: "/mentores",
   },
 ];
 
@@ -71,11 +76,21 @@ const OnboardingTour = ({ onComplete }: OnboardingTourProps) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isExiting, setIsExiting] = useState(false);
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
+      const nextStep = steps[currentStep + 1];
+      if (nextStep.route) {
+        navigate(nextStep.route);
+      }
       setCurrentStep(currentStep + 1);
     } else {
+      // Last step: navigate to mentores on completion
+      const lastStep = steps[currentStep];
+      if (lastStep.route) {
+        navigate(lastStep.route);
+      }
       handleComplete();
     }
   };
