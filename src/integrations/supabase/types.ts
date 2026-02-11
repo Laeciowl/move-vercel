@@ -1010,6 +1010,10 @@ export type Database = {
         Returns: boolean
       }
       current_user_email: { Args: never; Returns: string }
+      get_activation_rate: { Args: never; Returns: Json }
+      get_admin_alerts: { Args: never; Returns: Json }
+      get_completion_rate: { Args: never; Returns: Json }
+      get_confirmation_rate: { Args: never; Returns: Json }
       get_future_scheduled_sessions: { Args: never; Returns: number }
       get_lives_impacted: { Args: never; Returns: number }
       get_mentee_contact_profiles: {
@@ -1085,6 +1089,7 @@ export type Database = {
           temporarily_unavailable: boolean
         }[]
       }
+      get_monthly_growth: { Args: never; Returns: Json }
       get_public_members_count: { Args: never; Returns: number }
       get_public_mentors: {
         Args: never
@@ -1103,6 +1108,7 @@ export type Database = {
         }[]
       }
       get_public_mentors_count: { Args: never; Returns: number }
+      get_retention_rate: { Args: never; Returns: Json }
       get_total_completed_sessions: { Args: never; Returns: number }
       has_role: {
         Args: {
