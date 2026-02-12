@@ -13,6 +13,7 @@ interface WhatsAppTemplatesProps {
   scheduledAt: string;
   duration: number;
   objective: string | null;
+  mentorName?: string;
 }
 
 const WhatsAppTemplates = ({
@@ -21,6 +22,7 @@ const WhatsAppTemplates = ({
   scheduledAt,
   duration,
   objective,
+  mentorName,
 }: WhatsAppTemplatesProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [copiedTemplate, setCopiedTemplate] = useState<string | null>(null);
@@ -32,7 +34,7 @@ const WhatsAppTemplates = ({
   const durationText = `${duration || 30} minutos`;
 
   const confirmationTemplate = `Olá ${firstName}! 👋
-
+${mentorName ? `\nAqui é ${mentorName}, seu mentor(a) da plataforma Movê!\n` : ""}
 Confirmando nossa mentoria:
 
 📅 ${fullDate}

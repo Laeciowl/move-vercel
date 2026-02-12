@@ -166,10 +166,11 @@ const MentorshipSection = () => {
     return completed && !s.hasReview && s.status !== "cancelled";
   });
 
-  // Check if mentee has pending confirmations OR unreviewed sessions (blocks new bookings)
+  // Check if mentee has pending confirmations (blocks new bookings)
+  // Reviews do NOT block new bookings per platform policy
   const hasPendingConfirmations = pendingCompletionSessions.length > 0;
   const hasUnreviewedSessions = unreviewedCompletedSessions.length > 0;
-  const isBookingBlocked = hasPendingConfirmations || hasUnreviewedSessions;
+  const isBookingBlocked = hasPendingConfirmations;
 
   // Confirm session as completed
   const handleConfirmCompletion = async (session: MentorSession) => {

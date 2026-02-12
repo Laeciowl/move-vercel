@@ -157,12 +157,7 @@ const MentorAgenda = () => {
         // Filter out cancelled sessions for stats
         const activeSessions = sessionsData.filter((s) => s.status !== "cancelled");
 
-        const completed = activeSessions.filter((s) => {
-          if (s.status === "completed") return true;
-          const endTime = new Date(s.scheduled_at);
-          endTime.setMinutes(endTime.getMinutes() + (s.duration || 30));
-          return s.status === "scheduled" && endTime <= new Date();
-        }).length;
+        const completed = activeSessions.filter((s) => s.status === "completed").length;
 
         const upcoming = activeSessions.filter((s) => {
           if (s.status !== "scheduled") return false;
@@ -171,7 +166,11 @@ const MentorAgenda = () => {
           return endTime > new Date();
         }).length;
 
-        const uniqueMentees = new Set(activeSessions.map((s) => s.user_id)).size;
+        const uniqueMentees = new Set(
+          activeSessions
+            .filter((s) => s.status === "completed")
+            .map((s) => s.user_id)
+        ).size;
 
         setStats({
           totalSessions: activeSessions.length,
@@ -206,10 +205,9 @@ const MentorAgenda = () => {
 
   const scheduledSessions = sessions.filter((s) => s.status === "scheduled");
   const completedSessions = sessions.filter((s) => s.status === "completed");
+  const cancelledSessions = sessions.filter((s) => s.status === "cancelled");
   const pastScheduledSessions = scheduledSessions.filter((s) => isSessionPast(s.scheduled_at, s.duration || 30));
   const upcomingSessions = scheduledSessions.filter((s) => !isSessionPast(s.scheduled_at, s.duration || 30));
-  // Past sessions: completed + past scheduled (needing confirmation)
-  const pastSessions = [...completedSessions, ...pastScheduledSessions];
 
   const handleConfirmCompletion = async (sessionId: string) => {
     const { error } = await supabase
@@ -490,6 +488,7 @@ const MentorAgenda = () => {
                                     scheduledAt={session.scheduled_at}
                                     duration={sessionDuration}
                                     objective={session.mentee_objective || null}
+                                    mentorName={mentorData.name}
                                   />
                                 )}
 
@@ -522,18 +521,88 @@ const MentorAgenda = () => {
               )}
             </div>
 
-            {/* Past Sessions - Grouped by Mentee */}
+            {/* Mentorias Passadas - Needing Confirmation */}
+            {pastScheduledSessions.length > 0 && (
+              <div className="bg-card rounded-2xl border border-amber-200 dark:border-amber-700/50 p-6 shadow-soft">
+                <h3 className="text-lg font-semibold text-foreground mb-2 flex items-center gap-2">
+                  <AlertTriangle className="w-5 h-5 text-amber-500" />
+                  Mentorias Passadas ({pastScheduledSessions.length})
+                </h3>
+                <p className="text-xs text-muted-foreground mb-4">Confirme se essas mentorias aconteceram:</p>
+                
+                <div className="space-y-3">
+                  {pastScheduledSessions.map((session) => (
+                    <div
+                      key={session.id}
+                      className="bg-amber-50/50 dark:bg-amber-900/10 border border-amber-200/50 dark:border-amber-700/30 rounded-xl p-4 space-y-3"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center overflow-hidden border-2 border-primary/30 shrink-0">
+                          {session.mentee_profile?.photo_url ? (
+                            <img src={session.mentee_profile.photo_url} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <User className="w-5 h-5 text-primary/60" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <span className="font-semibold text-foreground text-sm block truncate">
+                            {session.mentee_profile?.name || "Mentorado"}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            📅 {format(new Date(session.scheduled_at), "dd/MM 'às' HH:mm", { locale: ptBR })} · {session.duration || 30}min
+                          </span>
+                        </div>
+                        <Badge variant="secondary" className="text-xs bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 shrink-0">
+                          ⏰ Pendente
+                        </Badge>
+                      </div>
+
+                      {(session.mentee_objective || session.mentee_formation) && (
+                        <div className="bg-primary/5 rounded-lg p-2 space-y-1 text-xs border border-primary/10">
+                          {session.mentee_formation && (
+                            <div><span className="font-medium text-foreground">Formação:</span> <span className="text-muted-foreground">{session.mentee_formation}</span></div>
+                          )}
+                          {session.mentee_objective && (
+                            <div><span className="font-medium text-foreground">Objetivo:</span> <span className="text-muted-foreground">{session.mentee_objective}</span></div>
+                          )}
+                        </div>
+                      )}
+
+                      <div className="flex gap-2 pt-1">
+                        <Button
+                          size="sm"
+                          onClick={() => handleConfirmCompletion(session.id)}
+                          className="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs h-9"
+                        >
+                          <CheckCircle className="w-3.5 h-3.5 mr-1" />
+                          Sim, aconteceu
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleMarkNotCompleted(session.id)}
+                          className="flex-1 text-xs text-destructive border-destructive/50 hover:bg-destructive/10 h-9"
+                        >
+                          Não aconteceu
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Sessões Realizadas - Confirmed completed, grouped by mentee */}
             <div className="bg-card rounded-2xl border border-border p-6 shadow-soft">
               <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
                 <CheckCircle className="w-5 h-5 text-green-600" />
-                Sessões Realizadas ({pastSessions.length})
+                Sessões Realizadas ({completedSessions.length})
               </h3>
               
-              {pastSessions.length > 0 ? (
+              {completedSessions.length > 0 ? (
                 <div className="space-y-2 max-h-[500px] overflow-y-auto pr-2">
                   {(() => {
-                    // Group sessions by mentee
-                    const grouped = pastSessions.reduce((acc, session) => {
+                    const grouped = completedSessions.reduce((acc, session) => {
                       const key = session.user_id;
                       if (!acc[key]) acc[key] = [];
                       acc[key].push(session);
@@ -545,7 +614,6 @@ const MentorAgenda = () => {
                       const menteeName = firstSession.mentee_profile?.name || "Mentorado";
                       const photoUrl = firstSession.mentee_profile?.photo_url;
                       const isExpanded = expandedMenteeId === menteeId;
-                      const needsConfirmationCount = menteeSessions.filter(s => s.status === "scheduled").length;
 
                       return (
                         <div key={menteeId} className="rounded-xl border border-border/50 overflow-hidden">
@@ -564,14 +632,8 @@ const MentorAgenda = () => {
                               <span className="font-semibold text-foreground text-sm block truncate">{menteeName}</span>
                               <span className="text-xs text-muted-foreground">
                                 {menteeSessions.length} {menteeSessions.length === 1 ? "sessão" : "sessões"}
-                                {needsConfirmationCount > 0 && (
-                                  <span className="text-amber-600 ml-1">· {needsConfirmationCount} pendente{needsConfirmationCount > 1 ? "s" : ""}</span>
-                                )}
                               </span>
                             </div>
-                            {needsConfirmationCount > 0 && (
-                              <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
-                            )}
                             {isExpanded ? <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" /> : <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />}
                           </button>
 
@@ -585,73 +647,38 @@ const MentorAgenda = () => {
                                 className="overflow-hidden"
                               >
                                 <div className="p-3 space-y-2 bg-muted/20 border-t border-border/50">
-                                  {menteeSessions.map((session) => {
-                                    const needsConfirmation = session.status === "scheduled";
-                                    return (
-                                      <div
-                                        key={session.id}
-                                        className={`rounded-lg p-3 space-y-2 border ${
-                                          needsConfirmation
-                                            ? "bg-amber-50/50 dark:bg-amber-900/10 border-amber-200/50 dark:border-amber-700/30"
-                                            : "bg-card border-border/50"
-                                        }`}
-                                      >
-                                        <div className="flex items-center justify-between">
-                                          <p className="text-sm text-muted-foreground">
-                                            📅 {format(new Date(session.scheduled_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                                          </p>
-                                          {needsConfirmation ? (
-                                            <Badge variant="secondary" className="text-xs bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
-                                              Pendente
-                                            </Badge>
-                                          ) : (
-                                            <Badge variant="secondary" className="text-xs bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                                              <CheckCircle className="w-3 h-3 mr-1" />
-                                              Realizada
-                                            </Badge>
+                                  {menteeSessions.map((session) => (
+                                    <div
+                                      key={session.id}
+                                      className="rounded-lg p-3 space-y-2 border bg-card border-border/50"
+                                    >
+                                      <div className="flex items-center justify-between">
+                                        <p className="text-sm text-muted-foreground">
+                                          📅 {format(new Date(session.scheduled_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                                        </p>
+                                        <Badge variant="secondary" className="text-xs bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                                          <CheckCircle className="w-3 h-3 mr-1" />
+                                          Realizada
+                                        </Badge>
+                                      </div>
+
+                                      {(session.mentee_objective || session.mentee_formation) && (
+                                        <div className="bg-primary/5 rounded-lg p-2 space-y-1 text-xs border border-primary/10">
+                                          {session.mentee_formation && (
+                                            <div><span className="font-medium text-foreground">Formação:</span> <span className="text-muted-foreground">{session.mentee_formation}</span></div>
+                                          )}
+                                          {session.mentee_objective && (
+                                            <div><span className="font-medium text-foreground">Objetivo:</span> <span className="text-muted-foreground">{session.mentee_objective}</span></div>
                                           )}
                                         </div>
+                                      )}
 
-                                        {(session.mentee_objective || session.mentee_formation) && (
-                                          <div className="bg-primary/5 rounded-lg p-2 space-y-1 text-xs border border-primary/10">
-                                            {session.mentee_formation && (
-                                              <div><span className="font-medium text-foreground">Formação:</span> <span className="text-muted-foreground">{session.mentee_formation}</span></div>
-                                            )}
-                                            {session.mentee_objective && (
-                                              <div><span className="font-medium text-foreground">Objetivo:</span> <span className="text-muted-foreground">{session.mentee_objective}</span></div>
-                                            )}
-                                          </div>
-                                        )}
+                                      {session.mentor_notes && (
+                                        <p className="text-xs text-muted-foreground italic">📝 {session.mentor_notes}</p>
+                                      )}
+                                    </div>
+                                  ))}
 
-                                        {session.mentor_notes && (
-                                          <p className="text-xs text-muted-foreground italic">📝 {session.mentor_notes}</p>
-                                        )}
-
-                                        {needsConfirmation && (
-                                          <div className="flex gap-2 pt-1">
-                                            <Button
-                                              size="sm"
-                                              onClick={() => handleConfirmCompletion(session.id)}
-                                              className="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs h-8"
-                                            >
-                                              <CheckCircle className="w-3 h-3 mr-1" />
-                                              Confirmar
-                                            </Button>
-                                            <Button
-                                              variant="outline"
-                                              size="sm"
-                                              onClick={() => handleMarkNotCompleted(session.id)}
-                                              className="flex-1 text-xs text-destructive border-destructive/50 hover:bg-destructive/10 h-8"
-                                            >
-                                              Não realizada
-                                            </Button>
-                                          </div>
-                                        )}
-                                      </div>
-                                    );
-                                  })}
-
-                                  {/* Mentor notes for this mentee - shown once per mentee group */}
                                   <MentorMenteeNotes
                                     mentorId={mentorData.id}
                                     menteeUserId={menteeId}
