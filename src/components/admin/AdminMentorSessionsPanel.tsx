@@ -50,9 +50,11 @@ const AdminMentorSessionsPanel = () => {
 
   const getSessionStatus = (session: SessionRow) => {
     if (session.status === "cancelled") return "cancelled";
+    if (session.status === "completed") return "completed";
+    // scheduled sessions: check if future or past (awaiting confirmation)
     const endTime = new Date(session.scheduled_at);
     endTime.setMinutes(endTime.getMinutes() + (session.duration || 30));
-    if (isPast(endTime)) return "completed";
+    if (isPast(endTime)) return "past_awaiting";
     return "upcoming";
   };
 
@@ -75,6 +77,8 @@ const AdminMentorSessionsPanel = () => {
         return <Badge className="bg-green-500/10 text-green-600 border-green-500/20 text-xs"><CheckCircle className="w-3 h-3 mr-1" />Realizada</Badge>;
       case "upcoming":
         return <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20 text-xs"><Clock className="w-3 h-3 mr-1" />Agendada</Badge>;
+      case "past_awaiting":
+        return <Badge className="bg-amber-500/10 text-amber-600 border-amber-500/20 text-xs"><Clock className="w-3 h-3 mr-1" />Aguardando check</Badge>;
       case "cancelled":
         return <Badge className="bg-red-500/10 text-red-600 border-red-500/20 text-xs"><XCircle className="w-3 h-3 mr-1" />Cancelada</Badge>;
       default:
@@ -84,9 +88,10 @@ const AdminMentorSessionsPanel = () => {
 
   const stats = {
     total: sessions.length,
-    completed: sessions.filter(s => getSessionStatus(s) === "completed").length,
+    completed: sessions.filter(s => s.status === "completed").length,
     upcoming: sessions.filter(s => getSessionStatus(s) === "upcoming").length,
-    cancelled: sessions.filter(s => getSessionStatus(s) === "cancelled").length,
+    pastAwaiting: sessions.filter(s => getSessionStatus(s) === "past_awaiting").length,
+    cancelled: sessions.filter(s => s.status === "cancelled").length,
   };
 
   if (loading) {
@@ -105,7 +110,7 @@ const AdminMentorSessionsPanel = () => {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         <div className="bg-muted/30 rounded-xl p-3 text-center">
           <div className="text-xl font-bold text-foreground">{stats.total}</div>
           <div className="text-xs text-muted-foreground">Total</div>
@@ -117,6 +122,10 @@ const AdminMentorSessionsPanel = () => {
         <div className="bg-blue-500/5 rounded-xl p-3 text-center">
           <div className="text-xl font-bold text-blue-600">{stats.upcoming}</div>
           <div className="text-xs text-muted-foreground">Agendadas</div>
+        </div>
+        <div className="bg-amber-500/5 rounded-xl p-3 text-center">
+          <div className="text-xl font-bold text-amber-600">{stats.pastAwaiting}</div>
+          <div className="text-xs text-muted-foreground">Aguardando check</div>
         </div>
         <div className="bg-red-500/5 rounded-xl p-3 text-center">
           <div className="text-xl font-bold text-red-600">{stats.cancelled}</div>
@@ -144,6 +153,7 @@ const AdminMentorSessionsPanel = () => {
             <SelectItem value="all">Todas</SelectItem>
             <SelectItem value="completed">Realizadas</SelectItem>
             <SelectItem value="upcoming">Agendadas</SelectItem>
+            <SelectItem value="past_awaiting">Aguardando check</SelectItem>
             <SelectItem value="cancelled">Canceladas</SelectItem>
           </SelectContent>
         </Select>
