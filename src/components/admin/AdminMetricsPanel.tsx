@@ -1,18 +1,43 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { 
-  Loader2, Users, UserCheck, GraduationCap, Heart, 
-  MessageSquare, TrendingUp, TrendingDown, AlertTriangle, 
-  CheckCircle, RefreshCw, ArrowUpRight, ArrowDownRight, Minus
+import { format, startOfMonth, endOfMonth, subMonths } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import {
+  Loader2, AlertTriangle, CheckCircle, RefreshCw,
+  ArrowUpRight, ArrowDownRight, Minus, ChevronDown, ChevronUp,
+  CalendarIcon, Inbox, Clock
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { 
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, 
-  ResponsiveContainer, Legend 
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer, Legend,
 } from "recharts";
+import { cn } from "@/lib/utils";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+} from "@/components/ui/dialog";
 
+// ─── Constants ───────────────────────────────────────────
+const LAUNCH_DATE = new Date("2026-01-01T00:00:00Z");
+
+type GrowthPeriod = "launch" | "this_month" | "last_month" | "last_3_months" | "custom";
+
+const PERIOD_OPTIONS: { value: GrowthPeriod; label: string }[] = [
+  { value: "launch", label: "Desde o lançamento" },
+  { value: "this_month", label: "Mês atual" },
+  { value: "last_month", label: "Último mês" },
+  { value: "last_3_months", label: "Últimos 3 meses" },
+  { value: "custom", label: "Período personalizado" },
+];
+
+// ─── Types ───────────────────────────────────────────────
 interface CoreMetrics {
   totalUsers: number;
   totalMentors: number;
@@ -21,16 +46,17 @@ interface CoreMetrics {
   completedThisMonth: number;
   completedLastMonth: number;
   livesImpacted: number;
-  livesImpactedLastMonth: number;
   scheduledSessions: number;
 }
 
-interface HealthMetric {
+interface HealthMetricData {
   label: string;
   value: number;
   benchmarkGood: number;
   benchmarkAlert: number;
   suffix: string;
+  type: "activation" | "confirmation" | "completion" | "retention";
+  details: Record<string, any>;
 }
 
 interface GrowthData {
@@ -40,13 +66,22 @@ interface GrowthData {
   new_mentees: number;
 }
 
-interface Alerts {
-  pending_48h: number;
-  inactive_mentors: number;
-  avg_mentorships_per_mentee: number;
-  mentor_to_mentee_ratio: number;
+interface MentorAlertDetail {
+  id: string;
+  name: string;
+  area: string;
+  daysSince: number;
+  pendingCount?: number;
 }
 
+interface RetentionMentee {
+  name: string;
+  totalSessions: number;
+  lastSession: string;
+  mentors: string[];
+}
+
+// ─── Helpers ─────────────────────────────────────────────
 const getStatusIcon = (value: number, good: number, alert: number) => {
   if (value >= good) return <CheckCircle className="w-4 h-4 text-emerald-500" />;
   if (value >= alert) return <AlertTriangle className="w-4 h-4 text-amber-500" />;
@@ -60,41 +95,89 @@ const getStatusColor = (value: number, good: number, alert: number) => {
 };
 
 const getGrowthIndicator = (current: number, previous: number) => {
-  if (previous === 0 && current > 0) return { pct: 100, icon: <ArrowUpRight className="w-4 h-4" />, color: "text-emerald-500" };
-  if (previous === 0) return { pct: 0, icon: <Minus className="w-4 h-4" />, color: "text-muted-foreground" };
+  if (previous === 0 && current > 0)
+    return { pct: 100, icon: <ArrowUpRight className="w-4 h-4" />, color: "text-emerald-500" };
+  if (previous === 0)
+    return { pct: 0, icon: <Minus className="w-4 h-4" />, color: "text-muted-foreground" };
   const pct = Math.round(((current - previous) / previous) * 100);
   if (pct > 0) return { pct, icon: <ArrowUpRight className="w-4 h-4" />, color: "text-emerald-500" };
   if (pct < 0) return { pct, icon: <ArrowDownRight className="w-4 h-4" />, color: "text-destructive" };
   return { pct: 0, icon: <Minus className="w-4 h-4" />, color: "text-muted-foreground" };
 };
 
+const getDateRange = (period: GrowthPeriod, customFrom?: Date, customTo?: Date): [Date, Date] => {
+  const now = new Date();
+  switch (period) {
+    case "launch":
+      return [LAUNCH_DATE, now];
+    case "this_month":
+      return [startOfMonth(now), now];
+    case "last_month":
+      return [startOfMonth(subMonths(now, 1)), endOfMonth(subMonths(now, 1))];
+    case "last_3_months":
+      return [startOfMonth(subMonths(now, 2)), now];
+    case "custom":
+      return [customFrom ?? LAUNCH_DATE, customTo ?? now];
+    default:
+      return [LAUNCH_DATE, now];
+  }
+};
+
+const groupByMonth = (items: { date: string }[]): Map<string, number> => {
+  const map = new Map<string, number>();
+  items.forEach(({ date }) => {
+    if (!date) return;
+    const d = new Date(date);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    map.set(key, (map.get(key) || 0) + 1);
+  });
+  return map;
+};
+
+const MONTH_NAMES = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+
+// ─── Component ───────────────────────────────────────────
 const AdminMetricsPanel = () => {
   const [coreMetrics, setCoreMetrics] = useState<CoreMetrics | null>(null);
-  const [healthMetrics, setHealthMetrics] = useState<HealthMetric[]>([]);
+  const [healthMetrics, setHealthMetrics] = useState<HealthMetricData[]>([]);
   const [growthData, setGrowthData] = useState<GrowthData[]>([]);
-  const [alerts, setAlerts] = useState<Alerts | null>(null);
+  const [growthPeriod, setGrowthPeriod] = useState<GrowthPeriod>("launch");
+  const [customFrom, setCustomFrom] = useState<Date | undefined>();
+  const [customTo, setCustomTo] = useState<Date | undefined>();
+  const [alerts, setAlerts] = useState<{
+    pending_48h: number;
+    noRequestsCount: number;
+    notRespondingCount: number;
+    avg_mentorships_per_mentee: number;
+    mentor_to_mentee_ratio: number;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadingGrowth, setLoadingGrowth] = useState(false);
 
-  const fetchAllMetrics = async () => {
-    setLoading(true);
+  // Detail states
+  const [noRequestDetails, setNoRequestDetails] = useState<MentorAlertDetail[] | null>(null);
+  const [notRespondingDetails, setNotRespondingDetails] = useState<MentorAlertDetail[] | null>(null);
+  const [retentionDetails, setRetentionDetails] = useState<RetentionMentee[] | null>(null);
+  const [loadingNoReq, setLoadingNoReq] = useState(false);
+  const [loadingNotResp, setLoadingNotResp] = useState(false);
+  const [loadingRetention, setLoadingRetention] = useState(false);
+  const [showNoReqDialog, setShowNoReqDialog] = useState(false);
+  const [showNotRespDialog, setShowNotRespDialog] = useState(false);
+  const [showRetentionDialog, setShowRetentionDialog] = useState(false);
+  const [expandedMetric, setExpandedMetric] = useState<string | null>(null);
+
+  // ─── Data Fetching ─────────────────────────────────
+  const fetchCoreAndHealth = useCallback(async () => {
     try {
+      const now = new Date();
+      const thisMonthStart = startOfMonth(now).toISOString();
+      const lastMonthStart = startOfMonth(subMonths(now, 1)).toISOString();
+      const lastMonthEnd = endOfMonth(subMonths(now, 1)).toISOString();
+
       const [
-        profilesResult,
-        mentorsResult,
-        completedResult,
-        livesResult,
-        scheduledResult,
-        activationResult,
-        confirmationResult,
-        completionResult,
-        retentionResult,
-        growthResult,
-        alertsResult,
-        // This month's sessions
-        thisMonthResult,
-        lastMonthResult,
-        // This month's lives impacted
-        livesThisMonthResult,
+        profilesRes, mentorsRes, completedRes, livesRes, scheduledRes,
+        activationRes, confirmationRes, completionRes, retentionRes,
+        thisMonthRes, lastMonthRes,
       ] = await Promise.all([
         supabase.from("profiles").select("id", { count: "exact", head: true }),
         supabase.from("mentors").select("id", { count: "exact", head: true }).eq("status", "approved"),
@@ -105,66 +188,353 @@ const AdminMetricsPanel = () => {
         supabase.rpc("get_confirmation_rate"),
         supabase.rpc("get_completion_rate"),
         supabase.rpc("get_retention_rate"),
-        supabase.rpc("get_monthly_growth"),
-        supabase.rpc("get_admin_alerts"),
-        // Sessions completed this month
+        // FIX: use status='completed' and completed_at
         supabase.from("mentor_sessions")
           .select("id", { count: "exact", head: true })
-          .eq("status", "scheduled")
-          .gte("scheduled_at", new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString())
-          .lt("scheduled_at", new Date().toISOString()),
-        // Sessions completed last month
+          .eq("status", "completed")
+          .gte("completed_at", thisMonthStart),
         supabase.from("mentor_sessions")
           .select("id", { count: "exact", head: true })
-          .eq("status", "scheduled")
-          .gte("scheduled_at", new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1).toISOString())
-          .lt("scheduled_at", new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()),
-        // Lives impacted - approximate from growth data
-        supabase.rpc("get_lives_impacted"),
+          .eq("status", "completed")
+          .gte("completed_at", lastMonthStart)
+          .lte("completed_at", lastMonthEnd),
       ]);
 
-      const totalUsers = profilesResult.count || 0;
-      const totalMentors = mentorsResult.count || 0;
+      const totalUsers = profilesRes.count || 0;
+      const totalMentors = mentorsRes.count || 0;
 
       setCoreMetrics({
         totalUsers,
         totalMentors,
         totalMentees: totalUsers - totalMentors,
-        completedSessions: completedResult.data ?? 0,
-        completedThisMonth: thisMonthResult.count ?? 0,
-        completedLastMonth: lastMonthResult.count ?? 0,
-        livesImpacted: livesResult.data ?? 0,
-        livesImpactedLastMonth: livesThisMonthResult.data ?? 0,
-        scheduledSessions: scheduledResult.data ?? 0,
+        completedSessions: (completedRes.data as number) ?? 0,
+        completedThisMonth: thisMonthRes.count ?? 0,
+        completedLastMonth: lastMonthRes.count ?? 0,
+        livesImpacted: (livesRes.data as number) ?? 0,
+        scheduledSessions: (scheduledRes.data as number) ?? 0,
       });
 
-      // Health metrics
-      const activation = activationResult.data as any;
-      const confirmation = confirmationResult.data as any;
-      const completion = completionResult.data as any;
-      const retention = retentionResult.data as any;
+      const activation = activationRes.data as any;
+      const confirmation = confirmationRes.data as any;
+      const completion = completionRes.data as any;
+      const retention = retentionRes.data as any;
 
       setHealthMetrics([
-        { label: "Taxa de Ativação (mentorados)", value: Number(activation?.rate ?? 0), benchmarkGood: 60, benchmarkAlert: 40, suffix: "%" },
-        { label: "Taxa de Confirmação", value: Number(confirmation?.rate ?? 0), benchmarkGood: 75, benchmarkAlert: 60, suffix: "%" },
-        { label: "Taxa de Conclusão", value: Number(completion?.rate ?? 0), benchmarkGood: 80, benchmarkAlert: 70, suffix: "%" },
-        { label: "Taxa de Retenção (2ª mentoria)", value: Number(retention?.rate ?? 0), benchmarkGood: 50, benchmarkAlert: 30, suffix: "%" },
+        {
+          label: "Taxa de Ativação (mentorados)",
+          value: Number(activation?.rate ?? 0),
+          benchmarkGood: 60, benchmarkAlert: 40, suffix: "%",
+          type: "activation",
+          details: { total_mentees: activation?.total_mentees, activated: activation?.activated },
+        },
+        {
+          label: "Taxa de Confirmação",
+          value: Number(confirmation?.rate ?? 0),
+          benchmarkGood: 75, benchmarkAlert: 60, suffix: "%",
+          type: "confirmation",
+          details: { total: confirmation?.total, confirmed: confirmation?.confirmed },
+        },
+        {
+          label: "Taxa de Conclusão",
+          value: Number(completion?.rate ?? 0),
+          benchmarkGood: 80, benchmarkAlert: 70, suffix: "%",
+          type: "completion",
+          details: { total: completion?.total, completed: completion?.completed, cancelled: completion?.cancelled },
+        },
+        {
+          label: "Taxa de Retenção (2ª mentoria)",
+          value: Number(retention?.rate ?? 0),
+          benchmarkGood: 50, benchmarkAlert: 30, suffix: "%",
+          type: "retention",
+          details: { total: retention?.total, retained: retention?.retained },
+        },
+      ]);
+    } catch (err) {
+      console.error("Error fetching core metrics:", err);
+      toast.error("Erro ao carregar métricas");
+    }
+  }, []);
+
+  const fetchAlerts = useCallback(async () => {
+    try {
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      const [alertsRes, allMentorsRes, recentSessionsRes, pendingSessionsRes] = await Promise.all([
+        supabase.rpc("get_admin_alerts"),
+        supabase.from("mentors").select("id").eq("status", "approved"),
+        supabase.from("mentor_sessions").select("mentor_id").gte("created_at", thirtyDaysAgo.toISOString()),
+        supabase.from("mentor_sessions")
+          .select("mentor_id")
+          .eq("status", "scheduled")
+          .eq("confirmed_by_mentor", false)
+          .lt("created_at", new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString()),
       ]);
 
-      setGrowthData((growthResult.data as any) || []);
-      setAlerts(alertsResult.data as any);
-    } catch (error) {
-      console.error("Error fetching metrics:", error);
-      toast.error("Erro ao carregar métricas");
+      const alertData = alertsRes.data as any;
+      const mentorIds = new Set(allMentorsRes.data?.map((m: any) => m.id) || []);
+      const mentorsWithSessions = new Set(recentSessionsRes.data?.map((s: any) => s.mentor_id) || []);
+      const mentorsWithPending = new Set(pendingSessionsRes.data?.map((s: any) => s.mentor_id) || []);
+
+      // Mentors without any requests in 30+ days
+      let noRequestsCount = 0;
+      mentorIds.forEach((id) => {
+        if (!mentorsWithSessions.has(id)) noRequestsCount++;
+      });
+
+      // Mentors with pending sessions not confirmed
+      const notRespondingCount = mentorsWithPending.size;
+
+      setAlerts({
+        pending_48h: alertData?.pending_48h ?? 0,
+        noRequestsCount,
+        notRespondingCount,
+        avg_mentorships_per_mentee: alertData?.avg_mentorships_per_mentee ?? 0,
+        mentor_to_mentee_ratio: alertData?.mentor_to_mentee_ratio ?? 0,
+      });
+    } catch (err) {
+      console.error("Error fetching alerts:", err);
+    }
+  }, []);
+
+  const fetchGrowthData = useCallback(async (period: GrowthPeriod, cfrom?: Date, cto?: Date) => {
+    setLoadingGrowth(true);
+    try {
+      const [start, end] = getDateRange(period, cfrom, cto);
+
+      const [sessionsRes, mentorsRes, menteesRes] = await Promise.all([
+        supabase.from("mentor_sessions")
+          .select("completed_at")
+          .eq("status", "completed")
+          .not("confirmed_at", "is", null)
+          .gte("completed_at", start.toISOString())
+          .lte("completed_at", end.toISOString()),
+        supabase.from("mentors")
+          .select("created_at")
+          .eq("status", "approved")
+          .gte("created_at", start.toISOString())
+          .lte("created_at", end.toISOString()),
+        supabase.from("profiles")
+          .select("created_at")
+          .gte("created_at", start.toISOString())
+          .lte("created_at", end.toISOString()),
+      ]);
+
+      // Generate all months in range
+      const months: { key: string; label: string }[] = [];
+      const cursor = new Date(start);
+      cursor.setDate(1);
+      while (cursor <= end) {
+        const key = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, "0")}`;
+        const label = `${MONTH_NAMES[cursor.getMonth()]}/${String(cursor.getFullYear()).slice(2)}`;
+        months.push({ key, label });
+        cursor.setMonth(cursor.getMonth() + 1);
+      }
+
+      const sessionsByMonth = groupByMonth((sessionsRes.data || []).map((s: any) => ({ date: s.completed_at })));
+      const mentorsByMonth = groupByMonth((mentorsRes.data || []).map((m: any) => ({ date: m.created_at })));
+      const menteesByMonth = groupByMonth((menteesRes.data || []).map((m: any) => ({ date: m.created_at })));
+
+      const data: GrowthData[] = months.map(({ key, label }) => ({
+        month: label,
+        sessions: sessionsByMonth.get(key) || 0,
+        new_mentors: mentorsByMonth.get(key) || 0,
+        new_mentees: menteesByMonth.get(key) || 0,
+      }));
+
+      setGrowthData(data);
+    } catch (err) {
+      console.error("Error fetching growth data:", err);
     } finally {
+      setLoadingGrowth(false);
+    }
+  }, []);
+
+  // ─── Detail Fetchers (lazy) ────────────────────────
+  const fetchNoRequestDetails = useCallback(async () => {
+    setLoadingNoReq(true);
+    try {
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      const [mentorsRes, sessionsRes] = await Promise.all([
+        supabase.from("mentors").select("id, name, area, created_at").eq("status", "approved"),
+        supabase.from("mentor_sessions").select("mentor_id").gte("created_at", thirtyDaysAgo.toISOString()),
+      ]);
+
+      const mentorsWithSessions = new Set((sessionsRes.data || []).map((s: any) => s.mentor_id));
+      const now = Date.now();
+
+      const details: MentorAlertDetail[] = (mentorsRes.data || [])
+        .filter((m: any) => !mentorsWithSessions.has(m.id))
+        .map((m: any) => ({
+          id: m.id,
+          name: m.name,
+          area: m.area,
+          daysSince: Math.floor((now - new Date(m.created_at).getTime()) / (1000 * 60 * 60 * 24)),
+        }))
+        .sort((a: MentorAlertDetail, b: MentorAlertDetail) => b.daysSince - a.daysSince);
+
+      setNoRequestDetails(details);
+    } catch (err) {
+      console.error("Error fetching no-request details:", err);
+    } finally {
+      setLoadingNoReq(false);
+    }
+  }, []);
+
+  const fetchNotRespondingDetails = useCallback(async () => {
+    setLoadingNotResp(true);
+    try {
+      const { data: pendingSessions } = await supabase
+        .from("mentor_sessions")
+        .select("mentor_id, created_at")
+        .eq("status", "scheduled")
+        .eq("confirmed_by_mentor", false);
+
+      // Group by mentor
+      const mentorPending = new Map<string, { count: number; oldest: Date }>();
+      (pendingSessions || []).forEach((s: any) => {
+        const existing = mentorPending.get(s.mentor_id);
+        const created = new Date(s.created_at);
+        if (!existing) {
+          mentorPending.set(s.mentor_id, { count: 1, oldest: created });
+        } else {
+          existing.count++;
+          if (created < existing.oldest) existing.oldest = created;
+        }
+      });
+
+      if (mentorPending.size === 0) {
+        setNotRespondingDetails([]);
+        setLoadingNotResp(false);
+        return;
+      }
+
+      const mentorIds = Array.from(mentorPending.keys());
+      const { data: mentors } = await supabase
+        .from("mentors")
+        .select("id, name, area")
+        .in("id", mentorIds);
+
+      const now = Date.now();
+      const details: MentorAlertDetail[] = (mentors || []).map((m: any) => {
+        const pending = mentorPending.get(m.id)!;
+        return {
+          id: m.id,
+          name: m.name,
+          area: m.area,
+          daysSince: Math.floor((now - pending.oldest.getTime()) / (1000 * 60 * 60 * 24)),
+          pendingCount: pending.count,
+        };
+      }).sort((a, b) => b.daysSince - a.daysSince);
+
+      setNotRespondingDetails(details);
+    } catch (err) {
+      console.error("Error:", err);
+    } finally {
+      setLoadingNotResp(false);
+    }
+  }, []);
+
+  const fetchRetentionDetails = useCallback(async () => {
+    setLoadingRetention(true);
+    try {
+      const { data: sessions } = await supabase
+        .from("mentor_sessions")
+        .select("user_id, mentor_id, completed_at")
+        .eq("status", "completed");
+
+      // Get mentor names
+      const mentorIds = [...new Set((sessions || []).map((s: any) => s.mentor_id))];
+      const { data: mentors } = await supabase
+        .from("mentors")
+        .select("id, name")
+        .in("id", mentorIds);
+      const mentorNameMap = new Map((mentors || []).map((m: any) => [m.id, m.name]));
+
+      // Group by user
+      const userMap = new Map<string, { count: number; lastDate: string; mentorNames: Set<string> }>();
+      (sessions || []).forEach((s: any) => {
+        const existing = userMap.get(s.user_id);
+        const mentorName = mentorNameMap.get(s.mentor_id) || "Desconhecido";
+        if (!existing) {
+          userMap.set(s.user_id, { count: 1, lastDate: s.completed_at, mentorNames: new Set([mentorName]) });
+        } else {
+          existing.count++;
+          if (s.completed_at > existing.lastDate) existing.lastDate = s.completed_at;
+          existing.mentorNames.add(mentorName);
+        }
+      });
+
+      // Filter 2+
+      const retainedUserIds = Array.from(userMap.entries())
+        .filter(([, d]) => d.count >= 2)
+        .map(([uid]) => uid);
+
+      if (retainedUserIds.length === 0) {
+        setRetentionDetails([]);
+        setLoadingRetention(false);
+        return;
+      }
+
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("user_id, name")
+        .in("user_id", retainedUserIds);
+
+      const profileMap = new Map((profiles || []).map((p: any) => [p.user_id, p.name]));
+
+      const details: RetentionMentee[] = retainedUserIds
+        .map((uid) => {
+          const d = userMap.get(uid)!;
+          return {
+            name: profileMap.get(uid) || "Desconhecido",
+            totalSessions: d.count,
+            lastSession: d.lastDate,
+            mentors: Array.from(d.mentorNames),
+          };
+        })
+        .sort((a, b) => b.totalSessions - a.totalSessions);
+
+      setRetentionDetails(details);
+    } catch (err) {
+      console.error("Error:", err);
+    } finally {
+      setLoadingRetention(false);
+    }
+  }, []);
+
+  // ─── Effects ───────────────────────────────────────
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      await Promise.all([fetchCoreAndHealth(), fetchAlerts(), fetchGrowthData("launch")]);
       setLoading(false);
+    };
+    load();
+  }, [fetchCoreAndHealth, fetchAlerts, fetchGrowthData]);
+
+  const handleRefresh = async () => {
+    setLoading(true);
+    await Promise.all([fetchCoreAndHealth(), fetchAlerts(), fetchGrowthData(growthPeriod, customFrom, customTo)]);
+    setLoading(false);
+  };
+
+  const handlePeriodChange = (period: GrowthPeriod) => {
+    setGrowthPeriod(period);
+    if (period !== "custom") {
+      fetchGrowthData(period);
     }
   };
 
-  useEffect(() => {
-    fetchAllMetrics();
-  }, []);
+  const handleCustomDateApply = () => {
+    if (customFrom && customTo) {
+      fetchGrowthData("custom", customFrom, customTo);
+    }
+  };
 
+  // ─── Render ────────────────────────────────────────
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -178,15 +548,14 @@ const AdminMetricsPanel = () => {
   }
 
   const sessionGrowth = getGrowthIndicator(coreMetrics.completedThisMonth, coreMetrics.completedLastMonth);
-
-  const hasAlerts = alerts && (alerts.pending_48h > 0 || alerts.inactive_mentors > 0);
+  const hasAlerts = alerts && (alerts.pending_48h > 0 || alerts.noRequestsCount > 0 || alerts.notRespondingCount > 0);
 
   return (
     <div className="space-y-8">
       {/* Header */}
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">📊 Métricas Essenciais</h3>
-        <Button variant="outline" size="sm" onClick={fetchAllMetrics} className="gap-2 rounded-xl">
+        <Button variant="outline" size="sm" onClick={handleRefresh} className="gap-2 rounded-xl">
           <RefreshCw className="w-4 h-4" />
           Atualizar
         </Button>
@@ -194,7 +563,6 @@ const AdminMetricsPanel = () => {
 
       {/* Core Metrics Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {/* Mentorias */}
         <Card className="border-border/50 overflow-hidden">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">💬 Mentorias</CardTitle>
@@ -209,14 +577,11 @@ const AdminMetricsPanel = () => {
               </span>
             </div>
             {coreMetrics.scheduledSessions > 0 && (
-              <p className="text-xs text-muted-foreground mt-1">
-                {coreMetrics.scheduledSessions} agendadas
-              </p>
+              <p className="text-xs text-muted-foreground mt-1">{coreMetrics.scheduledSessions} agendadas</p>
             )}
           </CardContent>
         </Card>
 
-        {/* Impacto */}
         <Card className="border-border/50 overflow-hidden">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">❤️ Impacto</CardTitle>
@@ -232,7 +597,6 @@ const AdminMetricsPanel = () => {
           </CardContent>
         </Card>
 
-        {/* Usuários */}
         <Card className="border-border/50 overflow-hidden">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">👥 Usuários</CardTitle>
@@ -259,14 +623,58 @@ const AdminMetricsPanel = () => {
         <CardContent>
           <div className="space-y-3">
             {healthMetrics.map((metric) => (
-              <div key={metric.label} className="flex items-center justify-between py-2 border-b border-border/30 last:border-0">
-                <span className="text-sm text-muted-foreground">{metric.label}</span>
-                <div className="flex items-center gap-3">
-                  <span className={`text-sm font-semibold ${getStatusColor(metric.value, metric.benchmarkGood, metric.benchmarkAlert)}`}>
-                    {metric.value}{metric.suffix}
-                  </span>
-                  {getStatusIcon(metric.value, metric.benchmarkGood, metric.benchmarkAlert)}
+              <div key={metric.type}>
+                <div className="flex items-center justify-between py-2 border-b border-border/30 last:border-0">
+                  <span className="text-sm text-muted-foreground">{metric.label}</span>
+                  <div className="flex items-center gap-3">
+                    <span className={`text-sm font-semibold ${getStatusColor(metric.value, metric.benchmarkGood, metric.benchmarkAlert)}`}>
+                      {metric.value}{metric.suffix}
+                    </span>
+                    {getStatusIcon(metric.value, metric.benchmarkGood, metric.benchmarkAlert)}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 px-2 text-xs"
+                      onClick={() => {
+                        if (metric.type === "retention") {
+                          if (!retentionDetails) fetchRetentionDetails();
+                          setShowRetentionDialog(true);
+                        } else {
+                          setExpandedMetric(expandedMetric === metric.type ? null : metric.type);
+                        }
+                      }}
+                    >
+                      {expandedMetric === metric.type ? (
+                        <ChevronUp className="w-3 h-3 mr-1" />
+                      ) : (
+                        <ChevronDown className="w-3 h-3 mr-1" />
+                      )}
+                      Detalhes
+                    </Button>
+                  </div>
                 </div>
+
+                {/* Inline details for non-retention metrics */}
+                {expandedMetric === metric.type && metric.type !== "retention" && (
+                  <div className="bg-muted/50 rounded-lg p-3 mt-1 mb-2 text-sm text-muted-foreground space-y-1">
+                    {metric.type === "activation" && (
+                      <>
+                        <p><strong className="text-foreground">{metric.details.activated}</strong> de {metric.details.total_mentees} mentorados tiveram pelo menos 1 mentoria completada.</p>
+                      </>
+                    )}
+                    {metric.type === "confirmation" && (
+                      <>
+                        <p><strong className="text-foreground">{metric.details.confirmed}</strong> de {metric.details.total} solicitações agendadas foram confirmadas pelos mentores.</p>
+                      </>
+                    )}
+                    {metric.type === "completion" && (
+                      <>
+                        <p><strong className="text-foreground">{metric.details.completed}</strong> de {metric.details.total} mentorias foram concluídas.</p>
+                        <p><strong className="text-foreground">{metric.details.cancelled}</strong> foram canceladas.</p>
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -279,80 +687,152 @@ const AdminMetricsPanel = () => {
       </Card>
 
       {/* Growth Chart */}
-      {growthData.length > 0 && (
-        <Card className="border-border/50">
-          <CardHeader>
-            <CardTitle className="text-base">📈 Crescimento (últimos 6 meses)</CardTitle>
-          </CardHeader>
-          <CardContent>
+      <Card className="border-border/50">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0">
+          <CardTitle className="text-base">📈 Crescimento</CardTitle>
+          <div className="flex items-center gap-2">
+            <Select value={growthPeriod} onValueChange={(v) => handlePeriodChange(v as GrowthPeriod)}>
+              <SelectTrigger className="w-[200px] h-8 text-xs rounded-lg">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-card border border-border z-50">
+                {PERIOD_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {growthPeriod === "custom" && (
+            <div className="flex flex-wrap items-end gap-3 mb-4 p-3 bg-muted/50 rounded-lg">
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">De</p>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="sm" className={cn("w-[140px] justify-start text-left text-xs", !customFrom && "text-muted-foreground")}>
+                      <CalendarIcon className="mr-1 h-3 w-3" />
+                      {customFrom ? format(customFrom, "dd/MM/yyyy") : "Início"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 z-50" align="start">
+                    <Calendar mode="single" selected={customFrom} onSelect={setCustomFrom} className="p-3 pointer-events-auto" />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">Até</p>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="sm" className={cn("w-[140px] justify-start text-left text-xs", !customTo && "text-muted-foreground")}>
+                      <CalendarIcon className="mr-1 h-3 w-3" />
+                      {customTo ? format(customTo, "dd/MM/yyyy") : "Fim"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 z-50" align="start">
+                    <Calendar mode="single" selected={customTo} onSelect={setCustomTo} className="p-3 pointer-events-auto" />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <Button size="sm" onClick={handleCustomDateApply} disabled={!customFrom || !customTo} className="rounded-lg">
+                Aplicar
+              </Button>
+            </div>
+          )}
+
+          {loadingGrowth ? (
+            <div className="flex items-center justify-center h-64">
+              <Loader2 className="w-5 h-5 animate-spin text-primary" />
+            </div>
+          ) : growthData.length > 0 ? (
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={growthData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-border/30" />
-                  <XAxis dataKey="month" className="text-xs" tick={{ fill: 'hsl(var(--muted-foreground))' }} />
-                  <YAxis className="text-xs" tick={{ fill: 'hsl(var(--muted-foreground))' }} />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'hsl(var(--card))', 
-                      border: '1px solid hsl(var(--border))',
-                      borderRadius: '12px',
-                      fontSize: '12px'
-                    }} 
+                  <XAxis dataKey="month" className="text-xs" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} />
+                  <YAxis className="text-xs" tick={{ fill: "hsl(var(--muted-foreground))" }} allowDecimals={false} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "hsl(var(--card))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: "12px",
+                      fontSize: "12px",
+                    }}
                   />
-                  <Legend wrapperStyle={{ fontSize: '12px' }} />
-                  <Line 
-                    type="monotone" 
-                    dataKey="sessions" 
-                    name="Mentorias" 
-                    stroke="hsl(var(--primary))" 
-                    strokeWidth={2} 
-                    dot={{ fill: 'hsl(var(--primary))' }}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="new_mentors" 
-                    name="Novos Mentores" 
-                    stroke="hsl(var(--secondary))" 
-                    strokeWidth={2} 
-                    dot={{ fill: 'hsl(var(--secondary))' }}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="new_mentees" 
-                    name="Novos Mentorados" 
-                    stroke="#10B981" 
-                    strokeWidth={2} 
-                    dot={{ fill: '#10B981' }}
-                  />
+                  <Legend wrapperStyle={{ fontSize: "12px" }} />
+                  <Line type="monotone" dataKey="sessions" name="Mentorias" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ fill: "hsl(var(--primary))" }} />
+                  <Line type="monotone" dataKey="new_mentors" name="Novos Mentores" stroke="hsl(var(--secondary))" strokeWidth={2} dot={{ fill: "hsl(var(--secondary))" }} />
+                  <Line type="monotone" dataKey="new_mentees" name="Novos Mentorados" stroke="#10B981" strokeWidth={2} dot={{ fill: "#10B981" }} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
-          </CardContent>
-        </Card>
-      )}
+          ) : (
+            <p className="text-sm text-muted-foreground text-center py-8">Nenhum dado para o período selecionado.</p>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Alerts */}
-      <Card className={`border-border/50 ${hasAlerts ? 'border-amber-500/30' : ''}`}>
+      <Card className={`border-border/50 ${hasAlerts ? "border-amber-500/30" : ""}`}>
         <CardHeader>
           <CardTitle className="text-base">⚠️ Alertas</CardTitle>
         </CardHeader>
         <CardContent>
           {hasAlerts ? (
-            <div className="space-y-2">
+            <div className="space-y-3">
               {alerts!.pending_48h > 0 && (
-                <div className="flex items-start gap-2 text-sm p-2 rounded-lg bg-amber-500/10">
+                <div className="flex items-start gap-2 text-sm p-3 rounded-lg bg-amber-500/10">
                   <AlertTriangle className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
                   <span><strong>{alerts!.pending_48h}</strong> solicitações pendentes há mais de 48h</span>
                 </div>
               )}
-              {alerts!.inactive_mentors > 0 && (
-                <div className="flex items-start gap-2 text-sm p-2 rounded-lg bg-amber-500/10">
-                  <AlertTriangle className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
-                  <span><strong>{alerts!.inactive_mentors}</strong> mentores inativos (30+ dias sem aceitar)</span>
+
+              {alerts!.noRequestsCount > 0 && (
+                <div className="text-sm p-3 rounded-lg bg-muted/50 space-y-2">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start gap-2">
+                      <Inbox className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+                      <span><strong>{alerts!.noRequestsCount}</strong> mentores sem solicitações (30+ dias sem receber pedidos)</span>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 px-2 text-xs shrink-0"
+                      onClick={() => {
+                        if (!noRequestDetails) fetchNoRequestDetails();
+                        setShowNoReqDialog(true);
+                      }}
+                    >
+                      Ver detalhes
+                    </Button>
+                  </div>
                 </div>
               )}
-              {healthMetrics.some(m => m.label.includes("Retenção") && m.value < 50) && (
-                <div className="flex items-start gap-2 text-sm p-2 rounded-lg bg-amber-500/10">
+
+              {alerts!.notRespondingCount > 0 && (
+                <div className="text-sm p-3 rounded-lg bg-amber-500/10 space-y-2">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start gap-2">
+                      <Clock className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
+                      <span><strong>{alerts!.notRespondingCount}</strong> mentores não responderam (pedidos pendentes)</span>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 px-2 text-xs shrink-0"
+                      onClick={() => {
+                        if (!notRespondingDetails) fetchNotRespondingDetails();
+                        setShowNotRespDialog(true);
+                      }}
+                    >
+                      Ver detalhes
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {healthMetrics.some((m) => m.type === "retention" && m.value < 50) && (
+                <div className="flex items-start gap-2 text-sm p-3 rounded-lg bg-amber-500/10">
                   <AlertTriangle className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
                   <span>Taxa de retenção abaixo de 50%</span>
                 </div>
@@ -378,7 +858,7 @@ const AdminMetricsPanel = () => {
             <strong className="text-foreground">{coreMetrics.totalMentors}</strong> mentores aprovados.
           </p>
           <p>
-            Já foram realizadas <strong className="text-foreground">{coreMetrics.completedSessions}</strong> sessões de mentoria, 
+            Já foram realizadas <strong className="text-foreground">{coreMetrics.completedSessions}</strong> sessões de mentoria,
             impactando <strong className="text-foreground">{coreMetrics.livesImpacted}</strong> vidas únicas.
           </p>
           {coreMetrics.scheduledSessions > 0 && (
@@ -388,6 +868,106 @@ const AdminMetricsPanel = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* ─── Dialogs ─── */}
+      {/* No Requests Dialog */}
+      <Dialog open={showNoReqDialog} onOpenChange={setShowNoReqDialog}>
+        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Inbox className="w-5 h-5" />
+              Mentores sem solicitações (30+ dias)
+            </DialogTitle>
+            <DialogDescription>
+              Mentores aprovados que não receberam nenhum pedido de mentoria nos últimos 30 dias.
+            </DialogDescription>
+          </DialogHeader>
+          {loadingNoReq ? (
+            <div className="flex justify-center py-8"><Loader2 className="w-5 h-5 animate-spin text-primary" /></div>
+          ) : noRequestDetails && noRequestDetails.length > 0 ? (
+            <div className="space-y-3">
+              {noRequestDetails.map((m, i) => (
+                <div key={m.id} className="p-3 rounded-lg bg-muted/50 space-y-1">
+                  <p className="font-medium text-sm">{i + 1}. {m.name}</p>
+                  <p className="text-xs text-muted-foreground">Cadastrado há: <strong>{m.daysSince} dias</strong></p>
+                  <p className="text-xs text-muted-foreground">Área: <strong>{m.area}</strong></p>
+                  <p className="text-xs text-amber-600">Ação: Revisar perfil/tags ou promover mentor</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground text-center py-4">Nenhum mentor sem solicitações.</p>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Not Responding Dialog */}
+      <Dialog open={showNotRespDialog} onOpenChange={setShowNotRespDialog}>
+        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Clock className="w-5 h-5" />
+              Mentores que não responderam
+            </DialogTitle>
+            <DialogDescription>
+              Mentores com solicitações de mentoria pendentes (não confirmadas).
+            </DialogDescription>
+          </DialogHeader>
+          {loadingNotResp ? (
+            <div className="flex justify-center py-8"><Loader2 className="w-5 h-5 animate-spin text-primary" /></div>
+          ) : notRespondingDetails && notRespondingDetails.length > 0 ? (
+            <div className="space-y-3">
+              {notRespondingDetails.map((m, i) => (
+                <div key={m.id} className="p-3 rounded-lg bg-muted/50 space-y-1">
+                  <p className="font-medium text-sm">{i + 1}. {m.name}</p>
+                  <p className="text-xs text-muted-foreground">Solicitações pendentes: <strong>{m.pendingCount}</strong></p>
+                  <p className="text-xs text-muted-foreground">Pedido mais antigo: <strong>{m.daysSince} dias atrás</strong></p>
+                  <p className="text-xs text-muted-foreground">Área: <strong>{m.area}</strong></p>
+                  <p className="text-xs text-amber-600">Ação: Contatar mentor</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground text-center py-4">Nenhum mentor com pendências.</p>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Retention Details Dialog */}
+      <Dialog open={showRetentionDialog} onOpenChange={setShowRetentionDialog}>
+        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              🔁 Mentorados que retornaram (2+ mentorias)
+            </DialogTitle>
+            <DialogDescription>
+              {retentionDetails
+                ? `${retentionDetails.length} mentorados voltaram para uma segunda (ou mais) mentoria.`
+                : "Carregando..."}
+            </DialogDescription>
+          </DialogHeader>
+          {loadingRetention ? (
+            <div className="flex justify-center py-8"><Loader2 className="w-5 h-5 animate-spin text-primary" /></div>
+          ) : retentionDetails && retentionDetails.length > 0 ? (
+            <div className="space-y-3">
+              {retentionDetails.map((m, i) => (
+                <div key={i} className="p-3 rounded-lg bg-muted/50 space-y-1">
+                  <p className="font-medium text-sm">{i + 1}. {m.name}</p>
+                  <p className="text-xs text-muted-foreground">Total de mentorias: <strong>{m.totalSessions}</strong></p>
+                  <p className="text-xs text-muted-foreground">
+                    Última mentoria: <strong>{format(new Date(m.lastSession), "dd/MM/yyyy")}</strong>
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Mentores: <strong>{m.mentors.join(", ")}</strong>
+                  </p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground text-center py-4">Nenhum mentorado com 2+ mentorias ainda.</p>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
