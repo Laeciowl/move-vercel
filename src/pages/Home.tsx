@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import {
   Loader2, User, Calendar, Users, Trophy, BookOpen, ArrowRight,
   Clock, Sparkles, Heart, Shield, Edit, RefreshCw, History,
-  MessageCircle, Briefcase, Settings, LogOut, ExternalLink
+  MessageCircle, Briefcase, Settings, LogOut, ExternalLink, Handshake
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
@@ -358,6 +358,26 @@ const Home = () => {
             </div>
           </motion.div>
 
+          {/* Communities Partner Card - mentees only */}
+          {!isVolunteer && !isPendingMentor && (
+            <motion.div
+              variants={{ initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 } }}
+              className="col-span-2 lg:col-span-4 bg-card/50 backdrop-blur-sm rounded-2xl border border-border/30 p-5"
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Handshake className="w-4 h-4 text-primary" />
+                </div>
+                <h3 className="font-semibold text-foreground text-sm">Comunidades Parceiras</h3>
+              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed mb-3">
+                💼 Vagas de emprego, networking e oportunidades para seu desenvolvimento profissional.
+              </p>
+              <Button variant="outline" size="sm" className="w-full rounded-xl text-xs" onClick={() => navigate("/comunidades")}>
+                Ver todas as comunidades <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
+              </Button>
+            </motion.div>
+          )}
         </div>
 
         {/* Main Content */}

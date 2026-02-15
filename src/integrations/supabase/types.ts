@@ -574,6 +574,45 @@ export type Database = {
         }
         Relationships: []
       }
+      partner_communities: {
+        Row: {
+          active: boolean
+          category: Database["public"]["Enums"]["community_category"]
+          created_at: string
+          description: string
+          external_link: string
+          id: string
+          logo_url: string | null
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          category: Database["public"]["Enums"]["community_category"]
+          created_at?: string
+          description: string
+          external_link: string
+          id?: string
+          logo_url?: string | null
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          category?: Database["public"]["Enums"]["community_category"]
+          created_at?: string
+          description?: string
+          external_link?: string
+          id?: string
+          logo_url?: string | null
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           age: number
@@ -1143,6 +1182,7 @@ export type Database = {
         | "special"
       achievement_user_type: "mentor" | "mentorado" | "ambos"
       app_role: "admin" | "moderator" | "user" | "voluntario"
+      community_category: "vagas" | "networking" | "conteudo" | "outros"
       income_range: "sem_renda" | "ate_1500" | "1500_3000" | "acima_3000"
       mentor_status: "pending" | "approved" | "rejected"
       professional_status:
@@ -1301,6 +1341,7 @@ export const Constants = {
       ],
       achievement_user_type: ["mentor", "mentorado", "ambos"],
       app_role: ["admin", "moderator", "user", "voluntario"],
+      community_category: ["vagas", "networking", "conteudo", "outros"],
       income_range: ["sem_renda", "ate_1500", "1500_3000", "acima_3000"],
       mentor_status: ["pending", "approved", "rejected"],
       professional_status: [
