@@ -20,6 +20,7 @@ import ForMentors from "./pages/ForMentors";
 import Achievements from "./pages/Achievements";
 import Contents from "./pages/Contents";
 import Help from "./pages/Help";
+import Communities from "./pages/Communities";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -48,6 +49,7 @@ const App = () => (
             <Route path="/conquistas" element={<Achievements />} />
             <Route path="/conteudos" element={<Contents />} />
             <Route path="/ajuda" element={<Help />} />
+            <Route path="/comunidades" element={<Communities />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
