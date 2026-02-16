@@ -42,7 +42,7 @@ const MentorSessionConfirmation = ({ sessions, mentorName, mentorEmail, onUpdate
     new Date(s.scheduled_at) > new Date()
   );
 
-  const sendConfirmationEmails = async (session: MentorSession) => {
+  const sendConfirmationEmails = async (session: MentorSession, meetingLink: string | null = null) => {
     const sessionDate = format(new Date(session.scheduled_at), "EEEE, d 'de' MMMM 'às' HH:mm", { locale: ptBR });
     
     // Send email to mentee
@@ -56,6 +56,7 @@ const MentorSessionConfirmation = ({ sessions, mentorName, mentorEmail, onUpdate
             data: {
               mentorName: mentorName,
               date: sessionDate,
+              meetingLink: meetingLink || "",
             },
           },
         });
@@ -77,6 +78,7 @@ const MentorSessionConfirmation = ({ sessions, mentorName, mentorEmail, onUpdate
             menteeEmail: session.mentee_email || "",
             menteePhone: session.mentee_profile?.phone || "",
             date: sessionDate,
+            meetingLink: meetingLink || "",
           },
         },
       });
@@ -114,9 +116,9 @@ const MentorSessionConfirmation = ({ sessions, mentorName, mentorEmail, onUpdate
     } else {
       toast.success(confirmed ? "Sessão confirmada!" : "Sessão cancelada");
       
-      // Send confirmation emails and create Google Calendar events if confirmed
+      // Create Google Calendar events FIRST, then send emails with the meeting link
       if (confirmed && session) {
-        await sendConfirmationEmails(session);
+        let meetingLink: string | null = null;
         
         // Create Google Calendar events for both mentor and mentee
         try {
@@ -136,12 +138,15 @@ const MentorSessionConfirmation = ({ sessions, mentorName, mentorEmail, onUpdate
           console.log("Google Calendar sync result:", calResult);
           
           if (calResult?.results?.meetingLink) {
+            meetingLink = calResult.results.meetingLink;
             toast.success("Link do Google Meet criado automaticamente! 🎥");
           }
         } catch (calErr) {
           console.error("Error creating Google Calendar events:", calErr);
-          // Don't block confirmation if calendar sync fails
         }
+
+        // Now send emails WITH the meeting link if available
+        await sendConfirmationEmails(session, meetingLink);
       }
       
       onUpdate();

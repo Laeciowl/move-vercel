@@ -263,12 +263,24 @@ const emailTemplates: Record<string, { subject: string; html: (name: string, dat
           <p style="color: ${MOVE_COLORS.text}; margin: 0;"><strong>Mentor:</strong> ${data?.mentorName || ""}</p>
           <p style="color: ${MOVE_COLORS.text}; margin: 10px 0 0 0;"><strong>Data:</strong> ${data?.date || ""}</p>
         </div>
+        ${data?.meetingLink ? `
+        <div style="background-color: #e0f2fe; padding: 15px; border-radius: 12px; margin: 20px 0; border-left: 4px solid #0284c7; text-align: center;">
+          <p style="color: ${MOVE_COLORS.text}; font-size: 14px; margin: 0 0 10px 0; font-weight: bold;">🎥 Link da reunião criado automaticamente:</p>
+          <a href="${data.meetingLink}" style="background: linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%); color: white; padding: 12px 28px; text-decoration: none; border-radius: 10px; font-weight: bold; display: inline-block; font-size: 14px;">
+            Entrar no Google Meet
+          </a>
+          <p style="color: ${MOVE_COLORS.textMuted}; font-size: 12px; margin: 10px 0 0 0;">
+            📅 Um convite também foi enviado para o seu Google Calendar no e-mail cadastrado.
+          </p>
+        </div>
+        ` : `
         <div style="background-color: ${MOVE_COLORS.accent}; padding: 15px; border-radius: 12px; margin: 20px 0; border-left: 4px solid ${MOVE_COLORS.primary};">
           <p style="color: ${MOVE_COLORS.primaryDark}; font-size: 14px; margin: 0; font-weight: bold;">📌 Próximos passos:</p>
           <p style="color: ${MOVE_COLORS.text}; font-size: 14px; margin: 10px 0 0 0;">
             O mentor entrará em contato com você para confirmar os detalhes da sessão (plataforma, link da reunião, etc). A sessão pode ser realizada por Google Meet, Zoom ou outra plataforma de preferência.
           </p>
         </div>
+        `}
         <p style="color: ${MOVE_COLORS.text}; font-size: 16px; line-height: 1.6;">
           Prepare-se para a sessão! Anote suas dúvidas e objetivos para aproveitar ao máximo.
         </p>
@@ -291,6 +303,18 @@ const emailTemplates: Record<string, { subject: string; html: (name: string, dat
           <p style="color: ${MOVE_COLORS.text}; margin: 10px 0 0 0;"><strong>Data:</strong> ${data?.date || ""}</p>
         </div>
         
+        ${data?.meetingLink ? `
+        <div style="background-color: #e0f2fe; padding: 15px; border-radius: 12px; margin: 20px 0; border-left: 4px solid #0284c7; text-align: center;">
+          <p style="color: ${MOVE_COLORS.text}; font-size: 14px; margin: 0 0 10px 0; font-weight: bold;">🎥 Link da reunião criado automaticamente:</p>
+          <a href="${data.meetingLink}" style="background: linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%); color: white; padding: 12px 28px; text-decoration: none; border-radius: 10px; font-weight: bold; display: inline-block; font-size: 14px;">
+            Entrar no Google Meet
+          </a>
+          <p style="color: ${MOVE_COLORS.textMuted}; font-size: 12px; margin: 10px 0 0 0;">
+            📅 Um convite também foi enviado para o seu Google Calendar no e-mail cadastrado.
+          </p>
+        </div>
+        ` : ''}
+
         <div style="background-color: ${MOVE_COLORS.accent}; padding: 15px; border-radius: 12px; margin: 20px 0; border-left: 4px solid ${MOVE_COLORS.primary};">
           <p style="color: ${MOVE_COLORS.primaryDark}; font-size: 14px; margin: 0; font-weight: bold;">📞 Dados de contato do mentorado:</p>
           ${data?.menteeEmail ? `<p style="color: ${MOVE_COLORS.text}; font-size: 14px; margin: 10px 0 0 0;"><strong>Email:</strong> <a href="mailto:${data.menteeEmail}" style="color: ${MOVE_COLORS.primary};">${data.menteeEmail}</a></p>` : ''}
@@ -301,8 +325,8 @@ const emailTemplates: Record<string, { subject: string; html: (name: string, dat
           <p style="color: ${MOVE_COLORS.secondary}; font-size: 14px; margin: 0; font-weight: bold;">📌 Importante:</p>
           <ul style="color: ${MOVE_COLORS.text}; font-size: 14px; margin: 10px 0 0 0; padding-left: 20px;">
             <li>Entre em contato com o mentorado <strong>até 24h antes</strong> da sessão para confirmar os detalhes.</li>
-            <li>A sessão pode ser realizada por Google Meet, Zoom ou qualquer plataforma de sua escolha.</li>
-            <li>Combine o link da reunião diretamente com o mentorado.</li>
+            ${!data?.meetingLink ? `<li>A sessão pode ser realizada por Google Meet, Zoom ou qualquer plataforma de sua escolha.</li>
+            <li>Combine o link da reunião diretamente com o mentorado.</li>` : ''}
           </ul>
         </div>
         
