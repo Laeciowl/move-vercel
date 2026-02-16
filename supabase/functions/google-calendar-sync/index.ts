@@ -36,8 +36,10 @@ async function getValidToken(adminClient: any, userId: string): Promise<string |
 
   const data = await res.json();
   if (data.error) {
-    console.error("Token refresh failed:", data);
-    await adminClient.from("google_calendar_tokens").delete().eq("user_id", userId);
+    console.error("Token refresh failed for user", userId, ":", data);
+    // Don't delete tokens — keep the row so user still shows as "connected"
+    // but flag refresh failure. They can manually reconnect if needed.
+    console.error("User needs to reconnect Google Calendar. Keeping tokens row for status display.");
     return null;
   }
 
