@@ -80,18 +80,10 @@ const OnboardingTour = ({ onComplete }: OnboardingTourProps) => {
 
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
-      const nextStep = steps[currentStep + 1];
-      if (nextStep.route) {
-        navigate(nextStep.route);
-      }
       setCurrentStep(currentStep + 1);
     } else {
-      // Last step: navigate to mentores on completion
-      const lastStep = steps[currentStep];
-      if (lastStep.route) {
-        navigate(lastStep.route);
-      }
       handleComplete();
+      navigate("/mentores");
     }
   };
 
