@@ -29,6 +29,7 @@ import DevPlan from "./pages/DevPlan";
 import Nps from "./pages/Nps";
 import NotFound from "./pages/NotFound";
 import OnboardingTour from "./components/OnboardingTour";
+import GoogleCalendarCallbackHandler from "./components/GoogleCalendarCallbackHandler";
 import { supabase } from "./integrations/supabase/client";
 
 const queryClient = new QueryClient();
@@ -65,6 +66,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <GoogleCalendarCallbackHandler />
           <GlobalOnboarding />
           <Routes>
             <Route path="/" element={<Index />} />

@@ -109,6 +109,7 @@ Deno.serve(async (req) => {
   if (action === "create-event") {
     const body = await req.json();
     const { session_id } = body;
+    console.log("create-event: Starting for session", session_id);
 
     if (!session_id) {
       return new Response(JSON.stringify({ error: "session_id required" }), { status: 400, headers: corsHeaders });
@@ -135,7 +136,7 @@ Deno.serve(async (req) => {
       .rpc("get_mentor_user_ids", { mentor_ids: [session.mentor_id] });
     
     const mentorUserId = mentorUserIds?.[0]?.user_id || null;
-
+    console.log("create-event: mentorUserId=", mentorUserId, "menteeUserId=", session.user_id);
     const mentorName = (session.mentors as any)?.name || "Mentor";
     const menteeName = menteeProfile?.name || "Mentorado";
     const scheduledAt = new Date(session.scheduled_at);
@@ -181,6 +182,7 @@ Deno.serve(async (req) => {
     // Create for mentor first (to get Meet link)
     if (mentorUserId) {
       const mentorToken = await getValidToken(adminClient, mentorUserId);
+      console.log("create-event: Mentor token found:", !!mentorToken);
       if (mentorToken) {
         const res = await createCalendarEvent(mentorToken, eventPayload);
         console.log("Mentor calendar event response:", JSON.stringify(res));
@@ -205,6 +207,7 @@ Deno.serve(async (req) => {
 
     // Create for mentee
     const menteeToken = await getValidToken(adminClient, session.user_id);
+    console.log("create-event: Mentee token found:", !!menteeToken);
     if (menteeToken) {
       // If we already have a meet link, reuse it (don't create another)
       const menteeEventPayload = results.meetingLink

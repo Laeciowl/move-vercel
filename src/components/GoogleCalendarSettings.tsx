@@ -44,61 +44,13 @@ const GoogleCalendarSettings = () => {
     fetchStatus();
   }, [fetchStatus]);
 
-  // Handle OAuth callback
+  // Re-fetch status periodically to detect connection made by global callback handler
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get("code");
-    const stateParam = params.get("state");
-
-    if (code && stateParam) {
-      const exchangeCode = async () => {
-        setConnecting(true);
-        try {
-          const { data: { session } } = await supabase.auth.getSession();
-          if (!session) throw new Error("Not authenticated");
-
-          const stateData = JSON.parse(atob(stateParam));
-
-          const response = await fetch(
-            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/google-calendar-auth?action=exchange-code`,
-            {
-              method: "POST",
-              headers: {
-                Authorization: `Bearer ${session.access_token}`,
-                apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                code,
-                redirect_uri: stateData.redirect_uri,
-              }),
-            }
-          );
-
-          const data = await response.json();
-          if (data.success) {
-            toast.success("✅ Google Calendar conectado!");
-            setStatus({
-              connected: true,
-              google_email: data.google_email,
-              connected_at: new Date().toISOString(),
-            });
-            // Clean URL
-            window.history.replaceState({}, "", window.location.pathname);
-          } else {
-            toast.error("Erro ao conectar: " + (data.error || "Tente novamente"));
-          }
-        } catch (e: any) {
-          toast.error("Erro ao conectar Google Calendar");
-          console.error(e);
-        } finally {
-          setConnecting(false);
-        }
-      };
-
-      exchangeCode();
-    }
-  }, []);
+    const interval = setInterval(() => {
+      if (!status.connected) fetchStatus();
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [status.connected, fetchStatus]);
 
   const handleConnect = async () => {
     setConnecting(true);
