@@ -120,8 +120,8 @@ const HeroSection = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.5 }}
             className="text-lg md:text-xl text-muted-foreground mb-6 max-w-xl leading-relaxed font-sans">
-            O Movê existe para apoiar jovens em diferentes momentos da sua jornada profissional — oferecendo orientação prática, acesso a conhecimento e conexão com mentores voluntários. Somos um projeto 100% social.
-
+            O Movê existe para apoiar jovens em diferentes momentos da sua jornada profissional — oferecendo orientação prática, acesso a conhecimento e conexão com mentores voluntários. 
+Somos um projeto 100% social.
 
 
           </motion.p>
