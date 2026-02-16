@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Shield, Users, BookOpen, Loader2, FileCheck, Bug, BarChart3, Image, Calendar, Handshake, Target } from "lucide-react";
+import { ArrowLeft, Shield, Users, BookOpen, Loader2, FileCheck, Bug, BarChart3, Image, Calendar, Handshake } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -14,7 +14,6 @@ import AdminMetricsPanel from "@/components/admin/AdminMetricsPanel";
 import AdminMentorCardsPanel from "@/components/admin/AdminMentorCardsPanel";
 import AdminMentorSessionsPanel from "@/components/admin/AdminMentorSessionsPanel";
 import AdminCommunitiesPanel from "@/components/admin/AdminCommunitiesPanel";
-import AdminTrailsNpsPanel from "@/components/admin/AdminTrailsNpsPanel";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -97,7 +96,7 @@ const Admin = () => {
 
         <motion.div variants={itemVariants}>
           <Tabs defaultValue="volunteers" className="w-full">
-            <TabsList className="grid w-full grid-cols-9 mb-6 bg-card/80 backdrop-blur-sm border border-border/50 p-1 rounded-2xl h-auto overflow-x-auto">
+            <TabsList className="grid w-full grid-cols-8 mb-6 bg-card/80 backdrop-blur-sm border border-border/50 p-1 rounded-2xl h-auto overflow-x-auto">
               <TabsTrigger 
                 value="metrics" 
                 className="gap-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-button transition-all duration-300"
@@ -154,13 +153,6 @@ const Admin = () => {
                 <Handshake className="w-4 h-4" />
                 <span className="hidden sm:inline">Comunidades</span>
               </TabsTrigger>
-              <TabsTrigger 
-                value="trails_nps" 
-                className="gap-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-button transition-all duration-300"
-              >
-                <Target className="w-4 h-4" />
-                <span className="hidden sm:inline">Trilhas/NPS</span>
-              </TabsTrigger>
             </TabsList>
 
             <AnimatePresence mode="wait">
@@ -195,9 +187,6 @@ const Admin = () => {
                 </TabsContent>
                 <TabsContent value="communities" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
                   <AdminCommunitiesPanel />
-                </TabsContent>
-                <TabsContent value="trails_nps" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
-                  <AdminTrailsNpsPanel />
                 </TabsContent>
               </motion.div>
             </AnimatePresence>

@@ -3,7 +3,7 @@ import { useNavigate, useLocation, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Home, Users, Trophy, BookOpen, HelpCircle, User, Shield, LogOut,
-  Calendar, Menu, X, Bell, Settings, MessageCircle, ChevronRight, Target, Briefcase
+  Calendar, Menu, X, Bell, Settings, MessageCircle, ChevronRight, Target, Briefcase, Star
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
@@ -140,6 +140,22 @@ const AppLayout = ({ children }: AppLayoutProps) => {
           </div>
 
           <div className="flex items-center gap-1 md:gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                const npsSection = document.getElementById('nps-banner');
+                if (npsSection) {
+                  npsSection.scrollIntoView({ behavior: 'smooth' });
+                } else {
+                  navigate("/inicio#nps");
+                }
+              }}
+              className="text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-full px-3 hidden md:flex gap-1.5"
+            >
+              <Star className="w-4 h-4" />
+              <span className="text-sm">Avalie-nos</span>
+            </Button>
             <NotificationBell />
             <Button
               variant="ghost"
@@ -245,6 +261,23 @@ const AppLayout = ({ children }: AppLayoutProps) => {
                   <Button
                     variant="ghost"
                     size="sm"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      const npsSection = document.getElementById('nps-banner');
+                      if (npsSection) {
+                        npsSection.scrollIntoView({ behavior: 'smooth' });
+                      } else {
+                        navigate("/inicio#nps");
+                      }
+                    }}
+                    className="w-full justify-start text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-xl"
+                  >
+                    <Star className="w-4 h-4 mr-2" />
+                    Avalie-nos
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => { navigate("/inicio?editarPerfil=1"); setMobileMenuOpen(false); }}
                     className="w-full justify-start text-muted-foreground hover:text-foreground rounded-xl"
                   >
@@ -294,7 +327,9 @@ const AppLayout = ({ children }: AppLayoutProps) => {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-6 md:py-8 relative z-10 pb-24 md:pb-8 space-y-6">
         {/* NPS Banner - shown for all users at top */}
-        <NpsModal />
+        <div id="nps-banner">
+          <NpsModal />
+        </div>
         {children}
       </main>
 
