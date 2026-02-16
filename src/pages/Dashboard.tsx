@@ -418,8 +418,8 @@ const Dashboard = () => {
             {/* Mentorship Section - for non-volunteers OR approved mentors (so mentors can also book sessions) */}
             {(!isVolunteer || isMentor) && <MentorshipSection />}
 
-            {/* Trails Dashboard Card - for mentorados */}
-            {!isVolunteer && <TrailsDashboardCard />}
+            {/* Trails Dashboard Card - for mentorados only (not mentors/volunteers) */}
+            {!isVolunteer && !isMentor && <TrailsDashboardCard />}
 
             {/* Content Library */}
             <ContentLibrary />
@@ -664,8 +664,7 @@ const Dashboard = () => {
       {/* Bug Report Button */}
       <BugReportButton />
 
-      {/* NPS Modal */}
-      <NpsModal userType={isVolunteer ? "mentor" : "mentorado"} />
+      {/* NPS - now rendered as inline banner at top via AppLayout, not here */}
 
       {/* Profile Edit Modal */}
       <ProfileEditModal

@@ -11,6 +11,7 @@ import { useVolunteerCheck } from "@/hooks/useVolunteerCheck";
 import { useMentorCheck } from "@/hooks/useMentorCheck";
 import NotificationBell from "@/components/NotificationBell";
 import BugReportButton from "@/components/BugReportButton";
+import NpsModal from "@/components/NpsModal";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -61,7 +62,6 @@ const AppLayout = ({ children }: AppLayoutProps) => {
         { path: "/inicio", label: "Início", icon: Home },
         { path: "/mentor/agenda", label: "Mentorias", icon: Calendar },
         { path: "/conquistas", label: "Conquistas", icon: Trophy },
-        { path: "/trilhas", label: "Trilhas", icon: Target },
         { path: "/conteudos", label: "Conteúdos", icon: BookOpen },
         { path: "/ajuda", label: "Ajuda", icon: HelpCircle },
       ];
@@ -289,7 +289,9 @@ const AppLayout = ({ children }: AppLayoutProps) => {
       </div>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-6 md:py-8 relative z-10 pb-24 md:pb-8">
+      <main className="container mx-auto px-4 py-6 md:py-8 relative z-10 pb-24 md:pb-8 space-y-6">
+        {/* NPS Banner - shown for all users at top */}
+        <NpsModal />
         {children}
       </main>
 
