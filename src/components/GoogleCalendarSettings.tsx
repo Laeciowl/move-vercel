@@ -17,8 +17,28 @@ const GoogleCalendarSettings = () => {
 
   const fetchStatus = useCallback(async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+      // Use refreshSession to ensure we have a fresh, valid token
+      const { data: { session } } = await supabase.auth.refreshSession();
+      if (!session) {
+        // Fallback to cached session
+        const { data: { session: cached } } = await supabase.auth.getSession();
+        if (!cached) return;
+        // Use cached session for the request
+        const fallbackResponse = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/google-calendar-auth?action=status`,
+          {
+            headers: {
+              Authorization: `Bearer ${cached.access_token}`,
+              apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            },
+          }
+        );
+        const fallbackData = await fallbackResponse.json();
+        if (fallbackData.connected !== undefined) {
+          setStatus(fallbackData);
+        }
+        return;
+      }
 
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/google-calendar-auth?action=status`,
