@@ -37,9 +37,16 @@ const GoogleCalendarCallbackHandler = () => {
         // Wait for auth session — retry up to 10 times (5 seconds)
         let session = null;
         for (let i = 0; i < 10; i++) {
-          const { data } = await supabase.auth.getSession();
+          // Use refreshSession to ensure we get a fresh, valid token
+          const { data } = await supabase.auth.refreshSession();
           if (data.session) {
             session = data.session;
+            break;
+          }
+          // Fallback: try getSession
+          const { data: cached } = await supabase.auth.getSession();
+          if (cached.session) {
+            session = cached.session;
             break;
           }
           console.log(`GoogleCalendarCallback: Waiting for auth session (attempt ${i + 1})...`);
