@@ -25,6 +25,7 @@ import Trails from "./pages/Trails";
 import TrailDetail from "./pages/TrailDetail";
 import SavedContents from "./pages/SavedContents";
 import DevPlan from "./pages/DevPlan";
+import Nps from "./pages/Nps";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -58,6 +59,7 @@ const App = () => (
             <Route path="/ajuda" element={<Help />} />
             <Route path="/comunidades" element={<Communities />} />
             <Route path="/plano" element={<DevPlan />} />
+            <Route path="/avaliar" element={<Nps />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
