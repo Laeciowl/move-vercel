@@ -360,6 +360,17 @@ const TrailDetail = () => {
                             Agendar mentoria
                           </Button>
                         )}
+                        {(step.tipo === "conteudo" || step.tipo === "video" || step.tipo === "download") && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => navigate("/conteudos")}
+                            className="gap-1.5"
+                          >
+                            <BookOpen className="w-3.5 h-3.5" />
+                            {step.tipo === "video" ? "Ver vídeos" : step.tipo === "download" ? "Ver arquivos" : "Ver conteúdos"}
+                          </Button>
+                        )}
                         {step.link_externo && (
                           <a href={step.link_externo} target="_blank" rel="noopener noreferrer">
                             <Button size="sm" variant="outline" className="gap-1.5">
