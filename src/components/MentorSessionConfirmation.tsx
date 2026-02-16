@@ -124,7 +124,7 @@ const MentorSessionConfirmation = ({ sessions, mentorName, mentorEmail, onUpdate
           const { data: { session: authSession } } = await supabase.auth.getSession();
           const token = authSession?.access_token;
           
-          await fetch(`${supabaseUrl}/functions/v1/google-calendar-sync?action=create-event`, {
+          const calResponse = await fetch(`${supabaseUrl}/functions/v1/google-calendar-sync?action=create-event`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -132,7 +132,12 @@ const MentorSessionConfirmation = ({ sessions, mentorName, mentorEmail, onUpdate
             },
             body: JSON.stringify({ session_id: sessionId }),
           });
-          console.log("Google Calendar events created for session:", sessionId);
+          const calResult = await calResponse.json();
+          console.log("Google Calendar sync result:", calResult);
+          
+          if (calResult?.results?.meetingLink) {
+            toast.success("Link do Google Meet criado automaticamente! 🎥");
+          }
         } catch (calErr) {
           console.error("Error creating Google Calendar events:", calErr);
           // Don't block confirmation if calendar sync fails

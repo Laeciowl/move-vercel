@@ -18,13 +18,11 @@ async function getValidToken(adminClient: any, userId: string): Promise<string |
 
   if (!tokenRow) return null;
 
-  // Check if token is expired (with 5 min buffer)
   const expiresAt = new Date(tokenRow.expires_at).getTime();
   if (Date.now() < expiresAt - 5 * 60 * 1000) {
     return tokenRow.access_token;
   }
 
-  // Refresh the token
   const res = await fetch("https://oauth2.googleapis.com/token", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -39,7 +37,6 @@ async function getValidToken(adminClient: any, userId: string): Promise<string |
   const data = await res.json();
   if (data.error) {
     console.error("Token refresh failed:", data);
-    // If refresh fails, delete the connection
     await adminClient.from("google_calendar_tokens").delete().eq("user_id", userId);
     return null;
   }
@@ -55,7 +52,7 @@ async function getValidToken(adminClient: any, userId: string): Promise<string |
 
 async function createCalendarEvent(accessToken: string, event: any): Promise<any> {
   const res = await fetch(
-    "https://www.googleapis.com/calendar/v3/calendars/primary/events",
+    "https://www.googleapis.com/calendar/v3/calendars/primary/events?conferenceDataVersion=1",
     {
       method: "POST",
       headers: {
@@ -117,7 +114,6 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "session_id required" }), { status: 400, headers: corsHeaders });
     }
 
-    // Fetch session details with mentor name
     const { data: session } = await adminClient
       .from("mentor_sessions")
       .select("*, mentors(name, email)")
@@ -128,31 +124,31 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "Session not found" }), { status: 404, headers: corsHeaders });
     }
 
-    // Get mentee profile
     const { data: menteeProfile } = await adminClient
       .from("profiles")
       .select("name")
       .eq("user_id", session.user_id)
       .maybeSingle();
 
-    // Get mentor user_id using the database function (reliable, no pagination issues)
-    const mentorEmail = (session.mentors as any)?.email;
-    let mentorUserId: string | null = null;
+    // Get mentor user_id
+    const { data: mentorUserIds } = await adminClient
+      .rpc("get_mentor_user_ids", { mentor_ids: [session.mentor_id] });
     
-    if (mentorEmail) {
-      const { data: mentorUserIds } = await adminClient
-        .rpc("get_mentor_user_ids", { mentor_ids: [session.mentor_id] });
-      
-      if (mentorUserIds && mentorUserIds.length > 0) {
-        mentorUserId = mentorUserIds[0].user_id;
-      }
-    }
+    const mentorUserId = mentorUserIds?.[0]?.user_id || null;
 
     const mentorName = (session.mentors as any)?.name || "Mentor";
     const menteeName = menteeProfile?.name || "Mentorado";
     const scheduledAt = new Date(session.scheduled_at);
     const durationMin = session.duration || 30;
     const endAt = new Date(scheduledAt.getTime() + durationMin * 60 * 1000);
+
+    // Get mentee email for attendee
+    const mentorEmail = (session.mentors as any)?.email;
+    let menteeEmail: string | null = null;
+    const { data: menteeUser } = await adminClient.auth.admin.getUserById(session.user_id);
+    if (menteeUser?.user) {
+      menteeEmail = menteeUser.user.email || null;
+    }
 
     const eventPayload = {
       summary: `Mentoria ${mentorName} ↔ ${menteeName} - Movê`,
@@ -161,30 +157,72 @@ Deno.serve(async (req) => {
         : "Mentoria agendada pelo Movê",
       start: { dateTime: scheduledAt.toISOString(), timeZone: "America/Sao_Paulo" },
       end: { dateTime: endAt.toISOString(), timeZone: "America/Sao_Paulo" },
+      attendees: [
+        ...(mentorEmail ? [{ email: mentorEmail }] : []),
+        ...(menteeEmail ? [{ email: menteeEmail }] : []),
+      ],
+      conferenceData: {
+        createRequest: {
+          requestId: `move-session-${session_id}`,
+          conferenceSolutionKey: { type: "hangoutsMeet" },
+        },
+      },
       reminders: {
         useDefault: false,
         overrides: [
-          { method: "email", minutes: 1440 }, // 1 day before
+          { method: "email", minutes: 1440 },
           { method: "popup", minutes: 30 },
         ],
       },
     };
 
-    const results: any = { mentee: null, mentor: null };
+    const results: any = { mentee: null, mentor: null, meetingLink: null };
 
-    // Create for mentee
-    const menteeToken = await getValidToken(adminClient, session.user_id);
-    if (menteeToken) {
-      const res = await createCalendarEvent(menteeToken, eventPayload);
-      results.mentee = res.id ? { event_id: res.id } : { error: res.error?.message };
-    }
-
-    // Create for mentor
+    // Create for mentor first (to get Meet link)
     if (mentorUserId) {
       const mentorToken = await getValidToken(adminClient, mentorUserId);
       if (mentorToken) {
         const res = await createCalendarEvent(mentorToken, eventPayload);
-        results.mentor = res.id ? { event_id: res.id } : { error: res.error?.message };
+        console.log("Mentor calendar event response:", JSON.stringify(res));
+        if (res.id) {
+          results.mentor = { event_id: res.id };
+          // Extract Google Meet link
+          const meetLink = res.hangoutLink || res.conferenceData?.entryPoints?.find((e: any) => e.entryPointType === "video")?.uri;
+          if (meetLink) {
+            results.meetingLink = meetLink;
+            // Save meeting link to session
+            await adminClient
+              .from("mentor_sessions")
+              .update({ meeting_link: meetLink })
+              .eq("id", session_id);
+            console.log("Meeting link saved:", meetLink);
+          }
+        } else {
+          results.mentor = { error: res.error?.message };
+        }
+      }
+    }
+
+    // Create for mentee
+    const menteeToken = await getValidToken(adminClient, session.user_id);
+    if (menteeToken) {
+      // If we already have a meet link, reuse it (don't create another)
+      const menteeEventPayload = results.meetingLink
+        ? { ...eventPayload, conferenceData: undefined }
+        : eventPayload;
+      
+      const res = await createCalendarEvent(menteeToken, menteeEventPayload);
+      console.log("Mentee calendar event response:", JSON.stringify(res));
+      results.mentee = res.id ? { event_id: res.id } : { error: res.error?.message };
+      
+      // If mentor didn't have calendar but mentee did, get meet link from mentee's event
+      if (!results.meetingLink && res.hangoutLink) {
+        results.meetingLink = res.hangoutLink;
+        await adminClient
+          .from("mentor_sessions")
+          .update({ meeting_link: res.hangoutLink })
+          .eq("id", session_id);
+        console.log("Meeting link saved from mentee event:", res.hangoutLink);
       }
     }
 
