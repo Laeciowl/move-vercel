@@ -3,7 +3,7 @@ import { useNavigate, useLocation, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Home, Users, Trophy, BookOpen, HelpCircle, User, Shield, LogOut,
-  Calendar, Menu, X, Bell, Settings, MessageCircle, ChevronRight, Target
+  Calendar, Menu, X, Bell, Settings, MessageCircle, ChevronRight, Target, Briefcase
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
@@ -51,6 +51,8 @@ const AppLayout = ({ children }: AppLayoutProps) => {
         { path: "/inicio", label: "Dashboard", icon: Home },
         { path: "/admin", label: "Admin", icon: Shield },
         { path: "/mentores", label: "Mentores", icon: Users },
+        { path: "/trilhas", label: "Trilhas", icon: Target },
+        { path: "/plano", label: "Plano", icon: Briefcase },
         { path: "/conquistas", label: "Conquistas", icon: Trophy },
         { path: "/conteudos", label: "Conteúdos", icon: BookOpen },
         { path: "/ajuda", label: "Ajuda", icon: HelpCircle },
@@ -71,8 +73,9 @@ const AppLayout = ({ children }: AppLayoutProps) => {
     return [
       { path: "/inicio", label: "Início", icon: Home },
       { path: "/mentores", label: "Mentores", icon: Users },
-      { path: "/conquistas", label: "Conquistas", icon: Trophy },
       { path: "/trilhas", label: "Trilhas", icon: Target },
+      { path: "/plano", label: "Plano", icon: Briefcase },
+      { path: "/conquistas", label: "Conquistas", icon: Trophy },
       { path: "/conteudos", label: "Conteúdos", icon: BookOpen },
       { path: "/ajuda", label: "Ajuda", icon: HelpCircle },
     ];
