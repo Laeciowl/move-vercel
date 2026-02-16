@@ -326,9 +326,6 @@ const DevPlan = () => {
                   {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                 </Button>
               </div>
-              <h1 className="text-xl font-bold text-foreground">
-                {plan.meta_descricao}
-              </h1>
               <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1">
                 <span className="flex items-center gap-1">
                   <Clock className="w-3.5 h-3.5" />
