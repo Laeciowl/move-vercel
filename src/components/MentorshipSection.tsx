@@ -442,36 +442,7 @@ const MentorshipSection = () => {
         </motion.div>
       )}
 
-      {/* CTA to become a mentor */}
-      {showBecomeMentorCta && !isBookingBlocked && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-2xl p-4 border border-amber-200/50 dark:border-amber-700/30"
-        >
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl flex items-center justify-center shrink-0">
-                <Heart className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <h4 className="font-semibold text-foreground text-sm">Quer ajudar outros jovens?</h4>
-                <p className="text-xs text-muted-foreground">Compartilhe sua experiência e vire um mentor voluntário</p>
-              </div>
-            </div>
-            <Button
-              onClick={() => navigate("/voluntario")}
-              variant="outline"
-              size="sm"
-              className="border-amber-400 text-amber-700 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/30 gap-1.5 whitespace-nowrap"
-            >
-              <Heart className="w-3.5 h-3.5" />
-              Vire um mentor
-            </Button>
-          </div>
-        </motion.div>
-      )}
+      {/* CTA to become a mentor - removed per design decision */}
 
       {loading ? (
         <div className="flex items-center justify-center py-8">

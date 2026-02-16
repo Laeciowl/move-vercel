@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -11,6 +12,7 @@ const NpsModal = () => {
   const { user } = useAuth();
   const { isMentor } = useMentorCheck();
   const { isVolunteer } = useVolunteerCheck();
+  const location = useLocation();
   const [visible, setVisible] = useState(false);
   const [nota, setNota] = useState<number | null>(null);
   const [feedback, setFeedback] = useState("");
@@ -22,6 +24,13 @@ const NpsModal = () => {
     if (!user) return;
     checkShouldShow();
   }, [user, isMentor, isVolunteer]);
+
+  // Force show when navigating to #nps
+  useEffect(() => {
+    if (location.hash === "#nps" && user) {
+      setVisible(true);
+    }
+  }, [location.hash, user]);
 
   const checkShouldShow = async () => {
     if (!user) return;

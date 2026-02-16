@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import AdminTrailsNpsPanel from "./AdminTrailsNpsPanel";
 import { toast } from "sonner";
 import { format, startOfMonth, endOfMonth, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -968,6 +969,11 @@ const AdminMetricsPanel = () => {
           )}
         </DialogContent>
       </Dialog>
+      {/* Trails & NPS Section */}
+      <div className="mt-8 pt-6 border-t border-border/50">
+        <h3 className="text-lg font-semibold text-foreground mb-4">📊 Trilhas & NPS</h3>
+        <AdminTrailsNpsPanel />
+      </div>
     </div>
   );
 };

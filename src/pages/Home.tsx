@@ -5,7 +5,7 @@ import {
   Loader2, User, Calendar, Users, Trophy, BookOpen, ArrowRight,
   Clock, Sparkles, Heart, Shield, Edit, RefreshCw, History,
   MessageCircle, Briefcase, Settings, LogOut, ExternalLink, Handshake,
-  AlertCircle, Lightbulb, TrendingUp, TrendingDown, Minus, Camera } from
+  AlertCircle, Lightbulb, TrendingUp, TrendingDown, Minus, Camera, Target } from
 "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
@@ -573,7 +573,46 @@ const Home = () => {
           <InterestsNotificationBanner onOpenInterestsEditor={() => setShowInterestsOnboarding(true)} />
           }
 
-          {/* First Mission */}
+          {/* Trail & Dev Plan CTA Cards - for mentorados */}
+          {!isVolunteer && !isPendingMentor &&
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <motion.div
+                variants={{ initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 } }}
+                className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-2xl border border-primary/20 p-5 group hover:border-primary/40 transition-colors cursor-pointer"
+                onClick={() => navigate("/trilhas")}
+              >
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center">
+                    <Target className="w-5 h-5 text-primary" />
+                  </div>
+                  <h3 className="font-semibold text-foreground">Trilhas</h3>
+                </div>
+                <p className="text-sm text-muted-foreground mb-3">Venha conhecer trilhas de conhecimento para impulsionar sua carreira!</p>
+                <span className="text-sm font-medium text-primary flex items-center gap-1 group-hover:gap-2 transition-all">
+                  Explorar trilhas <ArrowRight className="w-4 h-4" />
+                </span>
+              </motion.div>
+
+              <motion.div
+                variants={{ initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 } }}
+                className="bg-gradient-to-br from-secondary/5 to-secondary/10 rounded-2xl border border-secondary/20 p-5 group hover:border-secondary/40 transition-colors cursor-pointer"
+                onClick={() => navigate("/plano")}
+              >
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 rounded-xl bg-secondary/15 flex items-center justify-center">
+                    <Briefcase className="w-5 h-5 text-secondary" />
+                  </div>
+                  <h3 className="font-semibold text-foreground">Plano de Desenvolvimento</h3>
+                </div>
+                <p className="text-sm text-muted-foreground mb-3">Venha traçar uma estratégia para sua carreira profissional!</p>
+                <span className="text-sm font-medium text-secondary flex items-center gap-1 group-hover:gap-2 transition-all">
+                  Criar meu plano <ArrowRight className="w-4 h-4" />
+                </span>
+              </motion.div>
+            </div>
+          }
+
+          {/* First Mission - reduced */}
           {!isVolunteer && !isPendingMentor &&
           <FirstMentorshipMission isCompleted={profile?.first_mentorship_booked || false} />
           }
