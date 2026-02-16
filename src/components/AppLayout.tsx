@@ -143,14 +143,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => {
-                const npsSection = document.getElementById('nps-banner');
-                if (npsSection) {
-                  npsSection.scrollIntoView({ behavior: 'smooth' });
-                } else {
-                  navigate("/inicio#nps");
-                }
-              }}
+              onClick={() => navigate("/avaliar")}
               className="text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-full px-3 hidden md:flex gap-1.5"
             >
               <Star className="w-4 h-4" />
@@ -263,12 +256,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
                     size="sm"
                     onClick={() => {
                       setMobileMenuOpen(false);
-                      const npsSection = document.getElementById('nps-banner');
-                      if (npsSection) {
-                        npsSection.scrollIntoView({ behavior: 'smooth' });
-                      } else {
-                        navigate("/inicio#nps");
-                      }
+                      navigate("/avaliar");
                     }}
                     className="w-full justify-start text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-xl"
                   >
@@ -325,11 +313,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
       </div>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-6 md:py-8 relative z-10 pb-24 md:pb-8 space-y-6">
-        {/* NPS Banner - shown for all users at top */}
-        <div id="nps-banner">
-          <NpsModal />
-        </div>
+      <main className="container mx-auto px-4 py-4 md:py-6 relative z-10 pb-24 md:pb-6">
         {children}
       </main>
 

@@ -8,12 +8,16 @@ import { useVolunteerCheck } from "@/hooks/useVolunteerCheck";
 import { toast } from "sonner";
 import { X } from "lucide-react";
 
-const NpsModal = () => {
+interface NpsModalProps {
+  forceShow?: boolean;
+}
+
+const NpsModal = ({ forceShow = false }: NpsModalProps) => {
   const { user } = useAuth();
   const { isMentor } = useMentorCheck();
   const { isVolunteer } = useVolunteerCheck();
   const location = useLocation();
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible] = useState(forceShow);
   const [nota, setNota] = useState<number | null>(null);
   const [feedback, setFeedback] = useState("");
   const [motivo, setMotivo] = useState("");
@@ -23,9 +27,13 @@ const NpsModal = () => {
   const userType = (isVolunteer || isMentor) ? "mentor" : "mentorado";
 
   useEffect(() => {
+    if (forceShow) {
+      setVisible(true);
+      return;
+    }
     if (!user) return;
     checkShouldShow();
-  }, [user, isMentor, isVolunteer]);
+  }, [user, isMentor, isVolunteer, forceShow]);
 
   useEffect(() => {
     if (location.hash === "#nps" && user) {
@@ -101,7 +109,6 @@ const NpsModal = () => {
       .delete()
       .eq("user_id", user.id);
 
-    // Combine all feedback fields into a single feedback string
     const feedbackParts: string[] = [];
     if (motivo) feedbackParts.push(`Motivo: ${motivo}`);
     if (feedback) feedbackParts.push(`Comentário: ${feedback}`);
@@ -140,9 +147,11 @@ const NpsModal = () => {
             Em uma escala de 0 a 10, o quanto você recomendaria o Movê para um amigo?
           </p>
         </div>
-        <button onClick={() => setVisible(false)} className="text-muted-foreground hover:text-foreground shrink-0">
-          <X className="w-4 h-4" />
-        </button>
+        {!forceShow && (
+          <button onClick={() => setVisible(false)} className="text-muted-foreground hover:text-foreground shrink-0">
+            <X className="w-4 h-4" />
+          </button>
+        )}
       </div>
 
       <div>
@@ -209,12 +218,14 @@ const NpsModal = () => {
       )}
 
       <div className="flex gap-2">
-        <button
-          onClick={() => setVisible(false)}
-          className="px-4 py-2 rounded-xl border border-border text-foreground text-xs font-medium hover:bg-muted transition-colors"
-        >
-          Depois
-        </button>
+        {!forceShow && (
+          <button
+            onClick={() => setVisible(false)}
+            className="px-4 py-2 rounded-xl border border-border text-foreground text-xs font-medium hover:bg-muted transition-colors"
+          >
+            Depois
+          </button>
+        )}
         <button
           onClick={handleSubmit}
           disabled={nota === null || submitting}
