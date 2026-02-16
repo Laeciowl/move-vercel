@@ -220,6 +220,17 @@ const ContentLibrary = () => {
           </div>
         </div>
 
+        {/* Saved contents link */}
+        {savedIds.size > 0 && (
+          <a
+            href="/conteudos/salvos"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+          >
+            <BookmarkCheck className="w-4 h-4" />
+            Salvos ({savedIds.size})
+          </a>
+        )}
+
         {/* Filters */}
         <div className="flex flex-wrap items-center gap-2">
           {/* Type Filter */}
