@@ -21,6 +21,9 @@ import Achievements from "./pages/Achievements";
 import Contents from "./pages/Contents";
 import Help from "./pages/Help";
 import Communities from "./pages/Communities";
+import Trails from "./pages/Trails";
+import TrailDetail from "./pages/TrailDetail";
+import SavedContents from "./pages/SavedContents";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -48,6 +51,9 @@ const App = () => (
             <Route path="/para-mentores" element={<ForMentors />} />
             <Route path="/conquistas" element={<Achievements />} />
             <Route path="/conteudos" element={<Contents />} />
+            <Route path="/conteudos/salvos" element={<SavedContents />} />
+            <Route path="/trilhas" element={<Trails />} />
+            <Route path="/trilhas/:id" element={<TrailDetail />} />
             <Route path="/ajuda" element={<Help />} />
             <Route path="/comunidades" element={<Communities />} />
             <Route path="*" element={<NotFound />} />
