@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import GoogleCalendarSettings from "./GoogleCalendarSettings";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Camera, Loader2, User, Trash2, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -322,6 +323,11 @@ const ProfileEditModal = ({ isOpen, onClose, profile, onProfileUpdated }: Profil
                   {saving && <Loader2 className="w-4 h-4 animate-spin" />}
                   Salvar
                 </button>
+              </div>
+
+              {/* Google Calendar Integration */}
+              <div className="border-t border-border pt-4 mt-4">
+                <GoogleCalendarSettings />
               </div>
 
               {/* Security Section */}
