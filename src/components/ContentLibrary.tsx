@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Video, FileText, BookOpen, Loader2, Play, ExternalLink, 
@@ -71,11 +72,13 @@ const ITEMS_PER_PAGE = 9;
 
 const ContentLibrary = () => {
   const { user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTheme = searchParams.get("tema") || "all";
   const [contents, setContents] = useState<ContentItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedType, setSelectedType] = useState<string>("all");
   const [selectedArea, setSelectedArea] = useState<string>("all");
-  const [selectedTheme, setSelectedTheme] = useState<string>("all");
+  const [selectedTheme, setSelectedTheme] = useState<string>(initialTheme);
   const [page, setPage] = useState(1);
   const [selectedContent, setSelectedContent] = useState<ContentItem | null>(null);
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());

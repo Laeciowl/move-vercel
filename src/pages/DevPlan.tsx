@@ -328,6 +328,15 @@ const DevPlan = () => {
               </Button>
             </div>
           </div>
+
+          <div className="text-center space-y-1">
+            <p className="text-sm text-muted-foreground">
+              💡 Você pode pedir ajuda aos mentores na construção do seu plano!
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Oferecemos uma estrutura básica recomendada, mas o plano é 100% personalizável — adapte como quiser.
+            </p>
+          </div>
         </div>
       </AppLayout>
     );
