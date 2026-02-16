@@ -21,56 +21,56 @@ const steps: OnboardingStep[] = [
   {
     id: "welcome",
     title: "Bem-vindo(a) ao Movê! 🎉",
-    description: "O Movê é seu hub de orientação profissional. Conectamos você a mentores, conteúdos e uma comunidade para impulsionar sua carreira. Vamos fazer um tour rápido!",
-    icon: <Sparkles className="w-8 h-8" />,
+    description: "Conectamos você a mentores, conteúdos e uma comunidade para impulsionar sua carreira. Vamos fazer um tour!",
+    icon: <Sparkles className="w-5 h-5" />,
     navigateTo: "/inicio",
   },
   {
     id: "mentors",
     title: "Encontre seu mentor",
-    description: "Explore mentores de diversas áreas e agende sessões gratuitas de orientação profissional. Aqui você pode filtrar por área, ver avaliações e agendar diretamente!",
-    icon: <Users className="w-8 h-8" />,
+    description: "Explore mentores de diversas áreas e agende sessões gratuitas de orientação profissional.",
+    icon: <Users className="w-5 h-5" />,
     navigateTo: "/mentores",
   },
   {
     id: "trails",
     title: "Trilhas de aprendizado",
-    description: "Siga roteiros guiados com conteúdos, vídeos e ações práticas para desenvolver habilidades específicas, como currículo, LinkedIn e entrevistas.",
-    icon: <Map className="w-8 h-8" />,
+    description: "Roteiros guiados com conteúdos, vídeos e ações práticas para desenvolver habilidades.",
+    icon: <Map className="w-5 h-5" />,
     navigateTo: "/trilhas",
   },
   {
     id: "plan",
     title: "Plano de desenvolvimento",
-    description: "Crie uma estratégia personalizada de carreira com metas e prazos. Seus mentores podem te ajudar a construí-lo!",
-    icon: <Briefcase className="w-8 h-8" />,
+    description: "Crie uma estratégia personalizada de carreira com metas e prazos.",
+    icon: <Briefcase className="w-5 h-5" />,
     navigateTo: "/plano",
   },
   {
     id: "achievements",
     title: "Conquistas",
-    description: "Desbloqueie conquistas conforme avança na plataforma! Cada mentoria realizada, conteúdo acessado e meta cumprida conta para suas conquistas.",
-    icon: <Trophy className="w-8 h-8" />,
+    description: "Desbloqueie conquistas conforme avança na plataforma!",
+    icon: <Trophy className="w-5 h-5" />,
     navigateTo: "/conquistas",
   },
   {
     id: "content",
     title: "Biblioteca de conteúdos",
-    description: "Acesse vídeos, artigos, templates e materiais exclusivos criados por voluntários para ajudar no seu desenvolvimento profissional.",
-    icon: <BookOpen className="w-8 h-8" />,
+    description: "Vídeos, artigos, templates e materiais exclusivos para seu desenvolvimento.",
+    icon: <BookOpen className="w-5 h-5" />,
     navigateTo: "/conteudos",
   },
   {
     id: "community",
     title: "Comunidade no WhatsApp",
-    description: "Entre no nosso grupo para trocar experiências, tirar dúvidas e se conectar com outros membros da comunidade Movê.",
-    icon: <MessageCircle className="w-8 h-8" />,
+    description: "Troque experiências e se conecte com outros membros da comunidade Movê.",
+    icon: <MessageCircle className="w-5 h-5" />,
   },
   {
     id: "mission",
     title: "Sua primeira missão! 🎯",
-    description: "Agora que você conhece a plataforma, sua missão é agendar sua primeira mentoria! Escolha um mentor e dê o primeiro passo na sua jornada.",
-    icon: <Target className="w-8 h-8" />,
+    description: "Agende sua primeira mentoria! Escolha um mentor e dê o primeiro passo.",
+    icon: <Target className="w-5 h-5" />,
   },
 ];
 
@@ -152,23 +152,15 @@ const OnboardingTour = ({ onComplete }: OnboardingTourProps) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 flex items-center justify-center p-4 pointer-events-none"
         >
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-background/80 backdrop-blur-md"
-          />
-
           {/* Modal */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 40 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="relative w-full max-w-lg bg-card rounded-3xl shadow-2xl border border-border/50 overflow-hidden"
+            className="pointer-events-auto w-full max-w-lg bg-card rounded-2xl shadow-2xl border border-border/50 overflow-hidden"
           >
             {/* Progress bar */}
             <div className="absolute top-0 left-0 right-0 h-1 bg-muted">
@@ -180,98 +172,79 @@ const OnboardingTour = ({ onComplete }: OnboardingTourProps) => {
               />
             </div>
 
-            {/* Close button */}
-            <button
-              onClick={handleSkip}
-              className="absolute top-4 right-4 p-2 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors z-10"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            {/* Content */}
-            <div className="p-8 pt-10">
-              {/* Step indicator */}
-              <div className="flex items-center justify-center gap-1.5 mb-6">
-                {steps.map((_, index) => (
-                  <motion.div
-                    key={index}
-                    className={`h-1.5 rounded-full transition-all duration-300 ${
-                      index === currentStep
-                        ? "w-6 bg-primary"
-                        : index < currentStep
-                        ? "w-1.5 bg-primary/50"
-                        : "w-1.5 bg-muted"
-                    }`}
-                  />
-                ))}
-              </div>
-
-              {/* Icon */}
+            {/* Content — compact layout */}
+            <div className="p-4 pt-5">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={step.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.2 }}
-                  className="text-center"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.15 }}
+                  className="flex items-start gap-3"
                 >
-                  <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-hero text-primary-foreground mb-6 shadow-button">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-hero text-primary-foreground flex items-center justify-center shrink-0 shadow-sm">
                     {step.icon}
                   </div>
-
-                  <h2 className="text-2xl font-bold text-foreground mb-3">
-                    {step.title}
-                  </h2>
-
-                  <p className="text-muted-foreground leading-relaxed max-w-md mx-auto">
-                    {step.description}
-                  </p>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-foreground text-sm leading-tight">{step.title}</h3>
+                    <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed line-clamp-2">{step.description}</p>
+                  </div>
+                  {/* Close */}
+                  <button
+                    onClick={handleSkip}
+                    className="p-1 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors shrink-0"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
                 </motion.div>
               </AnimatePresence>
 
               {/* Navigation */}
-              <div className="flex items-center justify-between mt-8 pt-6 border-t border-border/30">
+              <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/30">
                 <Button
                   variant="ghost"
+                  size="sm"
                   onClick={handlePrev}
                   disabled={currentStep === 0}
-                  className="rounded-xl"
+                  className="rounded-lg text-xs h-8"
                 >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  <ArrowLeft className="w-3 h-3 mr-1" />
                   Anterior
                 </Button>
 
-                <span className="text-sm text-muted-foreground">
-                  {currentStep + 1} de {steps.length}
-                </span>
+                <div className="flex items-center gap-1">
+                  {steps.map((_, index) => (
+                    <div
+                      key={index}
+                      className={`h-1.5 rounded-full transition-all duration-300 ${
+                        index === currentStep
+                          ? "w-4 bg-primary"
+                          : index < currentStep
+                          ? "w-1.5 bg-primary/50"
+                          : "w-1.5 bg-muted"
+                      }`}
+                    />
+                  ))}
+                </div>
 
                 <Button
                   onClick={handleNext}
-                  className="rounded-xl bg-gradient-hero text-primary-foreground shadow-button hover:opacity-90"
+                  size="sm"
+                  className="rounded-lg bg-gradient-hero text-primary-foreground shadow-sm hover:opacity-90 text-xs h-8"
                 >
                   {isLastStep ? (
                     <>
-                      <Check className="w-4 h-4 mr-2" />
-                      Começar!
+                      <Check className="w-3 h-3 mr-1" />
+                      Concluir
                     </>
                   ) : (
                     <>
                       Próximo
-                      <ArrowRight className="w-4 h-4 ml-2" />
+                      <ArrowRight className="w-3 h-3 ml-1" />
                     </>
                   )}
                 </Button>
-              </div>
-
-              {/* Skip link */}
-              <div className="text-center mt-4">
-                <button
-                  onClick={handleSkip}
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Pular tour
-                </button>
               </div>
             </div>
           </motion.div>
