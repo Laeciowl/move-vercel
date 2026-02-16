@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   X, ArrowRight, ArrowLeft, Users, BookOpen, 
-  RefreshCw, MessageCircle, Sparkles, Target, Check
+  MessageCircle, Sparkles, Target, Check, Trophy, Briefcase, Map
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,8 +14,7 @@ interface OnboardingStep {
   title: string;
   description: string;
   icon: React.ReactNode;
-  highlight?: string;
-  route?: string;
+  navigateTo?: string;
 }
 
 const steps: OnboardingStep[] = [
@@ -24,39 +23,47 @@ const steps: OnboardingStep[] = [
     title: "Bem-vindo(a) ao Movê! 🎉",
     description: "O Movê é seu hub de orientação profissional. Conectamos você a mentores, conteúdos e uma comunidade para impulsionar sua carreira. Vamos fazer um tour rápido!",
     icon: <Sparkles className="w-8 h-8" />,
+    navigateTo: "/inicio",
   },
   {
     id: "mentors",
     title: "Encontre seu mentor",
-    description: "Explore mentores de diversas áreas e agende sessões gratuitas de orientação profissional. Vamos te levar até lá!",
+    description: "Explore mentores de diversas áreas e agende sessões gratuitas de orientação profissional. Aqui você pode filtrar por área, ver avaliações e agendar diretamente!",
     icon: <Users className="w-8 h-8" />,
-    highlight: "mentorship-section",
-    route: "/mentores",
+    navigateTo: "/mentores",
+  },
+  {
+    id: "trails",
+    title: "Trilhas de aprendizado",
+    description: "Siga roteiros guiados com conteúdos, vídeos e ações práticas para desenvolver habilidades específicas, como currículo, LinkedIn e entrevistas.",
+    icon: <Map className="w-8 h-8" />,
+    navigateTo: "/trilhas",
+  },
+  {
+    id: "plan",
+    title: "Plano de desenvolvimento",
+    description: "Crie uma estratégia personalizada de carreira com metas e prazos. Seus mentores podem te ajudar a construí-lo!",
+    icon: <Briefcase className="w-8 h-8" />,
+    navigateTo: "/plano",
+  },
+  {
+    id: "achievements",
+    title: "Conquistas",
+    description: "Desbloqueie conquistas conforme avança na plataforma! Cada mentoria realizada, conteúdo acessado e meta cumprida conta para suas conquistas.",
+    icon: <Trophy className="w-8 h-8" />,
+    navigateTo: "/conquistas",
   },
   {
     id: "content",
     title: "Biblioteca de conteúdos",
-    description: "Acesse vídeos, artigos e materiais exclusivos criados por voluntários para ajudar no seu desenvolvimento.",
+    description: "Acesse vídeos, artigos, templates e materiais exclusivos criados por voluntários para ajudar no seu desenvolvimento profissional.",
     icon: <BookOpen className="w-8 h-8" />,
-    highlight: "content-library",
-    route: "/conteudos",
-  },
-  {
-    id: "guide",
-    title: "Guia da Plataforma 📖",
-    description: "No seu dashboard, você encontrará o 'Guia de como aproveitar a plataforma' com dicas detalhadas e passo a passo para tirar o máximo proveito do Movê!",
-    icon: <BookOpen className="w-8 h-8" />,
-  },
-  {
-    id: "evolution",
-    title: "Acompanhe sua evolução",
-    description: "Atualize seu status profissional e veja seu histórico de progresso. Isso nos ajuda a entender o impacto do Movê!",
-    icon: <RefreshCw className="w-8 h-8" />,
+    navigateTo: "/conteudos",
   },
   {
     id: "community",
     title: "Comunidade no WhatsApp",
-    description: "Entre no nosso grupo para trocar experiências, tirar dúvidas e se conectar com outros membros da comunidade.",
+    description: "Entre no nosso grupo para trocar experiências, tirar dúvidas e se conectar com outros membros da comunidade Movê.",
     icon: <MessageCircle className="w-8 h-8" />,
   },
   {
@@ -64,7 +71,6 @@ const steps: OnboardingStep[] = [
     title: "Sua primeira missão! 🎯",
     description: "Agora que você conhece a plataforma, sua missão é agendar sua primeira mentoria! Escolha um mentor e dê o primeiro passo na sua jornada.",
     icon: <Target className="w-8 h-8" />,
-    route: "/mentores",
   },
 ];
 
@@ -78,12 +84,19 @@ const OnboardingTour = ({ onComplete }: OnboardingTourProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  // Navigate to the page for the current step
+  useEffect(() => {
+    const step = steps[currentStep];
+    if (step.navigateTo) {
+      navigate(step.navigateTo);
+    }
+  }, [currentStep, navigate]);
+
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
       handleComplete();
-      navigate("/mentores");
     }
   };
 
@@ -96,13 +109,15 @@ const OnboardingTour = ({ onComplete }: OnboardingTourProps) => {
   const handleComplete = async () => {
     setIsExiting(true);
     
-    // Mark onboarding as completed in database
     if (user) {
       await supabase
         .from("profiles")
         .update({ onboarding_completed: true })
         .eq("user_id", user.id);
     }
+    
+    // Navigate to mentors page as final destination
+    navigate("/mentores");
     
     setTimeout(() => {
       onComplete();
@@ -118,6 +133,8 @@ const OnboardingTour = ({ onComplete }: OnboardingTourProps) => {
         .update({ onboarding_completed: true })
         .eq("user_id", user.id);
     }
+    
+    navigate("/inicio");
     
     setTimeout(() => {
       onComplete();
@@ -142,8 +159,7 @@ const OnboardingTour = ({ onComplete }: OnboardingTourProps) => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-background/95 backdrop-blur-md"
-            onClick={handleSkip}
+            className="absolute inset-0 bg-background/80 backdrop-blur-md"
           />
 
           {/* Modal */}

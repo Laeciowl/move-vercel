@@ -101,6 +101,7 @@ const Home = () => {
   const [monthlyComparison, setMonthlyComparison] = useState<{mentorias: number;hours: number;}>({ mentorias: 0, hours: 0 });
   const [missingProfileItems, setMissingProfileItems] = useState<string[]>([]);
   const [hasInterests, setHasInterests] = useState(true);
+  const [hasGoogleCalendar, setHasGoogleCalendar] = useState(true);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
@@ -119,25 +120,33 @@ const Home = () => {
     if (profile) {
       setUpdateData({ professionalStatus: profile.professional_status });
       if (!profile.onboarding_completed && !isVolunteer) setShowOnboarding(true);
-      const missing: string[] = [];
-      if (!profile.photo_url) missing.push("Foto de perfil");
-      if (!profile.description) missing.push("Sobre você / Bio");
-      setMissingProfileItems(missing);
     }
   }, [profile, isVolunteer]);
+
+  // Build missing profile items from all checks
+  useEffect(() => {
+    if (!profile) return;
+    const missing: string[] = [];
+    if (!profile.photo_url) missing.push("Foto de perfil");
+    if (!profile.description) missing.push("Sobre você / Bio");
+    if (!hasInterests) missing.push("Áreas de interesse");
+    if (!hasGoogleCalendar) missing.push("Google Calendar");
+    setMissingProfileItems(missing);
+  }, [profile, hasInterests, hasGoogleCalendar]);
 
   useEffect(() => {
     if (!user || isVolunteer) return;
     supabase.from("mentee_interests").select("id").eq("user_id", user.id).limit(1).
     then(({ data }) => {
-      const has = !!(data && data.length > 0);
-      setHasInterests(has);
-      if (!has) {
-        setMissingProfileItems((prev) => {
-          if (!prev.includes("Áreas de interesse")) return [...prev, "Áreas de interesse"];
-          return prev;
-        });
-      }
+      setHasInterests(!!(data && data.length > 0));
+    });
+  }, [user, isVolunteer]);
+
+  useEffect(() => {
+    if (!user || isVolunteer) return;
+    supabase.from("google_calendar_tokens").select("id").eq("user_id", user.id).limit(1).
+    then(({ data }) => {
+      setHasGoogleCalendar(!!(data && data.length > 0));
     });
   }, [user, isVolunteer]);
 
