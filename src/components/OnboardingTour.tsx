@@ -65,12 +65,14 @@ const steps: OnboardingStep[] = [
     title: "Comunidade no WhatsApp",
     description: "Troque experiências e se conecte com outros membros da comunidade Movê.",
     icon: <MessageCircle className="w-5 h-5" />,
+    navigateTo: "/inicio",
   },
   {
     id: "mission",
     title: "Sua primeira missão! 🎯",
     description: "Agende sua primeira mentoria! Escolha um mentor e dê o primeiro passo.",
     icon: <Target className="w-5 h-5" />,
+    navigateTo: "/inicio",
   },
 ];
 
@@ -152,7 +154,7 @@ const OnboardingTour = ({ onComplete }: OnboardingTourProps) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 flex items-center justify-center p-4 pointer-events-none"
+          className="fixed bottom-0 sm:bottom-4 left-0 sm:left-1/2 sm:-translate-x-1/2 right-0 sm:right-auto z-50 flex items-center justify-center sm:p-4 pointer-events-none"
         >
           {/* Modal */}
           <motion.div
@@ -160,7 +162,7 @@ const OnboardingTour = ({ onComplete }: OnboardingTourProps) => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 40 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="pointer-events-auto w-full max-w-lg bg-card rounded-2xl shadow-2xl border border-border/50 overflow-hidden"
+            className="pointer-events-auto w-full sm:max-w-lg bg-card rounded-t-2xl sm:rounded-2xl shadow-2xl border border-border/50 overflow-hidden"
           >
             {/* Progress bar */}
             <div className="absolute top-0 left-0 right-0 h-1 bg-muted">
