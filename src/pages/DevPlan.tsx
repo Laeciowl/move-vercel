@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Target, ChevronRight, Plus, CheckCircle, Loader2, Clock } from "lucide-react";
+import { Target, ChevronRight, Plus, CheckCircle, Loader2, Clock, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -79,6 +79,7 @@ const DevPlan = () => {
   const [customGoal, setCustomGoal] = useState("");
   const [selectedPrazo, setSelectedPrazo] = useState(3);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
@@ -183,6 +184,24 @@ const DevPlan = () => {
     } else {
       fetchPlan();
     }
+  };
+
+  const handleDeletePlan = async () => {
+    if (!user || !plan) return;
+    setDeleting(true);
+
+    // Delete items first, then the plan
+    await supabase.from("plano_itens").delete().eq("plano_id", plan.id);
+    const { error } = await supabase.from("planos_desenvolvimento").delete().eq("id", plan.id).eq("mentorado_id", user.id);
+
+    if (error) {
+      toast.error("Erro ao deletar plano: " + error.message);
+    } else {
+      toast.success("Plano removido. Crie um novo quando quiser!");
+      setPlan(null);
+      setShowCreate(true);
+    }
+    setDeleting(false);
   };
 
   if (authLoading || loading) {
@@ -293,6 +312,20 @@ const DevPlan = () => {
               <Target className="w-6 h-6 text-primary" />
             </div>
             <div className="flex-1">
+              <div className="flex items-start justify-between">
+                <h1 className="text-xl font-bold text-foreground">
+                  {plan.meta_descricao}
+                </h1>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleDeletePlan}
+                  disabled={deleting}
+                  className="text-destructive hover:text-destructive hover:bg-destructive/10 rounded-lg shrink-0"
+                >
+                  {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                </Button>
+              </div>
               <h1 className="text-xl font-bold text-foreground">
                 {plan.meta_descricao}
               </h1>
