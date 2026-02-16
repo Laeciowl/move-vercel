@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Calendar, Clock, User, Loader2, CheckCircle, XCircle, Users, Timer, Star, Heart, ArrowRight, AlertTriangle } from "lucide-react";
+import { Calendar, Clock, User, Loader2, CheckCircle, XCircle, Users, Timer, Star, Heart, ArrowRight, AlertTriangle, Video } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useVolunteerCheck } from "@/hooks/useVolunteerCheck";
@@ -27,6 +27,7 @@ interface MentorSession {
   confirmed_by_mentor?: boolean;
   duration?: number;
   completed_at?: string;
+  meeting_link?: string | null;
   hasReview?: boolean;
   mentor?: {
     name: string;
@@ -505,6 +506,19 @@ const MentorshipSection = () => {
                       </div>
                     </div>
                     
+                    {/* Meeting Link */}
+                    {session.meeting_link && (
+                      <a
+                        href={session.meeting_link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-3 py-2 bg-primary/10 border border-primary/20 rounded-lg text-sm text-primary hover:bg-primary/20 transition-colors"
+                      >
+                        <Video className="w-4 h-4" />
+                        <span className="font-medium">Entrar na sessão</span>
+                      </a>
+                    )}
+
                     <div className="flex justify-end">
                       <SessionManagement
                         sessionId={session.id}

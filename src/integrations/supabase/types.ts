@@ -413,6 +413,7 @@ export type Database = {
           created_at: string
           duration: number | null
           id: string
+          meeting_link: string | null
           mentee_formation: string | null
           mentee_objective: string | null
           mentor_id: string
@@ -429,6 +430,7 @@ export type Database = {
           created_at?: string
           duration?: number | null
           id?: string
+          meeting_link?: string | null
           mentee_formation?: string | null
           mentee_objective?: string | null
           mentor_id: string
@@ -445,6 +447,7 @@ export type Database = {
           created_at?: string
           duration?: number | null
           id?: string
+          meeting_link?: string | null
           mentee_formation?: string | null
           mentee_objective?: string | null
           mentor_id?: string

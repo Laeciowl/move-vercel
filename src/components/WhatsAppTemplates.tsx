@@ -14,6 +14,7 @@ interface WhatsAppTemplatesProps {
   duration: number;
   objective: string | null;
   mentorName?: string;
+  meetingLink?: string | null;
 }
 
 const WhatsAppTemplates = ({
@@ -23,6 +24,7 @@ const WhatsAppTemplates = ({
   duration,
   objective,
   mentorName,
+  meetingLink,
 }: WhatsAppTemplatesProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [copiedTemplate, setCopiedTemplate] = useState<string | null>(null);
@@ -44,7 +46,8 @@ Confirmando nossa mentoria:
 ${objective ? `Vamos conversar sobre:
 ${objective}
 
-` : ""}Vou criar o link da reunião e te envio até amanhã, ok?
+` : ""}${meetingLink ? `🎥 Link da reunião:
+${meetingLink}` : `Vou criar o link da reunião e te envio até amanhã, ok?`}
 
 Qualquer dúvida, estou por aqui!`;
 
@@ -53,7 +56,7 @@ Qualquer dúvida, estou por aqui!`;
 Lembrete: nossa mentoria é AMANHÃ às ${time}!
 
 🎥 Link da reunião:
-[Cole aqui o link do Google Meet/Zoom]
+${meetingLink || "[Cole aqui o link do Google Meet/Zoom]"}
 
 Confirma presença? 🚀`;
 
