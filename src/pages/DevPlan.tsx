@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Target, ChevronRight, Plus, CheckCircle, Loader2, Clock, Trash2 } from "lucide-react";
+import { Target, ChevronRight, Plus, CheckCircle, Loader2, Clock, Trash2, Pencil, X, Save } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -80,6 +80,10 @@ const DevPlan = () => {
   const [selectedPrazo, setSelectedPrazo] = useState(3);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
+  const [editingText, setEditingText] = useState("");
+  const [addingType, setAddingType] = useState<string | null>(null);
+  const [newItemText, setNewItemText] = useState("");
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
@@ -143,7 +147,6 @@ const DevPlan = () => {
       return;
     }
 
-    // Create suggested items
     const suggestions = goalSuggestions[selectedGoal] || goalSuggestions.outro;
     const items: { plano_id: string; tipo: string; descricao: string; ordem: number }[] = [];
     let order = 0;
@@ -186,11 +189,61 @@ const DevPlan = () => {
     }
   };
 
+  const handleEditItem = async (itemId: string) => {
+    if (!editingText.trim()) return;
+    const { error } = await supabase
+      .from("plano_itens")
+      .update({ descricao: editingText.trim() })
+      .eq("id", itemId);
+
+    if (error) {
+      toast.error("Erro ao editar item");
+    } else {
+      setEditingItemId(null);
+      setEditingText("");
+      fetchPlan();
+    }
+  };
+
+  const handleDeleteItem = async (itemId: string) => {
+    const { error } = await supabase
+      .from("plano_itens")
+      .delete()
+      .eq("id", itemId);
+
+    if (error) {
+      toast.error("Erro ao remover item");
+    } else {
+      fetchPlan();
+    }
+  };
+
+  const handleAddItem = async (tipo: string) => {
+    if (!plan || !newItemText.trim()) return;
+    const maxOrdem = Math.max(...plan.items.map(i => i.ordem), 0);
+
+    const { error } = await supabase
+      .from("plano_itens")
+      .insert({
+        plano_id: plan.id,
+        tipo,
+        descricao: newItemText.trim(),
+        ordem: maxOrdem + 1,
+      });
+
+    if (error) {
+      toast.error("Erro ao adicionar item");
+    } else {
+      setAddingType(null);
+      setNewItemText("");
+      fetchPlan();
+    }
+  };
+
   const handleDeletePlan = async () => {
     if (!user || !plan) return;
     setDeleting(true);
 
-    // Delete items first, then the plan
     await supabase.from("plano_itens").delete().eq("plano_id", plan.id);
     const { error } = await supabase.from("planos_desenvolvimento").delete().eq("id", plan.id).eq("mentorado_id", user.id);
 
@@ -214,7 +267,6 @@ const DevPlan = () => {
     );
   }
 
-  // Create plan view
   if (showCreate && !plan) {
     return (
       <AppLayout>
@@ -349,7 +401,6 @@ const DevPlan = () => {
         {/* Items by type */}
         {["trilha", "mentoria", "acao"].map(tipo => {
           const items = plan.items.filter(i => i.tipo === tipo);
-          if (items.length === 0) return null;
 
           const typeLabels: Record<string, string> = {
             trilha: "📚 Trilhas Recomendadas",
@@ -364,26 +415,86 @@ const DevPlan = () => {
               animate={{ opacity: 1, y: 0 }}
               className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/30 p-5"
             >
-              <h3 className="text-sm font-semibold text-foreground mb-3">{typeLabels[tipo]}</h3>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-semibold text-foreground">{typeLabels[tipo]}</h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 text-xs text-primary gap-1"
+                  onClick={() => { setAddingType(tipo); setNewItemText(""); }}
+                >
+                  <Plus className="w-3.5 h-3.5" /> Adicionar
+                </Button>
+              </div>
               <div className="space-y-2">
                 {items.map(item => (
-                  <button
-                    key={item.id}
-                    onClick={() => toggleItem(item.id, item.completado)}
-                    className={`w-full text-left px-3 py-2.5 rounded-xl text-sm flex items-center gap-3 transition-all ${
-                      item.completado
-                        ? "bg-emerald-50 dark:bg-emerald-900/10 text-emerald-700 dark:text-emerald-400"
-                        : "bg-muted/20 text-foreground hover:bg-muted/40"
-                    }`}
-                  >
-                    <CheckCircle className={`w-4 h-4 shrink-0 ${
-                      item.completado ? "text-emerald-500" : "text-muted-foreground/30"
-                    }`} />
-                    <span className={item.completado ? "line-through opacity-70" : ""}>
-                      {item.descricao}
-                    </span>
-                  </button>
+                  <div key={item.id} className="group">
+                    {editingItemId === item.id ? (
+                      <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-muted/30">
+                        <input
+                          value={editingText}
+                          onChange={(e) => setEditingText(e.target.value)}
+                          className="flex-1 bg-transparent text-sm outline-none text-foreground"
+                          autoFocus
+                          onKeyDown={(e) => { if (e.key === "Enter") handleEditItem(item.id); if (e.key === "Escape") setEditingItemId(null); }}
+                        />
+                        <button onClick={() => handleEditItem(item.id)} className="text-primary hover:text-primary/80"><Save className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => setEditingItemId(null)} className="text-muted-foreground hover:text-foreground"><X className="w-3.5 h-3.5" /></button>
+                      </div>
+                    ) : (
+                      <div
+                        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all ${
+                          item.completado
+                            ? "bg-emerald-50 dark:bg-emerald-900/10 text-emerald-700 dark:text-emerald-400"
+                            : "bg-muted/20 text-foreground hover:bg-muted/40"
+                        }`}
+                      >
+                        <button onClick={() => toggleItem(item.id, item.completado)} className="shrink-0">
+                          <CheckCircle className={`w-4 h-4 ${
+                            item.completado ? "text-emerald-500" : "text-muted-foreground/30"
+                          }`} />
+                        </button>
+                        <span className={`flex-1 ${item.completado ? "line-through opacity-70" : ""}`}>
+                          {item.descricao}
+                        </span>
+                        <div className="hidden group-hover:flex items-center gap-1">
+                          <button
+                            onClick={() => { setEditingItemId(item.id); setEditingText(item.descricao); }}
+                            className="text-muted-foreground hover:text-foreground p-0.5"
+                          >
+                            <Pencil className="w-3 h-3" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteItem(item.id)}
+                            className="text-muted-foreground hover:text-destructive p-0.5"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 ))}
+
+                {/* Add new item inline */}
+                {addingType === tipo && (
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-primary/5 border border-primary/20">
+                    <input
+                      value={newItemText}
+                      onChange={(e) => setNewItemText(e.target.value)}
+                      placeholder="Novo item..."
+                      className="flex-1 bg-transparent text-sm outline-none text-foreground placeholder:text-muted-foreground"
+                      autoFocus
+                      onKeyDown={(e) => { if (e.key === "Enter") handleAddItem(tipo); if (e.key === "Escape") setAddingType(null); }}
+                    />
+                    <button onClick={() => handleAddItem(tipo)} className="text-primary hover:text-primary/80"><Save className="w-3.5 h-3.5" /></button>
+                    <button onClick={() => setAddingType(null)} className="text-muted-foreground hover:text-foreground"><X className="w-3.5 h-3.5" /></button>
+                  </div>
+                )}
+
+                {items.length === 0 && addingType !== tipo && (
+                  <p className="text-xs text-muted-foreground italic px-3 py-2">Nenhum item ainda. Clique em "Adicionar" para personalizar.</p>
+                )}
               </div>
             </motion.div>
           );

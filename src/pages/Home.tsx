@@ -290,7 +290,7 @@ const Home = () => {
         initial="initial"
         animate="animate"
         variants={{ initial: {}, animate: { transition: { staggerChildren: 0.08 } } }}
-        className="space-y-6">
+        className="space-y-4">
 
         {/* Welcome */}
         <motion.div
@@ -454,8 +454,8 @@ const Home = () => {
           }
         </div>
 
-        {/* Quick Links Row */}
-        <div className={`grid gap-3 ${isVolunteer ? 'grid-cols-2 lg:grid-cols-4' : 'grid-cols-2 lg:grid-cols-3'}`}>
+        {/* Quick Links Row - Community + Communities + Mission side by side */}
+        <div className={`grid gap-3 ${isVolunteer ? 'grid-cols-2 lg:grid-cols-4' : 'grid-cols-2 lg:grid-cols-4'}`}>
           {/* Community */}
           <motion.div
             variants={{ initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 } }}
@@ -469,7 +469,7 @@ const Home = () => {
               </div>
               <h3 className="font-semibold text-foreground text-sm">Comunidade Movê</h3>
             </div>
-            <p className="text-xs text-muted-foreground leading-relaxed mb-2">Conecte-se com outros mentorados, tire dúvidas e compartilhe experiências</p>
+            <p className="text-xs text-muted-foreground leading-relaxed mb-2">Tire dúvidas e compartilhe experiências</p>
             <a href="https://chat.whatsapp.com/BFDDkhbwz5aFdg6WhIFU6C" target="_blank" rel="noopener noreferrer"
             className="w-full inline-flex items-center justify-center gap-1.5 text-white py-2 rounded-xl font-medium text-xs transition-colors"
             style={{ backgroundColor: '#25D366' }}>
@@ -522,7 +522,7 @@ const Home = () => {
             </motion.div>
           }
 
-          {/* Communities Partner Card - compact */}
+          {/* Communities Partner Card */}
           {!isVolunteer && !isPendingMentor &&
           <motion.div
             variants={{ initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 } }}
@@ -541,80 +541,76 @@ const Home = () => {
               </Button>
             </motion.div>
           }
+
+          {/* First Mission - compact, inline */}
+          {!isVolunteer && !isPendingMentor &&
+          <motion.div
+            variants={{ initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 } }}
+          >
+            <FirstMentorshipMission isCompleted={profile?.first_mentorship_booked || false} />
+          </motion.div>
+          }
         </div>
 
-        {/* Tips Banner - warm gradient, for new users */}
+        {/* Tips Banner - compact for new users */}
         {!isVolunteer && stats.totalMentorias === 0 &&
         <motion.div
           variants={{ initial: { opacity: 0, y: 10 }, animate: { opacity: 1, y: 0 } }}
-          className="rounded-2xl border-2 border-yellow-400/50 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 p-5">
-
-            <div className="flex items-start gap-3">
-              <div className="w-9 h-9 rounded-xl bg-yellow-400/20 flex items-center justify-center shrink-0">
-                <Lightbulb className="w-5 h-5 text-yellow-600" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h4 className="font-semibold text-yellow-800 dark:text-yellow-200 text-sm mb-1">Quer aproveitar melhor o Movê?</h4>
-                <p className="text-xs text-yellow-700/80 dark:text-yellow-300/70 mb-3">Veja dicas práticas para acelerar seu desenvolvimento</p>
-                <Link to="/ajuda">
-                  <Button size="sm" className="rounded-xl bg-yellow-500 hover:bg-yellow-600 text-yellow-950 text-xs font-medium">
-                    Ver guia completo <ArrowRight className="w-3.5 h-3.5 ml-1" />
-                  </Button>
-                </Link>
-              </div>
-            </div>
+          className="rounded-xl border border-yellow-400/40 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 px-4 py-3 flex items-center gap-3">
+            <Lightbulb className="w-4 h-4 text-yellow-600 shrink-0" />
+            <p className="text-xs text-yellow-800 dark:text-yellow-200 flex-1">Dicas para aproveitar o Movê</p>
+            <Link to="/ajuda">
+              <Button size="sm" variant="ghost" className="rounded-lg text-yellow-700 text-xs h-7 px-2">
+                Ver guia <ArrowRight className="w-3 h-3 ml-1" />
+              </Button>
+            </Link>
           </motion.div>
         }
 
         {/* Main Content */}
-        <div className="space-y-6">
-          {/* Interests Banner */}
-          {!isVolunteer && !isPendingMentor &&
-          <InterestsNotificationBanner onOpenInterestsEditor={() => setShowInterestsOnboarding(true)} />
-          }
-
-          {/* Trail & Dev Plan CTA Cards - for mentorados */}
+        <div className="space-y-4">
+          {/* Trail & Dev Plan CTA Cards - compact for mentorados */}
           {!isVolunteer && !isPendingMentor &&
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <motion.div
                 variants={{ initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 } }}
-                className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-2xl border border-primary/20 p-5 group hover:border-primary/40 transition-colors cursor-pointer"
+                className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-2xl border border-primary/20 p-4 group hover:border-primary/40 transition-colors cursor-pointer"
                 onClick={() => navigate("/trilhas")}
               >
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center">
-                    <Target className="w-5 h-5 text-primary" />
+                <div className="flex items-center gap-2 mb-1.5">
+                  <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center">
+                    <Target className="w-4 h-4 text-primary" />
                   </div>
-                  <h3 className="font-semibold text-foreground">Trilhas</h3>
+                  <h3 className="font-semibold text-foreground text-sm">Trilhas</h3>
                 </div>
-                <p className="text-sm text-muted-foreground mb-3">Venha conhecer trilhas de conhecimento para impulsionar sua carreira!</p>
-                <span className="text-sm font-medium text-primary flex items-center gap-1 group-hover:gap-2 transition-all">
-                  Explorar trilhas <ArrowRight className="w-4 h-4" />
+                <p className="text-xs text-muted-foreground mb-2">Trilhas de conhecimento para impulsionar sua carreira!</p>
+                <span className="text-xs font-medium text-primary flex items-center gap-1 group-hover:gap-2 transition-all">
+                  Explorar trilhas <ArrowRight className="w-3.5 h-3.5" />
                 </span>
               </motion.div>
 
               <motion.div
                 variants={{ initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 } }}
-                className="bg-gradient-to-br from-secondary/5 to-secondary/10 rounded-2xl border border-secondary/20 p-5 group hover:border-secondary/40 transition-colors cursor-pointer"
+                className="bg-gradient-to-br from-secondary/5 to-secondary/10 rounded-2xl border border-secondary/20 p-4 group hover:border-secondary/40 transition-colors cursor-pointer"
                 onClick={() => navigate("/plano")}
               >
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-10 h-10 rounded-xl bg-secondary/15 flex items-center justify-center">
-                    <Briefcase className="w-5 h-5 text-secondary" />
+                <div className="flex items-center gap-2 mb-1.5">
+                  <div className="w-8 h-8 rounded-lg bg-secondary/15 flex items-center justify-center">
+                    <Briefcase className="w-4 h-4 text-secondary" />
                   </div>
-                  <h3 className="font-semibold text-foreground">Plano de Desenvolvimento</h3>
+                  <h3 className="font-semibold text-foreground text-sm">Plano de Desenvolvimento</h3>
                 </div>
-                <p className="text-sm text-muted-foreground mb-3">Venha traçar uma estratégia para sua carreira profissional!</p>
-                <span className="text-sm font-medium text-secondary flex items-center gap-1 group-hover:gap-2 transition-all">
-                  Criar meu plano <ArrowRight className="w-4 h-4" />
+                <p className="text-xs text-muted-foreground mb-2">Trace uma estratégia para sua carreira profissional!</p>
+                <span className="text-xs font-medium text-secondary flex items-center gap-1 group-hover:gap-2 transition-all">
+                  Criar meu plano <ArrowRight className="w-3.5 h-3.5" />
                 </span>
               </motion.div>
             </div>
           }
 
-          {/* First Mission - reduced */}
+          {/* Interests Banner */}
           {!isVolunteer && !isPendingMentor &&
-          <FirstMentorshipMission isCompleted={profile?.first_mentorship_booked || false} />
+          <InterestsNotificationBanner onOpenInterestsEditor={() => setShowInterestsOnboarding(true)} />
           }
 
           {isPendingMentor && !isVolunteer && <PendingMentorBanner />}

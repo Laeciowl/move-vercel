@@ -16,6 +16,8 @@ const NpsModal = () => {
   const [visible, setVisible] = useState(false);
   const [nota, setNota] = useState<number | null>(null);
   const [feedback, setFeedback] = useState("");
+  const [motivo, setMotivo] = useState("");
+  const [melhoria, setMelhoria] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const userType = (isVolunteer || isMentor) ? "mentor" : "mentorado";
@@ -25,7 +27,6 @@ const NpsModal = () => {
     checkShouldShow();
   }, [user, isMentor, isVolunteer]);
 
-  // Force show when navigating to #nps
   useEffect(() => {
     if (location.hash === "#nps" && user) {
       setVisible(true);
@@ -95,17 +96,23 @@ const NpsModal = () => {
     if (!user || nota === null) return;
     setSubmitting(true);
 
-    // First check if user already has an NPS response - if so, delete it first then insert new one
     await supabase
       .from("nps_respostas")
       .delete()
       .eq("user_id", user.id);
 
+    // Combine all feedback fields into a single feedback string
+    const feedbackParts: string[] = [];
+    if (motivo) feedbackParts.push(`Motivo: ${motivo}`);
+    if (feedback) feedbackParts.push(`Comentário: ${feedback}`);
+    if (melhoria) feedbackParts.push(`Sugestão de melhoria: ${melhoria}`);
+    const combinedFeedback = feedbackParts.length > 0 ? feedbackParts.join(" | ") : null;
+
     const { error } = await supabase.from("nps_respostas").insert({
       user_id: user.id,
       user_type: userType,
       nota,
-      feedback: feedback || null,
+      feedback: combinedFeedback,
     });
 
     if (error) {
@@ -165,15 +172,39 @@ const NpsModal = () => {
       </div>
 
       {nota !== null && (
-        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="space-y-2">
-          <p className="text-xs font-medium text-foreground">{getFeedbackPrompt()}</p>
-          <textarea
-            value={feedback}
-            onChange={(e) => setFeedback(e.target.value)}
-            maxLength={500}
-            placeholder="Sua resposta (opcional)..."
-            className="w-full px-3 py-2 rounded-xl border border-input bg-background text-sm min-h-[60px] focus:outline-none focus:ring-2 focus:ring-primary/50"
-          />
+        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="space-y-3">
+          <div>
+            <p className="text-xs font-medium text-foreground mb-1">Qual o principal motivo da sua nota?</p>
+            <textarea
+              value={motivo}
+              onChange={(e) => setMotivo(e.target.value)}
+              maxLength={300}
+              placeholder="Ex: facilidade de uso, qualidade dos mentores..."
+              className="w-full px-3 py-2 rounded-xl border border-input bg-background text-sm min-h-[50px] focus:outline-none focus:ring-2 focus:ring-primary/50"
+            />
+          </div>
+
+          <div>
+            <p className="text-xs font-medium text-foreground mb-1">{getFeedbackPrompt()}</p>
+            <textarea
+              value={feedback}
+              onChange={(e) => setFeedback(e.target.value)}
+              maxLength={500}
+              placeholder="Sua resposta (opcional)..."
+              className="w-full px-3 py-2 rounded-xl border border-input bg-background text-sm min-h-[50px] focus:outline-none focus:ring-2 focus:ring-primary/50"
+            />
+          </div>
+
+          <div>
+            <p className="text-xs font-medium text-foreground mb-1">Tem alguma sugestão de melhoria?</p>
+            <textarea
+              value={melhoria}
+              onChange={(e) => setMelhoria(e.target.value)}
+              maxLength={500}
+              placeholder="Funcionalidades, conteúdos, experiência..."
+              className="w-full px-3 py-2 rounded-xl border border-input bg-background text-sm min-h-[50px] focus:outline-none focus:ring-2 focus:ring-primary/50"
+            />
+          </div>
         </motion.div>
       )}
 

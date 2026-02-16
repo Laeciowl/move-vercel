@@ -368,7 +368,7 @@ const TrailDetail = () => {
                             className="gap-1.5"
                           >
                             <BookOpen className="w-3.5 h-3.5" />
-                            {step.tipo === "video" ? "Ver vídeos" : step.tipo === "download" ? "Ver arquivos" : "Ver conteúdos"}
+                            {step.tipo === "video" ? "Assista na página de conteúdo" : step.tipo === "download" ? "Baixe um template na página de conteúdo" : "Ver conteúdos"}
                           </Button>
                         )}
                         {step.link_externo && (
@@ -395,11 +395,17 @@ const TrailDetail = () => {
                       </div>
                     )}
 
-                    {state === "completed" && step.link_externo && (
+                    {state === "completed" && (step.tipo === "conteudo" || step.tipo === "video" || step.tipo === "download") && (
+                      <Button size="sm" variant="ghost" className="gap-1.5 text-xs h-7 mt-2" onClick={() => navigate("/conteudos")}>
+                        <BookOpen className="w-3 h-3" />
+                        {step.tipo === "video" ? "Assista na página de conteúdo" : step.tipo === "download" ? "Baixe na página de conteúdo" : "Ver na página de conteúdo"}
+                      </Button>
+                    )}
+                    {state === "completed" && step.link_externo && step.tipo !== "conteudo" && step.tipo !== "video" && step.tipo !== "download" && (
                       <a href={step.link_externo} target="_blank" rel="noopener noreferrer" className="inline-block mt-2">
                         <Button size="sm" variant="ghost" className="gap-1.5 text-xs h-7">
                           <ExternalLink className="w-3 h-3" />
-                          {step.tipo === "video" ? "Assistir novamente" : step.tipo === "download" ? "Baixar novamente" : "Acessar novamente"}
+                          Acessar novamente
                         </Button>
                       </a>
                     )}
