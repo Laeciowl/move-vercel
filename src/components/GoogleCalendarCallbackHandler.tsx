@@ -5,7 +5,7 @@ import { toast } from "sonner";
 /**
  * Global handler for Google Calendar OAuth callback.
  * Detects ?code=...&state=... in the URL and exchanges the code for tokens.
- * Must be mounted at the app level so it works regardless of which modal is open.
+ * Waits for auth session to be ready before attempting exchange.
  */
 const GoogleCalendarCallbackHandler = () => {
   const handledRef = useRef(false);
@@ -25,17 +25,31 @@ const GoogleCalendarCallbackHandler = () => {
 
     const exchangeCode = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-          console.error("GoogleCalendarCallback: No auth session");
-          return;
-        }
-
         let stateData: { redirect_uri: string };
         try {
           stateData = JSON.parse(atob(stateParam));
         } catch {
           console.error("GoogleCalendarCallback: Invalid state param");
+          window.history.replaceState({}, "", window.location.pathname);
+          return;
+        }
+
+        // Wait for auth session — retry up to 10 times (5 seconds)
+        let session = null;
+        for (let i = 0; i < 10; i++) {
+          const { data } = await supabase.auth.getSession();
+          if (data.session) {
+            session = data.session;
+            break;
+          }
+          console.log(`GoogleCalendarCallback: Waiting for auth session (attempt ${i + 1})...`);
+          await new Promise((r) => setTimeout(r, 500));
+        }
+
+        if (!session) {
+          console.error("GoogleCalendarCallback: No auth session after retries");
+          toast.error("Erro: sessão não encontrada. Faça login e tente conectar novamente.");
+          window.history.replaceState({}, "", window.location.pathname);
           return;
         }
 
