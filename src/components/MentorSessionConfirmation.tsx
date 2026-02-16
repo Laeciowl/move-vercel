@@ -114,9 +114,29 @@ const MentorSessionConfirmation = ({ sessions, mentorName, mentorEmail, onUpdate
     } else {
       toast.success(confirmed ? "Sessão confirmada!" : "Sessão cancelada");
       
-      // Send confirmation emails if confirmed
+      // Send confirmation emails and create Google Calendar events if confirmed
       if (confirmed && session) {
         await sendConfirmationEmails(session);
+        
+        // Create Google Calendar events for both mentor and mentee
+        try {
+          const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+          const { data: { session: authSession } } = await supabase.auth.getSession();
+          const token = authSession?.access_token;
+          
+          await fetch(`${supabaseUrl}/functions/v1/google-calendar-sync?action=create-event`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`,
+            },
+            body: JSON.stringify({ session_id: sessionId }),
+          });
+          console.log("Google Calendar events created for session:", sessionId);
+        } catch (calErr) {
+          console.error("Error creating Google Calendar events:", calErr);
+          // Don't block confirmation if calendar sync fails
+        }
       }
       
       onUpdate();
