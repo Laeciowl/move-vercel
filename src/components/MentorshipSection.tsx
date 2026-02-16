@@ -223,6 +223,27 @@ const MentorshipSection = () => {
       // Silent fail for notification
     }
 
+    // Sync to Google Calendar for both parties
+    try {
+      const { data: { session: authSession } } = await supabase.auth.getSession();
+      if (authSession) {
+        await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/google-calendar-sync?action=create-event`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${authSession.access_token}`,
+              apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ session_id: session.id }),
+          }
+        );
+      }
+    } catch (err) {
+      console.error("Google Calendar sync error:", err);
+    }
+
     toast.success("Sessão confirmada como realizada! 🎉");
     setConfirmingId(null);
     await fetchSessions();
