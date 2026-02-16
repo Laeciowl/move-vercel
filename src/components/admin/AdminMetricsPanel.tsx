@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/dialog";
 
 // ─── Constants ───────────────────────────────────────────
-const LAUNCH_DATE = new Date("2026-01-01T00:00:00Z");
+const LAUNCH_DATE = new Date(2026, 0, 1); // January 1, 2026 in local time
 
 type GrowthPeriod = "launch" | "this_month" | "last_month" | "last_3_months" | "custom";
 
@@ -258,13 +258,13 @@ const AdminMetricsPanel = () => {
 
   const fetchAlerts = useCallback(async () => {
     try {
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const fourteenDaysAgo = new Date();
+      fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
 
       const [alertsRes, allMentorsRes, recentSessionsRes, pendingSessionsRes] = await Promise.all([
         supabase.rpc("get_admin_alerts"),
-        supabase.from("mentors").select("id").eq("status", "approved"),
-        supabase.from("mentor_sessions").select("mentor_id").gte("created_at", thirtyDaysAgo.toISOString()),
+        supabase.from("mentors").select("id, created_at").eq("status", "approved"),
+        supabase.from("mentor_sessions").select("mentor_id").gte("created_at", fourteenDaysAgo.toISOString()),
         supabase.from("mentor_sessions")
           .select("mentor_id")
           .eq("status", "scheduled")
@@ -273,11 +273,16 @@ const AdminMetricsPanel = () => {
       ]);
 
       const alertData = alertsRes.data as any;
-      const mentorIds = new Set(allMentorsRes.data?.map((m: any) => m.id) || []);
+      // Only consider mentors created more than 14 days ago
+      const mentorsOldEnough = (allMentorsRes.data || []).filter((m: any) => {
+        const created = new Date(m.created_at);
+        return created.getTime() <= fourteenDaysAgo.getTime();
+      });
+      const mentorIds = new Set(mentorsOldEnough.map((m: any) => m.id));
       const mentorsWithSessions = new Set(recentSessionsRes.data?.map((s: any) => s.mentor_id) || []);
       const mentorsWithPending = new Set(pendingSessionsRes.data?.map((s: any) => s.mentor_id) || []);
 
-      // Mentors without any requests in 30+ days
+      // Mentors without any requests in 14+ days (excluding recently joined)
       let noRequestsCount = 0;
       mentorIds.forEach((id) => {
         if (!mentorsWithSessions.has(id)) noRequestsCount++;
@@ -355,19 +360,19 @@ const AdminMetricsPanel = () => {
   const fetchNoRequestDetails = useCallback(async () => {
     setLoadingNoReq(true);
     try {
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const fourteenDaysAgo = new Date();
+      fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
 
       const [mentorsRes, sessionsRes] = await Promise.all([
         supabase.from("mentors").select("id, name, area, created_at").eq("status", "approved"),
-        supabase.from("mentor_sessions").select("mentor_id").gte("created_at", thirtyDaysAgo.toISOString()),
+        supabase.from("mentor_sessions").select("mentor_id").gte("created_at", fourteenDaysAgo.toISOString()),
       ]);
 
       const mentorsWithSessions = new Set((sessionsRes.data || []).map((s: any) => s.mentor_id));
       const now = Date.now();
 
       const details: MentorAlertDetail[] = (mentorsRes.data || [])
-        .filter((m: any) => !mentorsWithSessions.has(m.id))
+        .filter((m: any) => !mentorsWithSessions.has(m.id) && new Date(m.created_at).getTime() <= fourteenDaysAgo.getTime())
         .map((m: any) => ({
           id: m.id,
           name: m.name,
