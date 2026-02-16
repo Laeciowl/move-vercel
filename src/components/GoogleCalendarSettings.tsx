@@ -214,6 +214,14 @@ const GoogleCalendarSettings = () => {
             <li>✓ Lembretes automáticos do Google</li>
             <li>✓ Evita conflitos de agenda</li>
           </ul>
+          <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-3 text-xs text-amber-800 dark:text-amber-300 space-y-1">
+            <p className="font-medium">⚠️ Aviso sobre a tela do Google</p>
+            <p>
+              Ao conectar, o Google pode exibir um aviso de que o app "não foi verificado". 
+              Isso é normal — nossa integração está em processo de verificação. 
+              <strong>É seguro prosseguir:</strong> clique em "Avançado" e depois em "Acessar" para continuar a conexão.
+            </p>
+          </div>
           <Button
             onClick={handleConnect}
             disabled={connecting}
