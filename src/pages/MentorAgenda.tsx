@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Calendar, Clock, CheckCircle, ArrowLeft, Mail, Phone, User, Settings, Award, Loader2, Tag, AlertTriangle, ChevronDown, ChevronRight, PauseCircle, PlayCircle } from "lucide-react";
+import { Calendar, Clock, CheckCircle, ArrowLeft, Mail, Phone, User, Settings, Award, Loader2, Tag, AlertTriangle, ChevronDown, ChevronRight, PauseCircle, PlayCircle, Video, Link2, Save } from "lucide-react";
 import MentorMenteeNotes from "@/components/MentorMenteeNotes";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -41,6 +41,7 @@ interface MentorSession {
   mentor_notes: string | null;
   duration?: number;
   completed_at?: string;
+  meeting_link?: string | null;
   mentee_email?: string;
   mentee_formation?: string | null;
   mentee_objective?: string | null;
@@ -79,6 +80,25 @@ const MentorAgenda = () => {
   const [showBlockedPeriods, setShowBlockedPeriods] = useState(false);
   const [expandedSessionId, setExpandedSessionId] = useState<string | null>(null);
   const [expandedMenteeId, setExpandedMenteeId] = useState<string | null>(null);
+  const [meetingLinkDraft, setMeetingLinkDraft] = useState<Record<string, string>>({});
+  const [savingMeetingLink, setSavingMeetingLink] = useState<string | null>(null);
+
+  const handleSaveMeetingLink = async (sessionId: string) => {
+    setSavingMeetingLink(sessionId);
+    const link = meetingLinkDraft[sessionId] || "";
+    const { error } = await supabase
+      .from("mentor_sessions")
+      .update({ meeting_link: link || null })
+      .eq("id", sessionId);
+    
+    if (error) {
+      toast.error("Erro ao salvar link: " + error.message);
+    } else {
+      toast.success("Link da sessão salvo! ✅");
+      fetchData();
+    }
+    setSavingMeetingLink(null);
+  };
 
   const isSessionPast = (scheduledAt: string, duration: number = 30): boolean => {
     const sessionEndTime = new Date(scheduledAt);
@@ -475,6 +495,47 @@ const MentorAgenda = () => {
                                   )}
                                 </div>
 
+                                {/* Meeting Link */}
+                                <div className="bg-card/50 rounded-lg p-3 space-y-2 border border-border/50">
+                                  <p className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                                    <Video className="w-3.5 h-3.5 text-primary" />
+                                    Link da sessão (Google Meet / Zoom)
+                                  </p>
+                                  <div className="flex gap-2">
+                                    <input
+                                      type="url"
+                                      value={meetingLinkDraft[session.id] ?? session.meeting_link ?? ""}
+                                      onChange={(e) => setMeetingLinkDraft(prev => ({ ...prev, [session.id]: e.target.value }))}
+                                      placeholder="https://meet.google.com/..."
+                                      className="flex-1 px-3 py-2 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                                    />
+                                    <Button
+                                      size="sm"
+                                      onClick={() => handleSaveMeetingLink(session.id)}
+                                      disabled={savingMeetingLink === session.id}
+                                      className="bg-primary hover:bg-primary/90 text-primary-foreground gap-1 shrink-0"
+                                    >
+                                      {savingMeetingLink === session.id ? (
+                                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                      ) : (
+                                        <Save className="w-3.5 h-3.5" />
+                                      )}
+                                      Salvar
+                                    </Button>
+                                  </div>
+                                  {session.meeting_link && (
+                                    <a 
+                                      href={session.meeting_link} 
+                                      target="_blank" 
+                                      rel="noopener noreferrer"
+                                      className="text-xs text-primary hover:underline flex items-center gap-1"
+                                    >
+                                      <Link2 className="w-3 h-3" />
+                                      Abrir link da sessão
+                                    </a>
+                                  )}
+                                </div>
+
                                 <MentorMenteeNotes
                                   mentorId={mentorData.id}
                                   menteeUserId={session.user_id}
@@ -489,6 +550,7 @@ const MentorAgenda = () => {
                                     duration={sessionDuration}
                                     objective={session.mentee_objective || null}
                                     mentorName={mentorData.name}
+                                    meetingLink={session.meeting_link || null}
                                   />
                                 )}
 
