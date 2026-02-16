@@ -462,37 +462,20 @@ const Home = () => {
             className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/30 p-4 hover:border-green-500/30 transition-colors">
 
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-7 h-7 rounded-lg bg-green-500/10 flex items-center justify-center">
-                <MessageCircle className="w-3.5 h-3.5 text-green-600" />
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'hsl(142, 70%, 45%, 0.1)' }}>
+                <MessageCircle className="w-3.5 h-3.5" style={{ color: '#25D366' }} />
               </div>
-              <h3 className="font-semibold text-foreground text-sm">Comunidade Movê - Whatsapp</h3>
+              <h3 className="font-semibold text-foreground text-sm">Comunidade Movê</h3>
             </div>
-            <p className="text-xs text-muted-foreground leading-relaxed mb-2">Comunidade do Whatsapp Movê, entre e faça parte!</p>
+            <p className="text-xs text-muted-foreground leading-relaxed mb-2">Conecte-se com outros mentorados, tire dúvidas e compartilhe experiências</p>
             <a href="https://chat.whatsapp.com/BFDDkhbwz5aFdg6WhIFU6C" target="_blank" rel="noopener noreferrer"
-            className="w-full inline-flex items-center justify-center gap-1.5 bg-green-600 text-white py-2 rounded-xl font-medium text-xs hover:bg-green-700 transition-colors">
-              <MessageCircle className="w-3.5 h-3.5" /> Entrar
+            className="w-full inline-flex items-center justify-center gap-1.5 text-white py-2 rounded-xl font-medium text-xs transition-colors"
+            style={{ backgroundColor: '#25D366' }}>
+              <MessageCircle className="w-3.5 h-3.5" /> Entrar no grupo
             </a>
           </motion.div>
 
-          {/* TEM VAGA? - only for mentees */}
-          {!isVolunteer && !isPendingMentor &&
-          <motion.div
-            variants={{ initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 } }}
-            className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/30 p-4 hover:border-blue-500/30 transition-colors">
-
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-7 h-7 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                  <Briefcase className="w-3.5 h-3.5 text-blue-600" />
-                </div>
-                <h3 className="font-semibold text-foreground text-sm">TEM VAGA?</h3>
-              </div>
-              <p className="text-xs text-muted-foreground leading-relaxed mb-2">Vagas de estágio e cargos iniciais para jovens talentos.</p>
-              <a href="https://chat.whatsapp.com/JugF130879CH7Lgo2Ycs1b" target="_blank" rel="noopener noreferrer"
-            className="w-full inline-flex items-center justify-center gap-1.5 bg-blue-600 text-white py-2 rounded-xl font-medium text-xs hover:bg-blue-700 transition-colors">
-                <MessageCircle className="w-3.5 h-3.5" /> Entrar
-              </a>
-            </motion.div>
-          }
+          {/* Referral card - only for mentees */}
 
           {/* Mentors Group - only for volunteers */}
           {isVolunteer &&
@@ -555,19 +538,26 @@ const Home = () => {
           }
         </div>
 
-        {/* Tips Banner - compact, for new users */}
+        {/* Tips Banner - warm gradient, for new users */}
         {!isVolunteer && stats.totalMentorias === 0 &&
         <motion.div
           variants={{ initial: { opacity: 0, y: 10 }, animate: { opacity: 1, y: 0 } }}
-          className="rounded-xl border border-blue-200 dark:border-blue-800/40 bg-blue-50/80 dark:bg-blue-900/20 px-4 py-3 flex items-center justify-between gap-3">
+          className="rounded-2xl border-2 border-yellow-400/50 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 p-5">
 
-            <div className="flex items-center gap-2 min-w-0">
-              <Lightbulb className="w-4 h-4 text-blue-600 shrink-0" />
-              <span className="text-xs text-blue-800 dark:text-blue-200">Se sentindo perdido? Veja como aproveitar a plataforma!</span>
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 rounded-xl bg-yellow-400/20 flex items-center justify-center shrink-0">
+                <Lightbulb className="w-5 h-5 text-yellow-600" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="font-semibold text-yellow-800 dark:text-yellow-200 text-sm mb-1">Quer aproveitar melhor o Movê?</h4>
+                <p className="text-xs text-yellow-700/80 dark:text-yellow-300/70 mb-3">Veja dicas práticas para acelerar seu desenvolvimento</p>
+                <Link to="/ajuda">
+                  <Button size="sm" className="rounded-xl bg-yellow-500 hover:bg-yellow-600 text-yellow-950 text-xs font-medium">
+                    Ver guia completo <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                  </Button>
+                </Link>
+              </div>
             </div>
-            <Link to="/ajuda" className="text-xs text-blue-600 hover:underline whitespace-nowrap font-medium flex items-center gap-1">
-              Ver guia <ArrowRight className="w-3 h-3" />
-            </Link>
           </motion.div>
         }
 
@@ -587,7 +577,7 @@ const Home = () => {
 
           <VolunteerPanel />
 
-          {!isVolunteer && !isMentor && !isPendingMentor && <MentorPanel />}
+          {/* MentorPanel removed - mentees access via /cadastro or menu */}
 
           {(!isVolunteer || isMentor) && <MentorshipSection />}
 
