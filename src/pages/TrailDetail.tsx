@@ -235,7 +235,7 @@ const TrailDetail = () => {
                 As trilhas são estruturadas para te ajudar, mas seu sucesso depende de você.
               </p>
               <p className="text-sm text-muted-foreground mb-3">
-                Seja honesto nos checkboxes — você só engana a si mesmo.
+                Seja honesto nos checkboxes!
               </p>
               <p className="text-sm font-medium text-foreground mb-4">
                 💪 Vamos crescer juntos, mas com responsabilidade!
