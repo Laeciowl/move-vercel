@@ -55,6 +55,22 @@ const stepTypeLabels: Record<string, string> = {
   mentoria: "Mentoria",
 };
 
+const getThemeFromStep = (titulo: string): string | null => {
+  const lower = titulo.toLowerCase();
+  if (lower.includes("currículo") || lower.includes("curriculo")) return "curriculo";
+  if (lower.includes("linkedin")) return "linkedin";
+  if (lower.includes("entrevista")) return "entrevistas";
+  if (lower.includes("liderança") || lower.includes("lideranca")) return "lideranca";
+  if (lower.includes("comunicação") || lower.includes("comunicacao")) return "comunicacao";
+  if (lower.includes("programação") || lower.includes("programacao")) return "programacao";
+  if (lower.includes("marketing")) return "marketing";
+  if (lower.includes("dados")) return "dados";
+  if (lower.includes("finanças") || lower.includes("financas")) return "financas";
+  if (lower.includes("empreendedorismo")) return "empreendedorismo";
+  if (lower.includes("produtividade")) return "produtividade";
+  return null;
+};
+
 const TrailDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -364,7 +380,10 @@ const TrailDetail = () => {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => navigate("/conteudos")}
+                            onClick={() => {
+                              const tema = getThemeFromStep(step.titulo);
+                              navigate(tema ? `/conteudos?tema=${tema}` : "/conteudos");
+                            }}
                             className="gap-1.5"
                           >
                             <BookOpen className="w-3.5 h-3.5" />
@@ -396,7 +415,10 @@ const TrailDetail = () => {
                     )}
 
                     {state === "completed" && (step.tipo === "conteudo" || step.tipo === "video" || step.tipo === "download") && (
-                      <Button size="sm" variant="ghost" className="gap-1.5 text-xs h-7 mt-2" onClick={() => navigate("/conteudos")}>
+                      <Button size="sm" variant="ghost" className="gap-1.5 text-xs h-7 mt-2" onClick={() => {
+                        const tema = getThemeFromStep(step.titulo);
+                        navigate(tema ? `/conteudos?tema=${tema}` : "/conteudos");
+                      }}>
                         <BookOpen className="w-3 h-3" />
                         {step.tipo === "video" ? "Assista na página de conteúdo" : step.tipo === "download" ? "Baixe na página de conteúdo" : "Ver na página de conteúdo"}
                       </Button>
