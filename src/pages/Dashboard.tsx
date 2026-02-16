@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
   LogOut, RefreshCw, User, 
-  Loader2, History, Edit, Shield, Heart, Sparkles, ExternalLink, MessageCircle, Settings, Briefcase, Target
+  Loader2, History, Edit, Shield, Heart, Sparkles, ExternalLink, MessageCircle, Settings, Briefcase, Target, ChevronRight
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
@@ -418,8 +418,29 @@ const Dashboard = () => {
             {/* Mentorship Section - for non-volunteers OR approved mentors (so mentors can also book sessions) */}
             {(!isVolunteer || isMentor) && <MentorshipSection />}
 
-            {/* Trails Dashboard Card - for mentorados only (not mentors/volunteers) */}
-            {!isVolunteer && !isMentor && <TrailsDashboardCard />}
+            {/* Trails Dashboard Card - for mentorados (including admins who are also mentorados) */}
+            {(!isVolunteer || isAdmin) && <TrailsDashboardCard />}
+
+            {/* Dev Plan Card */}
+            {(!isVolunteer || isAdmin) && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border/30 p-5 group hover:border-primary/30 transition-colors cursor-pointer"
+                onClick={() => navigate("/plano")}
+              >
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-9 h-9 rounded-xl bg-secondary/10 flex items-center justify-center">
+                    <Briefcase className="w-4 h-4 text-secondary" />
+                  </div>
+                  <h3 className="font-semibold text-foreground">Plano de Desenvolvimento</h3>
+                </div>
+                <p className="text-sm text-muted-foreground mb-3">Monte seu roteiro personalizado de crescimento profissional.</p>
+                <span className="text-sm font-medium text-primary flex items-center gap-1 group-hover:gap-2 transition-all">
+                  Acessar plano <ChevronRight className="w-4 h-4" />
+                </span>
+              </motion.div>
+            )}
 
             {/* Content Library */}
             <ContentLibrary />

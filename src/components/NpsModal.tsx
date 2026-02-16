@@ -86,6 +86,12 @@ const NpsModal = () => {
     if (!user || nota === null) return;
     setSubmitting(true);
 
+    // First check if user already has an NPS response - if so, delete it first then insert new one
+    await supabase
+      .from("nps_respostas")
+      .delete()
+      .eq("user_id", user.id);
+
     const { error } = await supabase.from("nps_respostas").insert({
       user_id: user.id,
       user_type: userType,
