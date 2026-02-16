@@ -116,8 +116,8 @@ const OnboardingTour = ({ onComplete }: OnboardingTourProps) => {
         .eq("user_id", user.id);
     }
     
-    // Navigate to mentors page as final destination
-    navigate("/mentores");
+    // Navigate back to dashboard
+    navigate("/inicio");
     
     setTimeout(() => {
       onComplete();

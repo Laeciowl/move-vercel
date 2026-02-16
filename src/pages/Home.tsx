@@ -22,7 +22,7 @@ import PendingMentorBanner from "@/components/PendingMentorBanner";
 import VolunteerPanel from "@/components/VolunteerPanel";
 import MentorPanel from "@/components/MentorPanel";
 import MentorshipSection from "@/components/MentorshipSection";
-import OnboardingTour from "@/components/OnboardingTour";
+
 import MenteeInterestsEditor from "@/components/MenteeInterestsEditor";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -85,7 +85,6 @@ const Home = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [showProfileEdit, setShowProfileEdit] = useState(false);
-  const [showOnboarding, setShowOnboarding] = useState(false);
   const [showInterestsOnboarding, setShowInterestsOnboarding] = useState(false);
   const [showUpdateForm, setShowUpdateForm] = useState(false);
   const [updating, setUpdating] = useState(false);
@@ -119,7 +118,7 @@ const Home = () => {
   useEffect(() => {
     if (profile) {
       setUpdateData({ professionalStatus: profile.professional_status });
-      if (!profile.onboarding_completed && !isVolunteer) setShowOnboarding(true);
+      // Onboarding is now handled globally in App.tsx
     }
   }, [profile, isVolunteer]);
 
@@ -636,7 +635,7 @@ const Home = () => {
 
       {/* Modals */}
       <ProfileEditModal isOpen={showProfileEdit} onClose={() => setShowProfileEdit(false)} profile={profile} onProfileUpdated={refreshProfile} />
-      {showOnboarding && <OnboardingTour onComplete={() => {setShowOnboarding(false);refreshProfile();}} />}
+      
       <InterestsOnboardingModal open={showInterestsOnboarding} onClose={() => setShowInterestsOnboarding(false)} />
     </AppLayout>);
 };

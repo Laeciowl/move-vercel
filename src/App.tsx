@@ -3,7 +3,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { useState, useEffect } from "react";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Signup from "./pages/Signup";
@@ -27,8 +28,35 @@ import SavedContents from "./pages/SavedContents";
 import DevPlan from "./pages/DevPlan";
 import Nps from "./pages/Nps";
 import NotFound from "./pages/NotFound";
+import OnboardingTour from "./components/OnboardingTour";
+import { supabase } from "./integrations/supabase/client";
 
 const queryClient = new QueryClient();
+
+const GlobalOnboarding = () => {
+  const { user, profile, refreshProfile } = useAuth();
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  useEffect(() => {
+    if (profile && !profile.onboarding_completed && user) {
+      supabase.from("user_roles").select("role").eq("user_id", user.id).eq("role", "voluntario").maybeSingle()
+        .then(({ data }) => {
+          if (!data) setShowOnboarding(true);
+        });
+    } else {
+      setShowOnboarding(false);
+    }
+  }, [profile, user]);
+
+  if (!showOnboarding) return null;
+
+  return (
+    <OnboardingTour onComplete={() => {
+      setShowOnboarding(false);
+      refreshProfile();
+    }} />
+  );
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -37,6 +65,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <GlobalOnboarding />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
