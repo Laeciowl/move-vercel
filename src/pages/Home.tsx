@@ -44,55 +44,34 @@ const professionalStatusLabels: Record<string, string> = {
 };
 
 const professionalStatusOptions = [
-{ value: "desempregado", label: "Desempregado" },
-{ value: "estudante", label: "Estudante" },
-{ value: "estagiario", label: "Estagiário" },
-{ value: "empregado", label: "Empregado" },
-{ value: "freelancer_pj", label: "Freelancer / PJ" }];
+  { value: "desempregado", label: "Desempregado" },
+  { value: "estudante", label: "Estudante" },
+  { value: "estagiario", label: "Estagiário" },
+  { value: "empregado", label: "Empregado" },
+  { value: "freelancer_pj", label: "Freelancer / PJ" }
+];
 
-
-// Contextual message logic
 const getContextualMessage = (
-profile: any,
-stats: any,
-hasUpcomingSoon: boolean,
-upcomingMentorName: string | null,
-hasPendingConfirmation: boolean,
-lastSessionDaysAgo: number | null,
-lastActivityDaysAgo: number | null,
-isVolunteer: boolean)
+  profile: any,
+  stats: any,
+  hasUpcomingSoon: boolean,
+  upcomingMentorName: string | null,
+  hasPendingConfirmation: boolean,
+  lastSessionDaysAgo: number | null,
+  lastActivityDaysAgo: number | null,
+  isVolunteer: boolean)
 : string => {
   if (isVolunteer) return "Obrigado por transformar vidas ✨";
-
-  // 9. Pending confirmation
   if (hasPendingConfirmation) return "Não esqueça de confirmar se sua última mentoria aconteceu ✓";
-
-  // 8. Upcoming within 48h
   if (hasUpcomingSoon && upcomingMentorName) return `Sua mentoria com ${upcomingMentorName} é em breve! Já se preparou?`;
   if (hasUpcomingSoon) return "Sua próxima mentoria está chegando. Já se preparou? 📚";
-
-  // 4. First session completed recently
   if (stats.totalMentorias === 1 && lastSessionDaysAgo !== null && lastSessionDaysAgo <= 3) return "Parabéns pela primeira mentoria! 🎉 Como foi a experiência?";
-
-  // 1. Brand new user
   if (stats.totalMentorias === 0 && (!profile.photo_url || !profile.description)) return "Bem-vindo! Complete seu perfil e agende sua primeira mentoria 🚀";
-
-  // 2. Profile complete, no sessions
   if (stats.totalMentorias === 0) return "Pronto para começar! Que tal agendar sua primeira mentoria?";
-
-  // 3. First session scheduled (waiting)
   if (stats.totalMentorias === 0 && hasUpcomingSoon) return "Show! Sua primeira mentoria está chegando. Vamos nos preparar? 📚";
-
-  // 7. Inactive 14+ days
   if (lastActivityDaysAgo !== null && lastActivityDaysAgo >= 14) return "Sentimos sua falta! Que tal agendar uma nova mentoria?";
-
-  // 6. 6+ sessions
   if (stats.totalMentorias >= 6) return "Você está arrasando! 🔥 Sua dedicação inspira";
-
-  // 5. 2-5 sessions
   if (stats.totalMentorias >= 2) return "Você está no caminho certo! Continue assim 💪";
-
-  // 10. Fallback
   return "Bora crescer juntos! 💙";
 };
 
@@ -113,18 +92,13 @@ const Home = () => {
   const [updateData, setUpdateData] = useState({ professionalStatus: "" });
   const [impactHistory, setImpactHistory] = useState<any[]>([]);
 
-  // Contextual message state
   const [contextMsg, setContextMsg] = useState("Bora crescer juntos! 💙");
   const [hasUpcomingSoon, setHasUpcomingSoon] = useState(false);
   const [upcomingMentorName, setUpcomingMentorName] = useState<string | null>(null);
   const [hasPendingConfirmation, setHasPendingConfirmation] = useState(false);
   const [lastSessionDaysAgo, setLastSessionDaysAgo] = useState<number | null>(null);
   const [lastActivityDaysAgo, setLastActivityDaysAgo] = useState<number | null>(null);
-
-  // Monthly comparison state
   const [monthlyComparison, setMonthlyComparison] = useState<{mentorias: number;hours: number;}>({ mentorias: 0, hours: 0 });
-
-  // Profile completeness
   const [missingProfileItems, setMissingProfileItems] = useState<string[]>([]);
   const [hasInterests, setHasInterests] = useState(true);
 
@@ -145,8 +119,6 @@ const Home = () => {
     if (profile) {
       setUpdateData({ professionalStatus: profile.professional_status });
       if (!profile.onboarding_completed && !isVolunteer) setShowOnboarding(true);
-
-      // Check profile completeness
       const missing: string[] = [];
       if (!profile.photo_url) missing.push("Foto de perfil");
       if (!profile.description) missing.push("Sobre você / Bio");
@@ -154,7 +126,6 @@ const Home = () => {
     }
   }, [profile, isVolunteer]);
 
-  // Check interests
   useEffect(() => {
     if (!user || isVolunteer) return;
     supabase.from("mentee_interests").select("id").eq("user_id", user.id).limit(1).
@@ -170,13 +141,11 @@ const Home = () => {
     });
   }, [user, isVolunteer]);
 
-  // Fetch contextual data
   useEffect(() => {
     if (!user || !profile) return;
     const now = new Date();
     const in48h = new Date(now.getTime() + 48 * 60 * 60 * 1000);
 
-    // Check upcoming sessions within 48h
     supabase.from("mentor_sessions").select("scheduled_at, mentor_id, mentors(name)").
     eq("user_id", user.id).eq("status", "scheduled").
     gte("scheduled_at", now.toISOString()).lte("scheduled_at", in48h.toISOString()).
@@ -188,7 +157,6 @@ const Home = () => {
       }
     });
 
-    // Check pending confirmation (past scheduled sessions)
     supabase.from("mentor_sessions").select("id").
     eq("user_id", user.id).eq("status", "scheduled").
     lt("scheduled_at", now.toISOString()).limit(1).
@@ -196,7 +164,6 @@ const Home = () => {
       setHasPendingConfirmation(!!(data && data.length > 0));
     });
 
-    // Last completed session
     supabase.from("mentor_sessions").select("completed_at").
     eq("user_id", user.id).eq("status", "completed").
     not("completed_at", "is", null).
@@ -209,7 +176,6 @@ const Home = () => {
       }
     });
 
-    // Monthly comparison
     const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
     const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString();
 
@@ -232,7 +198,6 @@ const Home = () => {
     });
   }, [user, profile]);
 
-  // Update contextual message when data changes
   useEffect(() => {
     if (!profile) return;
     setContextMsg(getContextualMessage(
@@ -279,323 +244,331 @@ const Home = () => {
           <p className="text-muted-foreground font-medium">Carregando...</p>
         </div>
       </div>);
-
   }
 
   const showProfileCard = !isVolunteer && missingProfileItems.length > 0;
+  const isMentorado = !isVolunteer && !isPendingMentor;
 
   return (
     <AppLayout>
       <motion.div
         initial="initial"
         animate="animate"
-        variants={{ initial: {}, animate: { transition: { staggerChildren: 0.05 } } }}
-        className="space-y-3 min-h-[calc(100vh-120px)]">
+        variants={{ initial: {}, animate: { transition: { staggerChildren: 0.04 } } }}
+        className="space-y-4 pb-6">
 
-        {/* Welcome — compact */}
+        {/* ── 1. Welcome Header ── */}
         <motion.div
           variants={{ initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 } }}
-          className="relative overflow-hidden rounded-xl bg-card/50 backdrop-blur-sm border border-border/30 p-4">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <motion.button onClick={() => setShowProfileEdit(true)} className="relative group shrink-0" whileHover={{ scale: 1.05 }}>
-                <div className="w-11 h-11 rounded-xl bg-gradient-hero flex items-center justify-center overflow-hidden ring-2 ring-primary/20">
-                  {profile.photo_url ?
-                  <img src={profile.photo_url} alt={profile.name} className="w-full h-full object-cover" /> :
-                  <User className="w-5 h-5 text-primary-foreground" />
-                  }
-                </div>
-              </motion.button>
-              <div>
-                <h2 className="text-lg font-semibold text-foreground">
-                  Olá, {profile.name.split(" ")[0]}! 👋
-                </h2>
-                <p className="text-xs text-muted-foreground">{contextMsg}</p>
+          className="flex items-center gap-3">
+          <motion.button onClick={() => setShowProfileEdit(true)} className="relative group shrink-0" whileHover={{ scale: 1.05 }}>
+            <div className="w-12 h-12 rounded-full bg-gradient-hero flex items-center justify-center overflow-hidden ring-2 ring-primary/20 shadow-sm">
+              {profile.photo_url ?
+              <img src={profile.photo_url} alt={profile.name} className="w-full h-full object-cover" /> :
+              <User className="w-5 h-5 text-primary-foreground" />
+              }
+            </div>
+          </motion.button>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg font-bold text-foreground truncate">
+                Olá, {profile.name.split(" ")[0]}! 👋
+              </h2>
+              <div className="flex gap-1 shrink-0">
+                {!isVolunteer &&
+                <Badge variant="secondary" className="text-[10px] px-2 py-0.5 rounded-full bg-muted/60 font-medium hidden sm:inline-flex">
+                    {professionalStatusLabels[profile.professional_status]}
+                  </Badge>
+                }
+                {isVolunteer &&
+                <Badge className="bg-primary/10 text-primary border-primary/20 text-[10px] px-2 py-0.5 rounded-full font-medium">
+                    <Heart className="w-2.5 h-2.5 mr-0.5" /> Voluntário
+                  </Badge>
+                }
+                {isAdmin &&
+                <Badge className="bg-secondary/10 text-secondary border-secondary/20 text-[10px] px-2 py-0.5 rounded-full font-medium">
+                    <Shield className="w-2.5 h-2.5 mr-0.5" /> Admin
+                  </Badge>
+                }
               </div>
             </div>
-            <div className="flex flex-wrap gap-1.5 shrink-0">
-              {!isVolunteer &&
-              <Badge variant="secondary" className="text-[10px] px-2 py-0.5 rounded-full bg-muted/60 font-medium">
-                  {professionalStatusLabels[profile.professional_status]}
-                </Badge>
-              }
-              {isVolunteer &&
-              <Badge className="bg-primary/10 text-primary border-primary/20 text-[10px] px-2 py-0.5 rounded-full font-medium">
-                  <Heart className="w-2.5 h-2.5 mr-0.5" /> Voluntário
-                </Badge>
-              }
-              {isAdmin &&
-              <Badge className="bg-secondary/10 text-secondary border-secondary/20 text-[10px] px-2 py-0.5 rounded-full font-medium">
-                  <Shield className="w-2.5 h-2.5 mr-0.5" /> Admin
-                </Badge>
-              }
-            </div>
+            <p className="text-sm text-muted-foreground">{contextMsg}</p>
           </div>
         </motion.div>
 
-        {/* Complete Profile — inline compact */}
+        {/* Complete Profile alert */}
         {showProfileCard &&
         <motion.div
           variants={{ initial: { opacity: 0, y: 8 }, animate: { opacity: 1, y: 0 } }}
-          className="rounded-xl border border-yellow-400/50 bg-yellow-50 dark:bg-yellow-900/20 px-4 py-3 flex items-center gap-3">
-            <AlertCircle className="w-4 h-4 text-yellow-600 shrink-0" />
+          className="rounded-lg border border-amber-300/60 bg-amber-50/80 dark:bg-amber-900/15 px-4 py-2.5 flex items-center gap-3">
+            <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
             <div className="flex-1 min-w-0">
-              <span className="text-xs font-medium text-yellow-800 dark:text-yellow-200">Complete seu perfil: </span>
-              <span className="text-xs text-yellow-700/80 dark:text-yellow-300/70">{missingProfileItems.join(", ")}</span>
+              <span className="text-xs font-medium text-amber-800 dark:text-amber-200">Complete seu perfil: </span>
+              <span className="text-xs text-amber-700/80 dark:text-amber-300/70">{missingProfileItems.join(", ")}</span>
             </div>
-            <Button size="sm" className="rounded-lg bg-yellow-500 hover:bg-yellow-600 text-yellow-950 text-xs h-7 px-3 shrink-0" onClick={() => setShowProfileEdit(true)}>
+            <Button size="sm" variant="outline" className="rounded-lg border-amber-400/60 text-amber-800 hover:bg-amber-100 text-xs h-7 px-3 shrink-0" onClick={() => setShowProfileEdit(true)}>
               Completar <ArrowRight className="w-3 h-3 ml-1" />
             </Button>
           </motion.div>
         }
 
-        {/* Stats + Achievements Row — 4 columns */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+        {isPendingMentor && !isVolunteer && <PendingMentorBanner />}
+
+        {/* ── 2. MENTORSHIP — Primary Section ── */}
+        {isMentorado && (
+          <motion.section
+            variants={{ initial: { opacity: 0, y: 10 }, animate: { opacity: 1, y: 0 } }}
+            className="rounded-2xl border border-border/40 bg-card shadow-sm overflow-hidden">
+            {/* Section header with CTA */}
+            <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-border/30">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Calendar className="w-4 h-4 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-foreground text-sm">Suas mentorias</h3>
+                  <p className="text-[11px] text-muted-foreground">Gerencie sessões e encontre novos mentores</p>
+                </div>
+              </div>
+              <Button
+                onClick={() => navigate("/mentores")}
+                size="sm"
+                className="rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground text-xs h-9 px-4 shadow-sm">
+                <Users className="w-3.5 h-3.5 mr-1.5" /> Encontrar mentor
+              </Button>
+            </div>
+            {/* Mentorship content */}
+            <div className="p-4">
+              <MentorshipSection />
+            </div>
+          </motion.section>
+        )}
+
+        {/* Volunteer / Mentor panels */}
+        <VolunteerPanel />
+        {(isVolunteer || isMentor) && !isMentorado && <MentorshipSection />}
+
+        {/* ── 3. Progress & Stats ── */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {/* Stat: Mentorias */}
+          <motion.div
+            variants={{ initial: { opacity: 0, y: 8 }, animate: { opacity: 1, y: 0 } }}
+            className="bg-card rounded-xl border border-border/40 p-4 flex flex-col items-center justify-center text-center shadow-sm">
+            <span className="text-2xl font-bold text-primary">{stats.totalMentorias}</span>
+            <span className="text-xs text-muted-foreground mt-0.5">Mentorias</span>
+            {!isVolunteer && <ComparisonIndicator value={monthlyComparison.mentorias} suffix=" mês" />}
+          </motion.div>
+
+          {/* Stat: Hours / Contacts */}
+          <motion.div
+            variants={{ initial: { opacity: 0, y: 8 }, animate: { opacity: 1, y: 0 } }}
+            className="bg-card rounded-xl border border-border/40 p-4 flex flex-col items-center justify-center text-center shadow-sm">
+            {isVolunteer ? (
+              <>
+                <span className="text-2xl font-bold text-primary">{stats.uniqueContacts}</span>
+                <span className="text-xs text-muted-foreground mt-0.5">Vidas impactadas</span>
+              </>
+            ) : (
+              <>
+                <span className="text-2xl font-bold text-primary">{Math.round(stats.totalMinutes / 60 * 10) / 10}h</span>
+                <span className="text-xs text-muted-foreground mt-0.5">Aprendizado</span>
+                <ComparisonIndicator value={monthlyComparison.hours} suffix="h" />
+              </>
+            )}
+          </motion.div>
+
           {/* Achievements */}
           <motion.div
             variants={{ initial: { opacity: 0, y: 8 }, animate: { opacity: 1, y: 0 } }}
-            className="col-span-2 bg-card/50 backdrop-blur-sm rounded-xl border border-border/30 p-3">
+            className="col-span-2 bg-card rounded-xl border border-border/40 p-4 shadow-sm">
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Trophy className="w-3.5 h-3.5 text-primary" />
+              <div className="w-7 h-7 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                <Trophy className="w-3.5 h-3.5 text-amber-600" />
               </div>
               <h3 className="font-semibold text-foreground text-xs">Conquistas</h3>
-              <Link to="/conquistas" className="ml-auto text-[10px] text-primary hover:underline flex items-center gap-0.5">
+              <Link to="/conquistas" className="ml-auto text-[11px] text-primary hover:underline flex items-center gap-0.5">
                 Ver todas <ArrowRight className="w-2.5 h-2.5" />
               </Link>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <div className="flex-1">
-                <div className="flex items-center justify-between text-[10px] mb-1">
-                  <span className="text-muted-foreground">{unlockedCount}/{totalCount}</span>
-                  <span className="font-medium text-primary">{overallProgress}%</span>
+                <div className="flex items-center justify-between text-[11px] mb-1">
+                  <span className="text-muted-foreground">{unlockedCount}/{totalCount} desbloqueadas</span>
+                  <span className="font-semibold text-foreground">{overallProgress}%</span>
                 </div>
                 <Progress value={overallProgress} className="h-1.5" />
               </div>
               {recentUnlocked.length > 0 &&
               <div className="flex items-center gap-1">
                   {recentUnlocked.slice(0, 3).map((ach) =>
-                <span key={ach.id} className="text-xs" title={ach.name}>{ach.icon}</span>
+                <span key={ach.id} className="text-sm" title={ach.name}>{ach.icon}</span>
                 )}
                 </div>
               }
             </div>
             {nextAchievement &&
-            <p className="text-[10px] text-muted-foreground mt-1.5">
+            <p className="text-[11px] text-muted-foreground mt-2">
                 💡 Próxima: <strong className="text-foreground">{nextAchievement.name}</strong>
               </p>
             }
           </motion.div>
-
-          {/* Quick Stats */}
-          {!isVolunteer && <>
-          <motion.div
-            variants={{ initial: { opacity: 0, y: 8 }, animate: { opacity: 1, y: 0 } }}
-            className="bg-card/50 backdrop-blur-sm rounded-xl border border-border/30 p-3 flex flex-col items-center justify-center text-center">
-              <span className="text-xl font-bold text-primary">{stats.totalMentorias}</span>
-              <span className="text-[10px] text-muted-foreground">Mentorias</span>
-              <ComparisonIndicator value={monthlyComparison.mentorias} suffix=" mês" />
-            </motion.div>
-          <motion.div
-            variants={{ initial: { opacity: 0, y: 8 }, animate: { opacity: 1, y: 0 } }}
-            className="bg-card/50 backdrop-blur-sm rounded-xl border border-border/30 p-3 flex flex-col items-center justify-center text-center">
-              <span className="text-xl font-bold text-primary">{Math.round(stats.totalMinutes / 60 * 10) / 10}h</span>
-              <span className="text-[10px] text-muted-foreground">Aprendizado</span>
-              <ComparisonIndicator value={monthlyComparison.hours} suffix="h" />
-            </motion.div>
-          </>}
-          {isVolunteer && <>
-            <motion.div
-              variants={{ initial: { opacity: 0, y: 8 }, animate: { opacity: 1, y: 0 } }}
-              className="bg-card/50 backdrop-blur-sm rounded-xl border border-border/30 p-3 flex flex-col items-center justify-center text-center">
-              <span className="text-xl font-bold text-primary">{stats.totalMentorias}</span>
-              <span className="text-[10px] text-muted-foreground">Mentorias</span>
-            </motion.div>
-            <motion.div
-              variants={{ initial: { opacity: 0, y: 8 }, animate: { opacity: 1, y: 0 } }}
-              className="bg-card/50 backdrop-blur-sm rounded-xl border border-border/30 p-3 flex flex-col items-center justify-center text-center">
-              <span className="text-xl font-bold text-primary">{stats.uniqueContacts}</span>
-              <span className="text-[10px] text-muted-foreground">Vidas impactadas</span>
-            </motion.div>
-          </>}
         </div>
 
-        {/* Trail & Dev Plan CTAs — for mentorados */}
-        {!isVolunteer && !isPendingMentor &&
-        <div className="grid grid-cols-2 gap-2">
+        {/* Mission tracker — compact inline */}
+        {isMentorado &&
+        <motion.div variants={{ initial: { opacity: 0, y: 8 }, animate: { opacity: 1, y: 0 } }}>
+          <FirstMentorshipMission isCompleted={profile?.first_mentorship_booked || false} />
+        </motion.div>
+        }
+
+        {/* ── 4. Development: Trails + Plan ── */}
+        {isMentorado && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <motion.div
               variants={{ initial: { opacity: 0, y: 8 }, animate: { opacity: 1, y: 0 } }}
-              className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl border border-primary/20 p-3 group hover:border-primary/40 transition-colors cursor-pointer"
-              onClick={() => navigate("/trilhas")}
-            >
-              <div className="flex items-center gap-2 mb-1">
-                <div className="w-7 h-7 rounded-lg bg-primary/15 flex items-center justify-center">
-                  <Target className="w-3.5 h-3.5 text-primary" />
+              className="bg-card rounded-xl border border-border/40 p-4 shadow-sm group hover:border-primary/30 transition-colors cursor-pointer"
+              onClick={() => navigate("/trilhas")}>
+              <div className="flex items-center gap-2.5 mb-2">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Target className="w-4 h-4 text-primary" />
                 </div>
-                <h3 className="font-semibold text-foreground text-xs">Trilhas</h3>
+                <div>
+                  <h3 className="font-bold text-foreground text-sm">Trilhas de aprendizado</h3>
+                  <p className="text-[11px] text-muted-foreground">Roteiros guiados para desenvolver habilidades</p>
+                </div>
               </div>
-              <p className="text-[10px] text-muted-foreground mb-1.5 leading-relaxed">Trilhas de conhecimento para sua carreira</p>
-              <span className="text-[10px] font-medium text-primary flex items-center gap-1 group-hover:gap-1.5 transition-all">
-                Explorar <ArrowRight className="w-3 h-3" />
+              <span className="text-xs font-medium text-primary flex items-center gap-1 group-hover:gap-1.5 transition-all">
+                Explorar trilhas <ArrowRight className="w-3 h-3" />
               </span>
             </motion.div>
 
             <motion.div
               variants={{ initial: { opacity: 0, y: 8 }, animate: { opacity: 1, y: 0 } }}
-              className="bg-gradient-to-br from-secondary/5 to-secondary/10 rounded-xl border border-secondary/20 p-3 group hover:border-secondary/40 transition-colors cursor-pointer"
-              onClick={() => navigate("/plano")}
-            >
-              <div className="flex items-center gap-2 mb-1">
-                <div className="w-7 h-7 rounded-lg bg-secondary/15 flex items-center justify-center">
-                  <Briefcase className="w-3.5 h-3.5 text-secondary" />
+              className="bg-card rounded-xl border border-border/40 p-4 shadow-sm group hover:border-secondary/30 transition-colors cursor-pointer"
+              onClick={() => navigate("/plano")}>
+              <div className="flex items-center gap-2.5 mb-2">
+                <div className="w-8 h-8 rounded-lg bg-secondary/10 flex items-center justify-center">
+                  <Briefcase className="w-4 h-4 text-secondary" />
                 </div>
-                <h3 className="font-semibold text-foreground text-xs">Plano de Desenvolvimento</h3>
+                <div>
+                  <h3 className="font-bold text-foreground text-sm">Plano de desenvolvimento</h3>
+                  <p className="text-[11px] text-muted-foreground">Crie uma estratégia personalizada de carreira</p>
+                </div>
               </div>
-              <p className="text-[10px] text-muted-foreground mb-1.5 leading-relaxed">Estratégia para sua carreira profissional</p>
-              <span className="text-[10px] font-medium text-secondary flex items-center gap-1 group-hover:gap-1.5 transition-all">
+              <span className="text-xs font-medium text-secondary flex items-center gap-1 group-hover:gap-1.5 transition-all">
                 Criar plano <ArrowRight className="w-3 h-3" />
               </span>
             </motion.div>
           </div>
-        }
+        )}
 
-        {/* Quick Links — Community + Communities + Mission in one row */}
-        <div className={`grid gap-2 ${isVolunteer ? 'grid-cols-2 lg:grid-cols-4' : 'grid-cols-2 lg:grid-cols-4'}`}>
-          {/* Community WhatsApp */}
+        {/* ── 5. Community Section ── */}
+        <div className={`grid gap-3 ${isVolunteer ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'}`}>
+          {/* WhatsApp Community */}
           <motion.div
             variants={{ initial: { opacity: 0, y: 8 }, animate: { opacity: 1, y: 0 } }}
-            className="bg-card/50 backdrop-blur-sm rounded-xl border border-border/30 p-3 hover:border-green-500/30 transition-colors">
-            <div className="flex items-center gap-2 mb-1.5">
-              <div className="w-6 h-6 rounded-md flex items-center justify-center" style={{ backgroundColor: 'hsl(142, 70%, 45%, 0.1)' }}>
-                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="#25D366">
+            className="bg-card rounded-xl border border-border/40 p-4 shadow-sm">
+            <div className="flex items-center gap-2.5 mb-2">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'hsl(142, 70%, 45%, 0.1)' }}>
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="#25D366">
                   <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
                 </svg>
               </div>
-              <h3 className="font-semibold text-foreground text-xs">Comunidade</h3>
+              <h3 className="font-semibold text-foreground text-sm">Comunidade Movê</h3>
             </div>
+            <p className="text-[11px] text-muted-foreground mb-3 leading-relaxed">
+              Troque experiências, tire dúvidas e faça networking com outros mentorados e mentores.
+            </p>
             <a href="https://chat.whatsapp.com/BFDDkhbwz5aFdg6WhIFU6C" target="_blank" rel="noopener noreferrer"
-            className="w-full inline-flex items-center justify-center gap-1 text-white py-1.5 rounded-lg font-medium text-[10px] transition-colors"
+            className="w-full inline-flex items-center justify-center gap-1.5 text-white py-2 rounded-lg font-medium text-xs transition-colors"
             style={{ backgroundColor: '#25D366' }}>
-              <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
               </svg>
               Entrar no grupo
             </a>
           </motion.div>
 
-          {/* Mentors Group - volunteers */}
+          {/* Volunteer mentor group */}
           {isVolunteer &&
           <motion.div
             variants={{ initial: { opacity: 0, y: 8 }, animate: { opacity: 1, y: 0 } }}
-            className="bg-card/50 backdrop-blur-sm rounded-xl border border-border/30 p-3 hover:border-purple-500/30 transition-colors">
-              <div className="flex items-center gap-2 mb-1.5">
-                <div className="w-6 h-6 rounded-md bg-purple-500/10 flex items-center justify-center">
-                  <Heart className="w-3 h-3 text-purple-600" />
+            className="bg-card rounded-xl border border-border/40 p-4 shadow-sm">
+              <div className="flex items-center gap-2.5 mb-2">
+                <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                  <Heart className="w-4 h-4 text-purple-600" />
                 </div>
-                <h3 className="font-semibold text-foreground text-xs">Mentores</h3>
+                <h3 className="font-semibold text-foreground text-sm">Grupo de Mentores</h3>
               </div>
+              <p className="text-[11px] text-muted-foreground mb-3 leading-relaxed">
+                Conecte-se com outros mentores, compartilhe boas práticas e aprenda junto.
+              </p>
               <a href="https://chat.whatsapp.com/LKpz2hr7FnZDpCgNXdxwHl" target="_blank" rel="noopener noreferrer"
-            className="w-full inline-flex items-center justify-center gap-1 bg-purple-600 text-white py-1.5 rounded-lg font-medium text-[10px] hover:bg-purple-700 transition-colors">
-                <MessageCircle className="w-3 h-3" /> Entrar
+            className="w-full inline-flex items-center justify-center gap-1.5 bg-purple-600 text-white py-2 rounded-lg font-medium text-xs hover:bg-purple-700 transition-colors">
+                <MessageCircle className="w-3.5 h-3.5" /> Entrar no grupo
               </a>
             </motion.div>
           }
 
-          {/* Agenda - mentors */}
+          {/* Mentor Agenda */}
           {isMentor &&
           <motion.div
             variants={{ initial: { opacity: 0, y: 8 }, animate: { opacity: 1, y: 0 } }}
-            className="bg-card/50 backdrop-blur-sm rounded-xl border border-border/30 p-3 hover:border-primary/30 transition-colors cursor-pointer"
+            className="bg-card rounded-xl border border-border/40 p-4 shadow-sm hover:border-primary/30 transition-colors cursor-pointer"
             onClick={() => navigate("/mentor/agenda")}>
-              <div className="flex items-center gap-2 mb-1.5">
-                <div className="w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center">
-                  <Calendar className="w-3 h-3 text-primary" />
+              <div className="flex items-center gap-2.5 mb-2">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Calendar className="w-4 h-4 text-primary" />
                 </div>
-                <h3 className="font-semibold text-foreground text-xs">Agenda</h3>
+                <h3 className="font-semibold text-foreground text-sm">Minha Agenda</h3>
               </div>
-              <Button variant="outline" size="sm" className="w-full rounded-lg text-[10px] h-7">
+              <p className="text-[11px] text-muted-foreground mb-3 leading-relaxed">
+                Gerencie seus horários e visualize sessões agendadas.
+              </p>
+              <Button variant="outline" size="sm" className="w-full rounded-lg text-xs h-8">
                 Abrir agenda <ArrowRight className="w-3 h-3 ml-1" />
               </Button>
             </motion.div>
           }
 
-          {/* Communities */}
-          {!isVolunteer && !isPendingMentor &&
+          {/* Partner Communities */}
+          {isMentorado &&
           <motion.div
             variants={{ initial: { opacity: 0, y: 8 }, animate: { opacity: 1, y: 0 } }}
-            className="bg-card/50 backdrop-blur-sm rounded-xl border border-border/30 p-3 hover:border-primary/30 transition-colors cursor-pointer"
+            className="bg-card rounded-xl border border-border/40 p-4 shadow-sm hover:border-primary/30 transition-colors cursor-pointer"
             onClick={() => navigate("/comunidades")}>
-              <div className="flex items-center gap-2 mb-1.5">
-                <div className="w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center">
-                  <Handshake className="w-3 h-3 text-primary" />
+              <div className="flex items-center gap-2.5 mb-2">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Handshake className="w-4 h-4 text-primary" />
                 </div>
-                <h3 className="font-semibold text-foreground text-xs">Comunidades</h3>
+                <h3 className="font-semibold text-foreground text-sm">Comunidades parceiras</h3>
               </div>
-              <Button variant="outline" size="sm" className="w-full rounded-lg text-[10px] h-7">
-                Ver comunidades <ArrowRight className="w-3 h-3 ml-1" />
+              <p className="text-[11px] text-muted-foreground mb-3 leading-relaxed">
+                Acesse comunidades de vagas, networking e eventos para impulsionar sua carreira.
+              </p>
+              <Button variant="outline" size="sm" className="w-full rounded-lg text-xs h-8">
+                Explorar <ArrowRight className="w-3 h-3 ml-1" />
               </Button>
             </motion.div>
           }
 
-          {/* First Mission */}
-          {!isVolunteer && !isPendingMentor &&
-          <motion.div variants={{ initial: { opacity: 0, y: 8 }, animate: { opacity: 1, y: 0 } }}>
-            <FirstMentorshipMission isCompleted={profile?.first_mentorship_booked || false} />
-          </motion.div>
-          }
-
-          {/* Find Mentor — quick action for mentorados */}
-          {!isVolunteer && !isPendingMentor &&
+          {/* Referral — as a community card */}
+          {!isVolunteer &&
           <motion.div
             variants={{ initial: { opacity: 0, y: 8 }, animate: { opacity: 1, y: 0 } }}
-            className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-xl border border-primary/20 p-3 cursor-pointer hover:border-primary/40 transition-colors"
-            onClick={() => navigate("/mentores")}>
-              <div className="flex items-center gap-2 mb-1.5">
-                <div className="w-6 h-6 rounded-md bg-primary/15 flex items-center justify-center">
-                  <Users className="w-3 h-3 text-primary" />
-                </div>
-                <h3 className="font-semibold text-foreground text-xs">Mentores</h3>
-              </div>
-              <Button size="sm" className="w-full rounded-lg text-[10px] h-7 bg-primary hover:bg-primary/90 text-primary-foreground">
-                Encontrar mentor <ArrowRight className="w-3 h-3 ml-1" />
-              </Button>
+            className="bg-card rounded-xl border border-border/40 p-4 shadow-sm">
+              <ReferralSection />
             </motion.div>
           }
         </div>
 
-        {/* Tips Banner — compact */}
-        {!isVolunteer && stats.totalMentorias === 0 &&
-        <motion.div
-          variants={{ initial: { opacity: 0, y: 6 }, animate: { opacity: 1, y: 0 } }}
-          className="rounded-lg border border-yellow-400/40 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 px-3 py-2 flex items-center gap-2">
-            <Lightbulb className="w-3.5 h-3.5 text-yellow-600 shrink-0" />
-            <p className="text-[10px] text-yellow-800 dark:text-yellow-200 flex-1">Dicas para aproveitar o Movê</p>
-            <Link to="/ajuda">
-              <Button size="sm" variant="ghost" className="rounded-md text-yellow-700 text-[10px] h-6 px-2">
-                Ver guia <ArrowRight className="w-2.5 h-2.5 ml-0.5" />
-              </Button>
-            </Link>
-          </motion.div>
-        }
-
-        {/* Interests Banner */}
-        {!isVolunteer && !isPendingMentor &&
-        <InterestsNotificationBanner onOpenInterestsEditor={() => setShowInterestsOnboarding(true)} />
-        }
-
-        {isPendingMentor && !isVolunteer && <PendingMentorBanner />}
-
-        <VolunteerPanel />
-
-        {(!isVolunteer || isMentor) && <MentorshipSection />}
-
-        {/* Evolution + Interests — side by side */}
-        {!isVolunteer && !isPendingMentor &&
-        <div className="grid md:grid-cols-2 gap-2">
+        {/* ── 6. Evolution + Interests ── */}
+        {isMentorado &&
+        <div className="grid md:grid-cols-2 gap-3">
             <motion.div
             variants={{ initial: { opacity: 0, y: 8 }, animate: { opacity: 1, y: 0 } }}
-            className="bg-card/50 backdrop-blur-sm rounded-xl border border-border/30 p-4">
-              <div className="flex items-center gap-2 mb-3">
+            className="bg-card rounded-xl border border-border/40 p-4 shadow-sm">
+              <div className="flex items-center gap-2.5 mb-3">
                 <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
                   <RefreshCw className="w-3.5 h-3.5 text-primary" />
                 </div>
@@ -619,20 +592,38 @@ const Home = () => {
                   </div>
                 </form> :
             <Button variant="ghost" size="sm" onClick={() => setShowUpdateForm(true)} className="w-full justify-start text-muted-foreground hover:text-foreground rounded-lg text-xs">
-                  <RefreshCw className="w-3.5 h-3.5 mr-1.5" /> Atualizar status
+                  <RefreshCw className="w-3.5 h-3.5 mr-1.5" /> Atualizar status profissional
                 </Button>
             }
             </motion.div>
 
             <motion.div
             variants={{ initial: { opacity: 0, y: 8 }, animate: { opacity: 1, y: 0 } }}
-            className="bg-card/50 backdrop-blur-sm rounded-xl border border-border/30 p-4">
+            className="bg-card rounded-xl border border-border/40 p-4 shadow-sm">
               <MenteeInterestsEditor />
             </motion.div>
           </div>
         }
 
-        {!isVolunteer && <ReferralSection />}
+        {/* Tips — new users only */}
+        {!isVolunteer && stats.totalMentorias === 0 &&
+        <motion.div
+          variants={{ initial: { opacity: 0, y: 6 }, animate: { opacity: 1, y: 0 } }}
+          className="rounded-lg border border-border/40 bg-muted/30 px-4 py-2.5 flex items-center gap-2.5">
+            <Lightbulb className="w-4 h-4 text-amber-500 shrink-0" />
+            <p className="text-xs text-muted-foreground flex-1">Novo por aqui? Veja dicas para aproveitar o máximo do Movê.</p>
+            <Link to="/ajuda">
+              <Button size="sm" variant="ghost" className="rounded-md text-xs h-7 px-2.5">
+                Ver guia <ArrowRight className="w-2.5 h-2.5 ml-0.5" />
+              </Button>
+            </Link>
+          </motion.div>
+        }
+
+        {/* Interests Banner */}
+        {isMentorado &&
+        <InterestsNotificationBanner onOpenInterestsEditor={() => setShowInterestsOnboarding(true)} />
+        }
       </motion.div>
 
       {/* Modals */}
@@ -640,7 +631,6 @@ const Home = () => {
       {showOnboarding && <OnboardingTour onComplete={() => {setShowOnboarding(false);refreshProfile();}} />}
       <InterestsOnboardingModal open={showInterestsOnboarding} onClose={() => setShowInterestsOnboarding(false)} />
     </AppLayout>);
-
 };
 
 export default Home;
