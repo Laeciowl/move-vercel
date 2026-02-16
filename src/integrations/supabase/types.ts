@@ -517,6 +517,51 @@ export type Database = {
           },
         ]
       }
+      mentoria_feedbacks: {
+        Row: {
+          acoes_planejadas: string[] | null
+          aprendizado_principal: string | null
+          created_at: string
+          id: string
+          mentorado_id: string
+          mentoria_id: string
+          teve_resultado: boolean
+        }
+        Insert: {
+          acoes_planejadas?: string[] | null
+          aprendizado_principal?: string | null
+          created_at?: string
+          id?: string
+          mentorado_id: string
+          mentoria_id: string
+          teve_resultado?: boolean
+        }
+        Update: {
+          acoes_planejadas?: string[] | null
+          aprendizado_principal?: string | null
+          created_at?: string
+          id?: string
+          mentorado_id?: string
+          mentoria_id?: string
+          teve_resultado?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mentoria_feedbacks_mentoria_id_fkey"
+            columns: ["mentoria_id"]
+            isOneToOne: false
+            referencedRelation: "mentor_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mentoria_feedbacks_mentoria_id_fkey"
+            columns: ["mentoria_id"]
+            isOneToOne: false
+            referencedRelation: "mentor_sessions_with_names"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mentors: {
         Row: {
           area: string
@@ -607,6 +652,33 @@ export type Database = {
         }
         Relationships: []
       }
+      nps_respostas: {
+        Row: {
+          created_at: string
+          feedback: string | null
+          id: string
+          nota: number
+          user_id: string
+          user_type: string
+        }
+        Insert: {
+          created_at?: string
+          feedback?: string | null
+          id?: string
+          nota: number
+          user_id: string
+          user_type: string
+        }
+        Update: {
+          created_at?: string
+          feedback?: string | null
+          id?: string
+          nota?: number
+          user_id?: string
+          user_type?: string
+        }
+        Relationships: []
+      }
       partner_communities: {
         Row: {
           active: boolean
@@ -643,6 +715,127 @@ export type Database = {
           name?: string
           sort_order?: number
           updated_at?: string
+        }
+        Relationships: []
+      }
+      passos_trilha: {
+        Row: {
+          created_at: string
+          descricao: string | null
+          id: string
+          link_externo: string | null
+          ordem: number
+          tags_mentor_requeridas: string[] | null
+          tipo: Database["public"]["Enums"]["trail_step_type"]
+          titulo: string
+          trilha_id: string
+        }
+        Insert: {
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          link_externo?: string | null
+          ordem?: number
+          tags_mentor_requeridas?: string[] | null
+          tipo: Database["public"]["Enums"]["trail_step_type"]
+          titulo: string
+          trilha_id: string
+        }
+        Update: {
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          link_externo?: string | null
+          ordem?: number
+          tags_mentor_requeridas?: string[] | null
+          tipo?: Database["public"]["Enums"]["trail_step_type"]
+          titulo?: string
+          trilha_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "passos_trilha_trilha_id_fkey"
+            columns: ["trilha_id"]
+            isOneToOne: false
+            referencedRelation: "trilhas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plano_itens: {
+        Row: {
+          completado: boolean
+          completado_em: string | null
+          descricao: string
+          id: string
+          ordem: number
+          plano_id: string
+          referencia_id: string | null
+          tipo: string
+        }
+        Insert: {
+          completado?: boolean
+          completado_em?: string | null
+          descricao: string
+          id?: string
+          ordem?: number
+          plano_id: string
+          referencia_id?: string | null
+          tipo: string
+        }
+        Update: {
+          completado?: boolean
+          completado_em?: string | null
+          descricao?: string
+          id?: string
+          ordem?: number
+          plano_id?: string
+          referencia_id?: string | null
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plano_itens_plano_id_fkey"
+            columns: ["plano_id"]
+            isOneToOne: false
+            referencedRelation: "planos_desenvolvimento"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      planos_desenvolvimento: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          data_fim: string
+          data_inicio: string
+          id: string
+          mentorado_id: string
+          meta_descricao: string
+          meta_tipo: Database["public"]["Enums"]["plan_goal_type"]
+          prazo_meses: number
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          data_fim: string
+          data_inicio?: string
+          id?: string
+          mentorado_id: string
+          meta_descricao: string
+          meta_tipo: Database["public"]["Enums"]["plan_goal_type"]
+          prazo_meses?: number
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          data_fim?: string
+          data_inicio?: string
+          id?: string
+          mentorado_id?: string
+          meta_descricao?: string
+          meta_tipo?: Database["public"]["Enums"]["plan_goal_type"]
+          prazo_meses?: number
         }
         Relationships: []
       }
@@ -708,6 +901,82 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      progresso_passo: {
+        Row: {
+          completado: boolean
+          completado_automaticamente: boolean
+          completado_em: string | null
+          created_at: string
+          id: string
+          mentorado_id: string
+          passo_id: string
+        }
+        Insert: {
+          completado?: boolean
+          completado_automaticamente?: boolean
+          completado_em?: string | null
+          created_at?: string
+          id?: string
+          mentorado_id: string
+          passo_id: string
+        }
+        Update: {
+          completado?: boolean
+          completado_automaticamente?: boolean
+          completado_em?: string | null
+          created_at?: string
+          id?: string
+          mentorado_id?: string
+          passo_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "progresso_passo_passo_id_fkey"
+            columns: ["passo_id"]
+            isOneToOne: false
+            referencedRelation: "passos_trilha"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      progresso_trilha: {
+        Row: {
+          concluido_em: string | null
+          id: string
+          iniciado_em: string
+          mentorado_id: string
+          progresso_percentual: number
+          trilha_id: string
+          updated_at: string
+        }
+        Insert: {
+          concluido_em?: string | null
+          id?: string
+          iniciado_em?: string
+          mentorado_id: string
+          progresso_percentual?: number
+          trilha_id: string
+          updated_at?: string
+        }
+        Update: {
+          concluido_em?: string | null
+          id?: string
+          iniciado_em?: string
+          mentorado_id?: string
+          progresso_percentual?: number
+          trilha_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "progresso_trilha_trilha_id_fkey"
+            columns: ["trilha_id"]
+            isOneToOne: false
+            referencedRelation: "trilhas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       referrals: {
         Row: {
@@ -819,6 +1088,39 @@ export type Database = {
           id?: string
           name?: string
           slug?: string
+        }
+        Relationships: []
+      }
+      trilhas: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          descricao: string
+          duracao_estimada_minutos: number
+          icone: string
+          id: string
+          ordem: number
+          titulo: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          descricao: string
+          duracao_estimada_minutos?: number
+          icone?: string
+          id?: string
+          ordem?: number
+          titulo: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          descricao?: string
+          duracao_estimada_minutos?: number
+          icone?: string
+          id?: string
+          ordem?: number
+          titulo?: string
         }
         Relationships: []
       }
@@ -1218,6 +1520,12 @@ export type Database = {
       community_category: "vagas" | "networking" | "conteudo" | "outros"
       income_range: "sem_renda" | "ate_1500" | "1500_3000" | "acima_3000"
       mentor_status: "pending" | "approved" | "rejected"
+      plan_goal_type:
+        | "primeiro_emprego"
+        | "transicao"
+        | "promocao"
+        | "habilidades"
+        | "outro"
       professional_status:
         | "desempregado"
         | "estudante"
@@ -1225,6 +1533,7 @@ export type Database = {
         | "empregado"
         | "freelancer_pj"
       session_status: "scheduled" | "completed" | "cancelled"
+      trail_step_type: "conteudo" | "download" | "video" | "acao" | "mentoria"
       volunteer_category: "aulas_lives" | "templates_arquivos" | "mentoria"
     }
     CompositeTypes: {
@@ -1377,6 +1686,13 @@ export const Constants = {
       community_category: ["vagas", "networking", "conteudo", "outros"],
       income_range: ["sem_renda", "ate_1500", "1500_3000", "acima_3000"],
       mentor_status: ["pending", "approved", "rejected"],
+      plan_goal_type: [
+        "primeiro_emprego",
+        "transicao",
+        "promocao",
+        "habilidades",
+        "outro",
+      ],
       professional_status: [
         "desempregado",
         "estudante",
@@ -1385,6 +1701,7 @@ export const Constants = {
         "freelancer_pj",
       ],
       session_status: ["scheduled", "completed", "cancelled"],
+      trail_step_type: ["conteudo", "download", "video", "acao", "mentoria"],
       volunteer_category: ["aulas_lives", "templates_arquivos", "mentoria"],
     },
   },
