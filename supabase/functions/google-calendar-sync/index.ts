@@ -135,10 +135,18 @@ Deno.serve(async (req) => {
       .eq("user_id", session.user_id)
       .maybeSingle();
 
-    // Get mentor user_id from auth.users by email
-    const { data: mentorAuth } = await adminClient.auth.admin.listUsers();
-    const mentorUser = mentorAuth?.users?.find((u: any) => u.email === (session.mentors as any)?.email);
-    const mentorUserId = mentorUser?.id;
+    // Get mentor user_id using the database function (reliable, no pagination issues)
+    const mentorEmail = (session.mentors as any)?.email;
+    let mentorUserId: string | null = null;
+    
+    if (mentorEmail) {
+      const { data: mentorUserIds } = await adminClient
+        .rpc("get_mentor_user_ids", { mentor_ids: [session.mentor_id] });
+      
+      if (mentorUserIds && mentorUserIds.length > 0) {
+        mentorUserId = mentorUserIds[0].user_id;
+      }
+    }
 
     const mentorName = (session.mentors as any)?.name || "Mentor";
     const menteeName = menteeProfile?.name || "Mentorado";
