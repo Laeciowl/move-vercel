@@ -59,8 +59,8 @@ const MentorCard = ({ mentor, onDownload }: { mentor: Mentor; onDownload: (mento
             </div>
           </div>
 
-          {/* Mentor info — fixed height */}
-          <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px", height: "56px" }}>
+          {/* Mentor info */}
+          <div style={{ display: "flex", alignItems: "flex-start", gap: "12px", marginBottom: "12px" }}>
             <div style={{ width: "56px", height: "56px", borderRadius: "12px", overflow: "hidden", backgroundColor: "rgba(255,255,255,0.2)", border: "2px solid rgba(255,255,255,0.4)", flexShrink: 0 }}>
               {mentor.photo_url ? (
                 <img src={mentor.photo_url} alt={mentor.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} crossOrigin="anonymous" />
@@ -70,12 +70,12 @@ const MentorCard = ({ mentor, onDownload }: { mentor: Mentor; onDownload: (mento
                 </div>
               )}
             </div>
-            <div style={{ overflow: "hidden" }}>
-              <h3 style={{ fontWeight: "bold", fontSize: "16px", lineHeight: 1.2, margin: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "240px" }}>
-                {truncateName(mentor.name)}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <h3 style={{ fontWeight: "bold", fontSize: "16px", lineHeight: 1.3, margin: 0, wordWrap: "break-word", overflowWrap: "break-word" }}>
+                {mentor.name}
               </h3>
-              <p style={{ color: "rgba(255,255,255,0.85)", fontSize: "12px", margin: "2px 0 0 0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "240px" }}>
-                {truncateArea(mentor.area)}
+              <p style={{ color: "rgba(255,255,255,0.85)", fontSize: "12px", margin: "2px 0 0 0", lineHeight: 1.4, wordWrap: "break-word", overflowWrap: "break-word" }}>
+                {mentor.area}
               </p>
             </div>
           </div>
