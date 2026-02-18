@@ -212,15 +212,15 @@ const MentorShareButton = ({
 
               {/* Message box — fixed height with text clamping */}
               <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                <div style={{
+              <div style={{
                   backgroundColor: "rgba(255,255,255,0.15)",
                   borderRadius: "16px",
                   padding: "20px",
                   border: "1px solid rgba(255,255,255,0.2)",
-                  height: "160px",
+                  minHeight: "120px",
                   display: "flex",
                   alignItems: "center",
-                  overflow: "hidden",
+                  justifyContent: "center",
                 }}>
                   <p style={{
                     fontSize: "15px",
@@ -229,10 +229,8 @@ const MentorShareButton = ({
                     margin: 0,
                     textAlign: "center",
                     width: "100%",
-                    display: "-webkit-box",
-                    WebkitLineClamp: 5,
-                    WebkitBoxOrient: "vertical",
-                    overflow: "hidden",
+                    wordWrap: "break-word",
+                    overflowWrap: "break-word",
                   }}>
                     {displayMessage}
                   </p>
