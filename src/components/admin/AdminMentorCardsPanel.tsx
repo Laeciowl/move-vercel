@@ -71,10 +71,10 @@ const MentorCard = ({ mentor, onDownload }: { mentor: Mentor; onDownload: (mento
               )}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <h3 style={{ fontWeight: "bold", fontSize: "16px", lineHeight: 1.3, margin: 0, wordWrap: "break-word", overflowWrap: "break-word" }}>
+              <h3 style={{ fontWeight: "bold", fontSize: "16px", lineHeight: 1.3, margin: 0, wordWrap: "break-word", overflowWrap: "break-word", textShadow: "0 1px 4px rgba(0,0,0,0.3)" }}>
                 {mentor.name}
               </h3>
-              <p style={{ color: "rgba(255,255,255,0.85)", fontSize: "12px", margin: "2px 0 0 0", lineHeight: 1.4, wordWrap: "break-word", overflowWrap: "break-word" }}>
+              <p style={{ color: "rgba(255,255,255,0.95)", fontSize: "12px", margin: "2px 0 0 0", lineHeight: 1.4, wordWrap: "break-word", overflowWrap: "break-word", textShadow: "0 1px 3px rgba(0,0,0,0.25)" }}>
                 {mentor.area}
               </p>
             </div>

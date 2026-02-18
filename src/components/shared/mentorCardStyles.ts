@@ -48,7 +48,7 @@ export const decorCircle1 = (size: number): React.CSSProperties => ({
   width: `${size * 0.32}px`,
   height: `${size * 0.32}px`,
   borderRadius: "50%",
-  border: `${Math.round(size * 0.012)}px solid rgba(255,255,255,0.2)`,
+  border: `${Math.round(size * 0.012)}px solid rgba(255,255,255,0.1)`,
 });
 
 export const decorCircle2 = (size: number): React.CSSProperties => ({
