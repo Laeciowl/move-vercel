@@ -21,13 +21,9 @@ export const getDefaultMessage = (area: string) =>
 export const getDisplayMessage = (cardMessage: string | null, area: string) =>
   truncateMessage(cardMessage || getDefaultMessage(area));
 
-/** Truncate name if too long */
-export const truncateName = (name: string, max = 28): string =>
-  name.length <= max ? name : name.slice(0, max).trim() + "...";
-
-/** Truncate area/specialties line */
-export const truncateArea = (area: string, max = 50): string =>
-  area.length <= max ? area : area.slice(0, max).trim() + "...";
+/** No truncation for name/area — allow wrapping instead */
+export const truncateName = (name: string): string => name;
+export const truncateArea = (area: string): string => area;
 
 // ─── Inline style objects (for html2canvas compatibility) ───
 

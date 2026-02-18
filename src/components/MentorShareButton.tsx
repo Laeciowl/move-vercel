@@ -189,8 +189,8 @@ const MentorShareButton = ({
                 </div>
               </div>
 
-              {/* Mentor info — fixed height */}
-              <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "16px", height: "72px" }}>
+              {/* Mentor info */}
+              <div style={{ display: "flex", alignItems: "flex-start", gap: "16px", marginBottom: "16px" }}>
                 <div style={{ width: "72px", height: "72px", borderRadius: "16px", overflow: "hidden", backgroundColor: "rgba(255,255,255,0.2)", border: "3px solid rgba(255,255,255,0.4)", flexShrink: 0 }}>
                   {mentorPhotoUrl ? (
                     <img src={mentorPhotoUrl} alt={mentorName} style={{ width: "100%", height: "100%", objectFit: "cover" }} crossOrigin="anonymous" />
@@ -200,12 +200,12 @@ const MentorShareButton = ({
                     </div>
                   )}
                 </div>
-                <div style={{ overflow: "hidden" }}>
-                  <h3 style={{ fontWeight: "bold", fontSize: "22px", lineHeight: 1.2, margin: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "320px" }}>
-                    {truncateName(mentorName)}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <h3 style={{ fontWeight: "bold", fontSize: "22px", lineHeight: 1.3, margin: 0, wordWrap: "break-word", overflowWrap: "break-word" }}>
+                    {mentorName}
                   </h3>
-                  <p style={{ color: "rgba(255,255,255,0.85)", fontSize: "14px", margin: "4px 0 0 0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "320px" }}>
-                    {truncateArea(mentorArea)}
+                  <p style={{ color: "rgba(255,255,255,0.85)", fontSize: "14px", margin: "4px 0 0 0", lineHeight: 1.4, wordWrap: "break-word", overflowWrap: "break-word" }}>
+                    {mentorArea}
                   </p>
                 </div>
               </div>
