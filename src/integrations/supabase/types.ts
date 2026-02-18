@@ -566,6 +566,7 @@ export type Database = {
         Row: {
           area: string
           availability: Json
+          card_message: string | null
           created_at: string
           description: string
           disclaimer_accepted: boolean
@@ -585,6 +586,7 @@ export type Database = {
         Insert: {
           area: string
           availability?: Json
+          card_message?: string | null
           created_at?: string
           description: string
           disclaimer_accepted?: boolean
@@ -604,6 +606,7 @@ export type Database = {
         Update: {
           area?: string
           availability?: Json
+          card_message?: string | null
           created_at?: string
           description?: string
           disclaimer_accepted?: boolean
