@@ -11,6 +11,7 @@ interface Mentor {
   area: string;
   photo_url: string | null;
   status: "pending" | "approved" | "rejected";
+  card_message: string | null;
 }
 
 const MentorCard = ({ mentor, onDownload }: { mentor: Mentor; onDownload: (mentor: Mentor, ref: HTMLDivElement) => void }) => {
@@ -148,10 +149,7 @@ const MentorCard = ({ mentor, onDownload }: { mentor: Mentor; onDownload: (mento
               border: "1px solid rgba(255,255,255,0.2)"
             }}>
               <p style={{ fontSize: "16px", fontWeight: "bold", lineHeight: 1.4, margin: "0 0 6px 0" }}>
-                Venha agendar uma sessão de mentoria comigo sobre {mentor.area},
-              </p>
-              <p style={{ fontSize: "14px", fontWeight: 600, color: "#FDE68A", margin: 0 }}>
-                e coloque sua carreira em movimento! 🚀
+                {mentor.card_message || `Venha agendar uma sessão de mentoria comigo sobre ${mentor.area}, e coloque sua carreira em movimento! 🚀`}
               </p>
             </div>
           </div>
@@ -207,7 +205,7 @@ const AdminMentorCardsPanel = () => {
   const fetchMentors = async () => {
     const { data, error } = await supabase
       .from("mentors")
-      .select("id, name, area, photo_url, status")
+      .select("id, name, area, photo_url, status, card_message")
       .eq("status", "approved")
       .order("name", { ascending: true });
 

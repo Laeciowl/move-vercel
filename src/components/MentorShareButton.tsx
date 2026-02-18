@@ -1,5 +1,5 @@
-import { useState, useRef } from "react";
-import { Share2, MessageCircle, Linkedin, Copy, Check, Sparkles, Download, Loader2 } from "lucide-react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { Share2, MessageCircle, Linkedin, Copy, Check, Sparkles, Download, Loader2, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,8 +12,10 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import html2canvas from "html2canvas";
+import { supabase } from "@/integrations/supabase/client";
 
 interface MentorShareButtonProps {
   mentorId: string;
@@ -21,6 +23,9 @@ interface MentorShareButtonProps {
   mentorArea: string;
   mentorPhotoUrl?: string | null;
 }
+
+const DEFAULT_MESSAGE = (area: string) =>
+  `Venha agendar uma sessão de mentoria comigo sobre ${area}, e coloque sua carreira em movimento! 🚀`;
 
 const MentorShareButton = ({
   mentorId,
@@ -31,11 +36,32 @@ const MentorShareButton = ({
   const [showPreview, setShowPreview] = useState(false);
   const [copied, setCopied] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [cardMessage, setCardMessage] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState("");
+  const [saving, setSaving] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
+
+  const displayMessage = cardMessage || DEFAULT_MESSAGE(mentorArea);
+
+  const fetchCardMessage = useCallback(async () => {
+    const { data } = await supabase
+      .from("mentors")
+      .select("card_message")
+      .eq("id", mentorId)
+      .maybeSingle();
+    if (data?.card_message) {
+      setCardMessage(data.card_message);
+    }
+  }, [mentorId]);
+
+  useEffect(() => {
+    fetchCardMessage();
+  }, [fetchCardMessage]);
 
   const profileUrl = `https://movecarreiras.org/mentores?mentor=${mentorId}`;
   
-  const shareText = `🧡 Sou mentor(a) voluntário(a) no Movê!\n\nVenha agendar uma sessão de mentoria comigo sobre ${mentorArea}, e coloque sua carreira em movimento! 🚀\n\n👉 ${profileUrl}`;
+  const shareText = `🧡 Sou mentor(a) voluntário(a) no Movê!\n\n${displayMessage}\n\n👉 ${profileUrl}`;
 
   const handleWhatsAppShare = () => {
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
@@ -64,7 +90,7 @@ const MentorShareButton = ({
     setDownloading(true);
     try {
       const canvas = await html2canvas(cardRef.current, {
-        scale: 4, // Higher resolution for crisp PNG (2000x2000 output)
+        scale: 4,
         backgroundColor: null,
         useCORS: true,
         allowTaint: true,
@@ -73,7 +99,7 @@ const MentorShareButton = ({
       
       const link = document.createElement("a");
       link.download = `mentor-move-${mentorName.toLowerCase().replace(/\s+/g, "-")}.png`;
-      link.href = canvas.toDataURL("image/png", 1.0); // Maximum quality
+      link.href = canvas.toDataURL("image/png", 1.0);
       link.click();
       
       toast.success("Imagem baixada com sucesso!");
@@ -83,6 +109,28 @@ const MentorShareButton = ({
     } finally {
       setDownloading(false);
     }
+  };
+
+  const handleStartEdit = () => {
+    setEditDraft(cardMessage || "");
+    setEditing(true);
+  };
+
+  const handleSaveMessage = async () => {
+    setSaving(true);
+    const value = editDraft.trim() || null;
+    const { error } = await supabase
+      .from("mentors")
+      .update({ card_message: value })
+      .eq("id", mentorId);
+    if (error) {
+      toast.error("Erro ao salvar mensagem");
+    } else {
+      setCardMessage(value);
+      setEditing(false);
+      toast.success("Mensagem do card atualizada!");
+    }
+    setSaving(false);
   };
 
   return (
@@ -270,11 +318,8 @@ const MentorShareButton = ({
                   padding: "20px",
                   border: "1px solid rgba(255,255,255,0.2)"
                 }}>
-                  <p style={{ fontSize: "20px", fontWeight: "bold", lineHeight: 1.4, margin: "0 0 8px 0" }}>
-                    Venha agendar uma sessão de mentoria comigo sobre {mentorArea},
-                  </p>
-                  <p style={{ fontSize: "18px", fontWeight: 600, color: "#FDE68A", margin: 0 }}>
-                    e coloque sua carreira em movimento! 🚀
+                  <p style={{ fontSize: "16px", fontWeight: "bold", lineHeight: 1.5, margin: 0 }}>
+                    {displayMessage}
                   </p>
                 </div>
               </div>
@@ -305,9 +350,36 @@ const MentorShareButton = ({
             </div>
           </div>
           
-          <p className="text-sm text-muted-foreground text-center mt-3">
-            Baixe a imagem e compartilhe nas suas redes sociais
-          </p>
+          {/* Edit message section */}
+          {editing ? (
+            <div className="space-y-2 mt-3">
+              <Textarea
+                value={editDraft}
+                onChange={(e) => setEditDraft(e.target.value)}
+                placeholder={DEFAULT_MESSAGE(mentorArea)}
+                rows={4}
+                className="text-sm"
+              />
+              <p className="text-xs text-muted-foreground">Deixe em branco para usar a mensagem padrão.</p>
+              <div className="flex gap-2">
+                <Button size="sm" onClick={handleSaveMessage} disabled={saving} className="gap-1">
+                  {saving && <Loader2 className="w-3 h-3 animate-spin" />}
+                  Salvar
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>Cancelar</Button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between mt-3">
+              <p className="text-sm text-muted-foreground">
+                Baixe a imagem e compartilhe nas suas redes sociais
+              </p>
+              <Button size="sm" variant="ghost" className="gap-1 text-xs" onClick={handleStartEdit}>
+                <Pencil className="w-3 h-3" />
+                Editar texto
+              </Button>
+            </div>
+          )}
           
           <div className="flex flex-col gap-3 mt-2">
             {/* Download button - Primary action */}
