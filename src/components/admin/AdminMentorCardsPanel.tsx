@@ -87,10 +87,10 @@ const MentorCard = ({ mentor, onDownload }: { mentor: Mentor; onDownload: (mento
               borderRadius: "12px",
               padding: "14px",
               border: "1px solid rgba(255,255,255,0.2)",
-              height: "130px",
+              minHeight: "100px",
               display: "flex",
               alignItems: "center",
-              overflow: "hidden",
+              justifyContent: "center",
             }}>
               <p style={{
                 fontSize: "13px",
@@ -99,10 +99,8 @@ const MentorCard = ({ mentor, onDownload }: { mentor: Mentor; onDownload: (mento
                 margin: 0,
                 textAlign: "center",
                 width: "100%",
-                display: "-webkit-box",
-                WebkitLineClamp: 5,
-                WebkitBoxOrient: "vertical",
-                overflow: "hidden",
+                wordWrap: "break-word",
+                overflowWrap: "break-word",
               }}>
                 {displayMessage}
               </p>
