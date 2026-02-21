@@ -575,17 +575,24 @@ const MentorshipSection = () => {
                     </div>
                     
                     {/* Meeting Link */}
-                    {session.meeting_link && (
-                      <a
-                        href={session.meeting_link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 px-3 py-2 bg-primary/10 border border-primary/20 rounded-lg text-sm text-primary hover:bg-primary/20 transition-colors"
-                      >
-                        <Video className="w-4 h-4" />
-                        <span className="font-medium">Entrar na sessão</span>
-                      </a>
-                    )}
+                    {session.meeting_link && (() => {
+                      const raw = session.meeting_link;
+                      const meetMatch = raw.match(/https?:\/\/meet\.google\.com\/[a-z\-]+/i);
+                      const urlMatch = raw.match(/https?:\/\/\S+/i);
+                      let href = meetMatch ? meetMatch[0] : urlMatch ? urlMatch[0] : raw.trim();
+                      if (href && !href.startsWith("http")) href = `https://${href}`;
+                      return href ? (
+                        <a
+                          href={href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 px-3 py-2 bg-primary/10 border border-primary/20 rounded-lg text-sm text-primary hover:bg-primary/20 transition-colors"
+                        >
+                          <Video className="w-4 h-4" />
+                          <span className="font-medium">Entrar na sessão</span>
+                        </a>
+                      ) : null;
+                    })()}
 
                     <div className="flex justify-end">
                       <SessionManagement
