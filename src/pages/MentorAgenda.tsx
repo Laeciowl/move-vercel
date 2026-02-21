@@ -83,9 +83,28 @@ const MentorAgenda = () => {
   const [meetingLinkDraft, setMeetingLinkDraft] = useState<Record<string, string>>({});
   const [savingMeetingLink, setSavingMeetingLink] = useState<string | null>(null);
 
+  const extractMeetingUrl = (raw: string): string => {
+    // Try to find a Google Meet URL in the text
+    const meetMatch = raw.match(/https?:\/\/meet\.google\.com\/[a-z\-]+/i);
+    if (meetMatch) return meetMatch[0];
+    
+    // Try to find any https URL
+    const urlMatch = raw.match(/https?:\/\/\S+/i);
+    if (urlMatch) return urlMatch[0];
+    
+    // If it looks like a domain without protocol, add https://
+    const trimmed = raw.trim();
+    if (trimmed && !trimmed.startsWith("http")) {
+      return `https://${trimmed}`;
+    }
+    
+    return trimmed;
+  };
+
   const handleSaveMeetingLink = async (sessionId: string) => {
     setSavingMeetingLink(sessionId);
-    const link = meetingLinkDraft[sessionId] || "";
+    const rawLink = meetingLinkDraft[sessionId] || "";
+    const link = rawLink ? extractMeetingUrl(rawLink) : "";
     const { error } = await supabase
       .from("mentor_sessions")
       .update({ meeting_link: link || null })
