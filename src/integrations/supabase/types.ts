@@ -412,6 +412,8 @@ export type Database = {
           confirmed_by_mentor: boolean | null
           created_at: string
           duration: number | null
+          google_calendar_event_id: string | null
+          google_calendar_mentee_event_id: string | null
           id: string
           meeting_link: string | null
           mentee_formation: string | null
@@ -429,6 +431,8 @@ export type Database = {
           confirmed_by_mentor?: boolean | null
           created_at?: string
           duration?: number | null
+          google_calendar_event_id?: string | null
+          google_calendar_mentee_event_id?: string | null
           id?: string
           meeting_link?: string | null
           mentee_formation?: string | null
@@ -446,6 +450,8 @@ export type Database = {
           confirmed_by_mentor?: boolean | null
           created_at?: string
           duration?: number | null
+          google_calendar_event_id?: string | null
+          google_calendar_mentee_event_id?: string | null
           id?: string
           meeting_link?: string | null
           mentee_formation?: string | null

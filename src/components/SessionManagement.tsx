@@ -50,6 +50,13 @@ const SessionManagement = ({
   const handleCancel = async () => {
     setLoading(true);
 
+    // First, fetch the session to check for Google Calendar event IDs
+    const { data: sessionData } = await supabase
+      .from("mentor_sessions")
+      .select("google_calendar_event_id, google_calendar_mentee_event_id")
+      .eq("id", sessionId)
+      .maybeSingle();
+
     const { error } = await supabase
       .from("mentor_sessions")
       .update({
@@ -62,6 +69,30 @@ const SessionManagement = ({
       toast.error("Erro ao cancelar sessão: " + error.message);
       setLoading(false);
       return;
+    }
+
+    // Cancel Google Calendar events if they were auto-generated
+    if (sessionData?.google_calendar_event_id || sessionData?.google_calendar_mentee_event_id) {
+      try {
+        const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+        const { data: { session: authSession } } = await supabase.auth.getSession();
+        if (authSession?.access_token) {
+          await fetch(
+            `https://${projectId}.supabase.co/functions/v1/google-calendar-sync?action=cancel-event`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${authSession.access_token}`,
+              },
+              body: JSON.stringify({ session_id: sessionId }),
+            }
+          );
+        }
+        console.log("Google Calendar events cancelled for session:", sessionId);
+      } catch (err) {
+        console.error("Error cancelling Google Calendar events:", err);
+      }
     }
 
     // Send cancellation emails
