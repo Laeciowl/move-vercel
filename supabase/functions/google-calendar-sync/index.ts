@@ -180,6 +180,8 @@ Deno.serve(async (req) => {
     };
 
     const results: any = { mentee: null, mentor: null, meetingLink: null };
+    let mentorEventId: string | null = null;
+    let menteeEventId: string | null = null;
 
     // Create for mentor first (to get Meet link)
     if (mentorUserId) {
@@ -190,6 +192,7 @@ Deno.serve(async (req) => {
         console.log("Mentor calendar event response:", JSON.stringify(res));
         if (res.id) {
           results.mentor = { event_id: res.id };
+          mentorEventId = res.id;
           // Extract Google Meet link
           const meetLink = res.hangoutLink || res.conferenceData?.entryPoints?.find((e: any) => e.entryPointType === "video")?.uri;
           if (meetLink) {
@@ -219,6 +222,7 @@ Deno.serve(async (req) => {
       const res = await createCalendarEvent(menteeToken, menteeEventPayload);
       console.log("Mentee calendar event response:", JSON.stringify(res));
       results.mentee = res.id ? { event_id: res.id } : { error: res.error?.message };
+      if (res.id) menteeEventId = res.id;
       
       // If mentor didn't have calendar but mentee did, get meet link from mentee's event
       if (!results.meetingLink && res.hangoutLink) {
@@ -229,6 +233,18 @@ Deno.serve(async (req) => {
           .eq("id", session_id);
         console.log("Meeting link saved from mentee event:", res.hangoutLink);
       }
+    }
+
+    // Save Google Calendar event IDs to the session
+    const eventIdUpdate: any = {};
+    if (mentorEventId) eventIdUpdate.google_calendar_event_id = mentorEventId;
+    if (menteeEventId) eventIdUpdate.google_calendar_mentee_event_id = menteeEventId;
+    if (Object.keys(eventIdUpdate).length > 0) {
+      await adminClient
+        .from("mentor_sessions")
+        .update(eventIdUpdate)
+        .eq("id", session_id);
+      console.log("Saved calendar event IDs:", eventIdUpdate);
     }
 
     return new Response(JSON.stringify({ success: true, results }), {
@@ -266,6 +282,72 @@ Deno.serve(async (req) => {
 
     return new Response(JSON.stringify({ error: res.error?.message || "Failed to create event" }), {
       status: 500, headers: corsHeaders,
+    });
+  }
+
+  // ACTION: cancel-event — cancel calendar events for a cancelled session
+  if (action === "cancel-event") {
+    const body = await req.json();
+    const { session_id } = body;
+    console.log("cancel-event: Starting for session", session_id);
+
+    if (!session_id) {
+      return new Response(JSON.stringify({ error: "session_id required" }), { status: 400, headers: corsHeaders });
+    }
+
+    const { data: session } = await adminClient
+      .from("mentor_sessions")
+      .select("*, mentors(email)")
+      .eq("id", session_id)
+      .maybeSingle();
+
+    if (!session) {
+      return new Response(JSON.stringify({ error: "Session not found" }), { status: 404, headers: corsHeaders });
+    }
+
+    const results: any = { mentor: null, mentee: null };
+
+    // Delete mentor's calendar event
+    if (session.google_calendar_event_id) {
+      const { data: mentorUserIds } = await adminClient
+        .rpc("get_mentor_user_ids", { mentor_ids: [session.mentor_id] });
+      const mentorUserId = mentorUserIds?.[0]?.user_id || null;
+
+      if (mentorUserId) {
+        const mentorToken = await getValidToken(adminClient, mentorUserId);
+        if (mentorToken) {
+          const ok = await deleteCalendarEvent(mentorToken, session.google_calendar_event_id);
+          results.mentor = ok ? "deleted" : "failed";
+          console.log("cancel-event: Mentor event delete:", results.mentor);
+        } else {
+          results.mentor = "no_token";
+        }
+      }
+    }
+
+    // Delete mentee's calendar event
+    if (session.google_calendar_mentee_event_id) {
+      const menteeToken = await getValidToken(adminClient, session.user_id);
+      if (menteeToken) {
+        const ok = await deleteCalendarEvent(menteeToken, session.google_calendar_mentee_event_id);
+        results.mentee = ok ? "deleted" : "failed";
+        console.log("cancel-event: Mentee event delete:", results.mentee);
+      } else {
+        results.mentee = "no_token";
+      }
+    }
+
+    // Clear the event IDs and meeting link from the session
+    await adminClient
+      .from("mentor_sessions")
+      .update({
+        google_calendar_event_id: null,
+        google_calendar_mentee_event_id: null,
+      })
+      .eq("id", session_id);
+
+    return new Response(JSON.stringify({ success: true, results }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 
