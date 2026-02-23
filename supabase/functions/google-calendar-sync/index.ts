@@ -171,11 +171,40 @@ Deno.serve(async (req) => {
 
     console.log("create-event: Creating via orchestrator. Mentor:", mentorEmail, "Mentee:", menteeEmail);
 
+    const scheduledDate = scheduledAt.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric', timeZone: 'America/Sao_Paulo' });
+    const scheduledTime = scheduledAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' });
+
     const eventPayload = {
-      summary: `Mentoria ${mentorName} ↔ ${menteeName} - Movê`,
-      description: session.mentee_objective
-        ? `Objetivo: ${session.mentee_objective}`
-        : "Mentoria agendada pelo Movê",
+      summary: `Sua Mentoria Movê com o mentor ${mentorName} está confirmada!`,
+      description: [
+        `━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+        `🟣 MOVÊ — Mentoria de Carreira Gratuita`,
+        `━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+        ``,
+        `Olá, ${menteeName}! 👋`,
+        ``,
+        `Sua sessão de mentoria está confirmada:`,
+        ``,
+        `👤 Mentor(a): ${mentorName}`,
+        `📅 Data: ${scheduledDate}`,
+        `🕐 Horário: ${scheduledTime} (Brasília)`,
+        `⏱️ Duração: ${durationMin} minutos`,
+        ...(session.mentee_objective ? [`🎯 Objetivo: ${session.mentee_objective}`] : []),
+        ``,
+        `O link do Google Meet está disponível neste evento.`,
+        ``,
+        `━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+        `Dicas para sua mentoria:`,
+        `• Prepare suas dúvidas com antecedência`,
+        `• Esteja no horário — pontualidade é respeito`,
+        `• Após a sessão, avalie seu mentor na plataforma`,
+        `━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+        ``,
+        `🌐 Acesse a plataforma: https://movesocial.lovable.app`,
+        `📧 Dúvidas? movecarreiras@gmail.com`,
+        ``,
+        `Movê — Conectando quem quer crescer com quem pode ajudar 💜`,
+      ].join('\n'),
       start: { dateTime: scheduledAt.toISOString(), timeZone: "America/Sao_Paulo" },
       end: { dateTime: endAt.toISOString(), timeZone: "America/Sao_Paulo" },
       attendees: [
