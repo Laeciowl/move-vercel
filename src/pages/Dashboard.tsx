@@ -5,6 +5,7 @@ import {
   LogOut, RefreshCw, User, 
   Loader2, History, Edit, Shield, Heart, Sparkles, ExternalLink, MessageCircle, Settings, Briefcase, Target, ChevronRight
 } from "lucide-react";
+import logoMove from "@/assets/logo-move.png";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
 import { useVolunteerCheck } from "@/hooks/useVolunteerCheck";
@@ -232,14 +233,14 @@ const Dashboard = () => {
         className="sticky top-0 z-30 bg-background/60 backdrop-blur-2xl border-b border-border/30"
       >
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-          <motion.h1 
-            className="text-xl md:text-2xl font-bold text-gradient cursor-pointer"
+          <motion.div 
+            className="cursor-pointer"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => navigate("/")}
           >
-            Movê
-          </motion.h1>
+            <img src={logoMove} alt="Movê" className="h-8 w-auto" />
+          </motion.div>
           <div className="flex items-center gap-1 md:gap-2">
             {isAdmin && (
               <Button

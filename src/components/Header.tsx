@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
+import logoMove from "@/assets/logo-move.png";
 
 const Header = () => {
   const scrollToSection = (id: string) => {
@@ -19,22 +20,7 @@ const Header = () => {
           onClick={() => scrollToSection("hero")}
           className="flex items-center gap-1.5 group"
         >
-          <span className="text-2xl font-bold text-gradient">Movê</span>
-          <svg 
-            width="16" 
-            height="16" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            className="text-primary -rotate-45 group-hover:rotate-0 transition-transform duration-300"
-          >
-            <path 
-              d="M5 12h14M12 5l7 7-7 7" 
-              stroke="currentColor" 
-              strokeWidth="2.5" 
-              strokeLinecap="round" 
-              strokeLinejoin="round"
-            />
-          </svg>
+          <img src={logoMove} alt="Movê" className="h-8 w-auto" />
         </button>
 
         <nav className="hidden md:flex items-center gap-6">

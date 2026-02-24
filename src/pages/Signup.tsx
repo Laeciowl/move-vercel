@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
 import { useAuth } from "@/contexts/AuthContext";
+import logoMove from "@/assets/logo-move.png";
 import PasswordStrengthIndicator from "@/components/PasswordStrengthIndicator";
 import UserTypeSelector, { UserType } from "@/components/UserTypeSelector";
 import MentorDisclaimerModal from "@/components/MentorDisclaimerModal";
@@ -587,7 +588,7 @@ const Signup = () => {
           className="bg-card rounded-3xl shadow-card p-8"
         >
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gradient mb-2">Movê</h1>
+            <img src={logoMove} alt="Movê" className="h-10 w-auto mx-auto mb-2" />
             <p className="text-muted-foreground">
               {userType === "mentee" ? "Cadastro de Mentorado" :
                userType === "mentor" ? "Cadastro de Mentor Voluntário" :

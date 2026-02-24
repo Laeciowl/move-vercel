@@ -14,6 +14,7 @@ import BugReportButton from "@/components/BugReportButton";
 import NpsModal from "@/components/NpsModal";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import logoMove from "@/assets/logo-move.png";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -107,14 +108,14 @@ const AppLayout = ({ children }: AppLayoutProps) => {
       >
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <motion.h1
-              className="text-xl md:text-2xl font-bold text-gradient cursor-pointer"
+            <motion.div
+              className="cursor-pointer"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => navigate("/inicio")}
             >
-              Movê
-            </motion.h1>
+              <img src={logoMove} alt="Movê" className="h-8 w-auto" />
+            </motion.div>
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-1">
