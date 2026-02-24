@@ -1,5 +1,6 @@
 import { Heart } from "lucide-react";
 import { Link } from "react-router-dom";
+import logoMove from "@/assets/logo-move.png";
 
 const Footer = () => {
   return (
@@ -7,7 +8,7 @@ const Footer = () => {
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row items-start justify-between gap-12 mb-12">
           <div className="max-w-sm">
-            <h3 className="text-3xl font-bold text-gradient mb-4">Movê</h3>
+            <img src={logoMove} alt="Movê" className="h-10 w-auto mb-4 brightness-0 invert" />
             <p className="text-background/60 leading-relaxed">
               Acreditamos que todo mundo merece orientação pra crescer. 
               Por isso, conectamos quem quer aprender com quem quer ensinar.

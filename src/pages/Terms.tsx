@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Shield, FileText, Lock, Users, Scale } from "lucide-react";
+import logoMove from "@/assets/logo-move.png";
 
 const Terms = () => {
   return (
@@ -285,7 +286,7 @@ const Terms = () => {
       {/* Simple Footer */}
       <footer className="bg-card border-t border-border py-8 mt-12">
         <div className="container mx-auto px-4 text-center">
-          <Link to="/" className="text-2xl font-bold text-gradient">Movê</Link>
+          <Link to="/"><img src={logoMove} alt="Movê" className="h-8 w-auto mx-auto" /></Link>
           <p className="text-muted-foreground text-sm mt-2">
             Educação que move.
           </p>

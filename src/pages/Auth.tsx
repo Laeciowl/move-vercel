@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import logoMove from "@/assets/logo-move.png";
 import { z } from "zod";
 
 const emailSchema = z.string().email("E-mail inválido").max(255);
@@ -189,7 +190,7 @@ const Auth = () => {
 
         <div className="bg-card rounded-3xl shadow-card p-8">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gradient mb-2">Movê</h1>
+            <img src={logoMove} alt="Movê" className="h-10 w-auto mx-auto mb-2" />
             <p className="text-muted-foreground">{getTitle()}</p>
           </div>
 
