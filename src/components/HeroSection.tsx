@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import logoMove from "@/assets/logo-move.png";
 
 const HeroSection = () => {
   const navigate = useNavigate();
@@ -89,9 +90,7 @@ const HeroSection = () => {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="mb-10">
 
-            <h1 className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-extrabold text-gradient leading-none tracking-tight">
-              Movê
-            </h1>
+            <img src={logoMove} alt="Movê" className="h-20 sm:h-24 md:h-28 lg:h-32 w-auto" />
             <motion.p
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
