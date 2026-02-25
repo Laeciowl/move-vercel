@@ -200,7 +200,7 @@ Deno.serve(async (req) => {
         `• Após a sessão, avalie seu mentor na plataforma`,
         `━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
         ``,
-        `🌐 Acesse a plataforma: https://movesocial.lovable.app`,
+        `🌐 Acesse a plataforma: https://movecarreiras.org`,
         `📧 Dúvidas? movecarreiras@gmail.com`,
         ``,
         `Movê — Conectando quem quer crescer com quem pode ajudar 💜`,
