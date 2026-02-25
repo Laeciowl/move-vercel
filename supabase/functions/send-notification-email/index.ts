@@ -127,7 +127,7 @@ const emailTemplates: Record<string, { subject: string; html: (name: string, dat
         <h1 style="color: ${MOVE_COLORS.primary}; text-align: center;">Oi, ${name}! 👋</h1>
         ${studentWelcomeMessage}
         <div style="text-align: center; margin-top: 30px;">
-          <a href="${Deno.env.get("SITE_URL") || "https://movesocial.lovable.app"}/dashboard" 
+          <a href="https://movecarreiras.org/dashboard" 
              style="background: linear-gradient(135deg, ${MOVE_COLORS.primary} 0%, #fb923c 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 12px; font-weight: bold; display: inline-block;">
             Acessar Plataforma
           </a>
@@ -145,7 +145,7 @@ const emailTemplates: Record<string, { subject: string; html: (name: string, dat
         <h1 style="color: ${MOVE_COLORS.primary}; text-align: center;">Oi, ${name}! 👋</h1>
         ${studentWelcomeMessage}
         <div style="text-align: center; margin-top: 30px;">
-          <a href="${Deno.env.get("SITE_URL") || "https://movesocial.lovable.app"}/dashboard" 
+          <a href="https://movecarreiras.org/dashboard" 
              style="background: linear-gradient(135deg, ${MOVE_COLORS.primary} 0%, #fb923c 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 12px; font-weight: bold; display: inline-block;">
             Acessar minha conta
           </a>
@@ -176,7 +176,7 @@ const emailTemplates: Record<string, { subject: string; html: (name: string, dat
           Obrigado por fazer parte dessa missão de transformar vidas!
         </p>
         <div style="text-align: center; margin-top: 30px;">
-          <a href="${Deno.env.get("SITE_URL") || "https://movesocial.lovable.app"}/dashboard" 
+          <a href="https://movecarreiras.org/dashboard" 
              style="background: linear-gradient(135deg, ${MOVE_COLORS.primary} 0%, #fb923c 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 12px; font-weight: bold; display: inline-block;">
             Acessar Painel
           </a>
@@ -194,7 +194,7 @@ const emailTemplates: Record<string, { subject: string; html: (name: string, dat
         <h1 style="color: ${MOVE_COLORS.primary}; text-align: center;">Oi, ${name}! 👋</h1>
         ${volunteerWelcomeMessage}
         <div style="text-align: center; margin-top: 30px;">
-          <a href="${Deno.env.get("SITE_URL") || "https://movesocial.lovable.app"}" 
+          <a href="https://movecarreiras.org" 
              style="background: linear-gradient(135deg, ${MOVE_COLORS.primary} 0%, #fb923c 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 12px; font-weight: bold; display: inline-block;">
             Conhecer mais sobre o Movê
           </a>
@@ -220,7 +220,7 @@ const emailTemplates: Record<string, { subject: string; html: (name: string, dat
           <p style="color: ${MOVE_COLORS.text}; margin: 10px 0 0 0;"><strong>Estado:</strong> ${data?.state || "N/A"}</p>
         </div>
         <div style="text-align: center; margin-top: 30px;">
-          <a href="${Deno.env.get("SITE_URL") || "https://movesocial.lovable.app"}/admin" 
+          <a href="https://movecarreiras.org/admin" 
              style="background: linear-gradient(135deg, ${MOVE_COLORS.primary} 0%, #fb923c 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 12px; font-weight: bold; display: inline-block;">
             Acessar Painel Admin
           </a>
@@ -284,7 +284,40 @@ const emailTemplates: Record<string, { subject: string; html: (name: string, dat
         <p style="color: ${MOVE_COLORS.text}; font-size: 16px; line-height: 1.6;">
           Prepare-se para a sessão! Anote suas dúvidas e objetivos para aproveitar ao máximo.
         </p>
+
+        <!-- Reschedule link -->
+        <div style="text-align: center; margin: 25px 0;">
+          <p style="color: ${MOVE_COLORS.textMuted}; font-size: 14px; margin: 0 0 10px 0;">Precisa remarcar?</p>
+          <a href="https://movecarreiras.org/dashboard#mentorship-section" 
+             style="color: ${MOVE_COLORS.primary}; font-size: 14px; font-weight: bold; text-decoration: underline;">
+            Remarcar minha mentoria
+          </a>
+        </div>
+
+        <!-- Platform link -->
+        <div style="text-align: center; margin: 20px 0;">
+          <a href="https://movecarreiras.org" 
+             style="background: linear-gradient(135deg, ${MOVE_COLORS.primary} 0%, #fb923c 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 12px; font-weight: bold; display: inline-block;">
+            Acessar movecarreiras.org
+          </a>
+        </div>
+
         ${founderSignature}
+
+        <!-- Referral section -->
+        <div style="margin-top: 25px; padding: 20px; background: linear-gradient(135deg, #fef3e2 0%, #fff7ed 100%); border-radius: 12px; text-align: center; border: 1px dashed ${MOVE_COLORS.primaryLight};">
+          <p style="color: ${MOVE_COLORS.text}; font-size: 15px; margin: 0 0 10px 0; font-weight: bold;">
+            💜 Conhece alguém que precisa de orientação profissional?
+          </p>
+          <p style="color: ${MOVE_COLORS.textMuted}; font-size: 13px; margin: 0 0 15px 0;">
+            Indique a Movê para um amigo e ajude mais pessoas a transformarem suas carreiras!
+          </p>
+          <a href="https://movecarreiras.org" 
+             style="background: ${MOVE_COLORS.secondary}; color: white; padding: 12px 28px; text-decoration: none; border-radius: 10px; font-weight: bold; display: inline-block; font-size: 14px;">
+            Indicar a Movê para um amigo
+          </a>
+        </div>
+
         ${emailFooter}
       </div>
     `,
@@ -351,7 +384,7 @@ const emailTemplates: Record<string, { subject: string; html: (name: string, dat
           Você pode agendar uma nova sessão com outro mentor disponível na plataforma.
         </p>
         <div style="text-align: center; margin-top: 30px;">
-          <a href="${Deno.env.get("SITE_URL") || "https://movesocial.lovable.app"}/mentores" 
+          <a href="https://movecarreiras.org/mentores" 
              style="background: linear-gradient(135deg, ${MOVE_COLORS.primary} 0%, #fb923c 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 12px; font-weight: bold; display: inline-block;">
             Ver Mentores
           </a>
@@ -380,7 +413,7 @@ const emailTemplates: Record<string, { subject: string; html: (name: string, dat
             : "Aguarde o contato para reagendamento ou verifique sua agenda."}
         </p>
         <div style="text-align: center; margin-top: 30px;">
-          <a href="${Deno.env.get("SITE_URL") || "https://movesocial.lovable.app"}/dashboard" 
+          <a href="https://movecarreiras.org/dashboard" 
              style="background: linear-gradient(135deg, ${MOVE_COLORS.primary} 0%, #fb923c 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 12px; font-weight: bold; display: inline-block;">
             Acessar Plataforma
           </a>
@@ -410,7 +443,7 @@ const emailTemplates: Record<string, { subject: string; html: (name: string, dat
           </p>
         </div>
         <div style="text-align: center; margin-top: 30px;">
-          <a href="${Deno.env.get("SITE_URL") || "https://movesocial.lovable.app"}/dashboard" 
+          <a href="https://movecarreiras.org/dashboard" 
              style="background: linear-gradient(135deg, ${MOVE_COLORS.primary} 0%, #fb923c 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 12px; font-weight: bold; display: inline-block;">
             Acessar Plataforma
           </a>
@@ -476,7 +509,7 @@ const emailTemplates: Record<string, { subject: string; html: (name: string, dat
           <li>📚 Se você também quiser agendar mentorias como mentorado, pode fazer isso na área de mentores!</li>
         </ul>
         <div style="text-align: center; margin-top: 30px;">
-          <a href="${Deno.env.get("SITE_URL") || "https://movesocial.lovable.app"}/dashboard" 
+          <a href="https://movecarreiras.org/dashboard" 
              style="background: linear-gradient(135deg, ${MOVE_COLORS.primary} 0%, #fb923c 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 12px; font-weight: bold; display: inline-block;">
             Acessar Painel de Mentor
           </a>
@@ -547,7 +580,7 @@ const emailTemplates: Record<string, { subject: string; html: (name: string, dat
           </p>
         </div>
         <div style="text-align: center; margin-top: 30px;">
-          <a href="${Deno.env.get("SITE_URL") || "https://movesocial.lovable.app"}/dashboard#mentorship-section" 
+          <a href="https://movecarreiras.org/dashboard#mentorship-section" 
              style="background: linear-gradient(135deg, ${MOVE_COLORS.primary} 0%, #fb923c 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 12px; font-weight: bold; display: inline-block;">
             Ver Pedido
           </a>
@@ -573,7 +606,7 @@ const emailTemplates: Record<string, { subject: string; html: (name: string, dat
           Que tal deixar um feedback sobre essa experiência? Seu comentário ajuda outros jovens a encontrarem o mentor ideal e também reconhece o trabalho voluntário de quem te ajudou. 💜
         </p>
         <div style="text-align: center; margin-top: 30px;">
-          <a href="${Deno.env.get("SITE_URL") || "https://movesocial.lovable.app"}/dashboard#mentorship-section" 
+          <a href="https://movecarreiras.org/dashboard#mentorship-section" 
              style="background: linear-gradient(135deg, ${MOVE_COLORS.primary} 0%, #fb923c 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 12px; font-weight: bold; display: inline-block;">
             Avaliar mentoria ⭐
           </a>
