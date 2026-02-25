@@ -119,6 +119,35 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Check for manual test mode
+    let bodyText = "";
+    try {
+      bodyText = await req.text();
+    } catch (_) {}
+    
+    if (bodyText) {
+      try {
+        const body = JSON.parse(bodyText);
+        if (body.test && body.to) {
+          console.log("Test mode activated, sending to:", body.to);
+          const html = generateReminderHtml(
+            body.name || "Mentorado Teste",
+            body.role || "mentee",
+            body.mentorName || "Mentor Teste",
+            body.menteeName || "Mentorado Teste",
+            body.date || "sábado, 01 de março às 15:00",
+            body.meetingLink || "https://meet.google.com/abc-defg-hij",
+            body.timeLabel || "amanhã"
+          );
+          const ok = await sendEmail(body.to, body.subject || "🧪 Teste: Sua mentoria está chegando! ⏰", html);
+          return new Response(JSON.stringify({ success: ok, test: true }), {
+            status: ok ? 200 : 500,
+            headers: { "Content-Type": "application/json", ...corsHeaders },
+          });
+        }
+      } catch (e) { console.log("Body parse error:", e); }
+    }
+
     const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     const now = new Date();
 
