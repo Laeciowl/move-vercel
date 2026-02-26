@@ -36,7 +36,6 @@ function generateReminderHtml(
   timeLabel: string
 ): string {
   const otherPerson = role === "mentor" ? menteeName : mentorName;
-  const roleLabel = role === "mentor" ? "mentorado" : "mentor";
 
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #fffbf7;">
@@ -152,19 +151,22 @@ Deno.serve(async (req) => {
     const now = new Date();
 
     // Find sessions that are 24h away (between 23h and 25h from now)
+    // AND have NOT already received the 24h reminder
     const in23h = new Date(now.getTime() + 23 * 60 * 60 * 1000).toISOString();
     const in25h = new Date(now.getTime() + 25 * 60 * 60 * 1000).toISOString();
 
     // Find sessions that are 1h away (between 50min and 70min from now)
+    // AND have NOT already received the 1h reminder
     const in50m = new Date(now.getTime() + 50 * 60 * 1000).toISOString();
     const in70m = new Date(now.getTime() + 70 * 60 * 1000).toISOString();
 
-    // Fetch sessions in both windows
+    // Fetch sessions in both windows, filtering out already-sent reminders
     const { data: sessions24h } = await adminClient
       .from("mentor_sessions")
       .select("*, mentors(name, email)")
       .eq("status", "scheduled")
       .eq("confirmed_by_mentor", true)
+      .eq("reminder_24h_sent", false)
       .gte("scheduled_at", in23h)
       .lte("scheduled_at", in25h);
 
@@ -173,13 +175,14 @@ Deno.serve(async (req) => {
       .select("*, mentors(name, email)")
       .eq("status", "scheduled")
       .eq("confirmed_by_mentor", true)
+      .eq("reminder_1h_sent", false)
       .gte("scheduled_at", in50m)
       .lte("scheduled_at", in70m);
 
     let sentCount = 0;
     let failedCount = 0;
 
-    const processSession = async (session: any, timeLabel: string) => {
+    const processSession = async (session: any, timeLabel: string, reminderType: "24h" | "1h") => {
       const mentorName = (session.mentors as any)?.name || "Mentor";
       const mentorEmail = (session.mentors as any)?.email;
       const scheduledAt = new Date(session.scheduled_at);
@@ -202,6 +205,8 @@ Deno.serve(async (req) => {
       const { data: menteeUser } = await adminClient.auth.admin.getUserById(session.user_id);
       const menteeEmail = menteeUser?.user?.email;
 
+      let sessionSentOk = true;
+
       // Send to mentee (if notifications enabled)
       if (menteeEmail && menteeProfile?.email_notifications !== false) {
         const subject = timeLabel === "amanhã"
@@ -213,7 +218,7 @@ Deno.serve(async (req) => {
           subject,
           generateReminderHtml(menteeName, "mentee", mentorName, menteeName, dateStr, session.meeting_link, timeLabel)
         );
-        ok ? sentCount++ : failedCount++;
+        ok ? sentCount++ : (failedCount++, sessionSentOk = false);
       }
 
       // Send to mentor
@@ -227,21 +232,33 @@ Deno.serve(async (req) => {
           subject,
           generateReminderHtml(mentorName, "mentor", mentorName, menteeName, dateStr, session.meeting_link, timeLabel)
         );
-        ok ? sentCount++ : failedCount++;
+        ok ? sentCount++ : (failedCount++, sessionSentOk = false);
+      }
+
+      // Mark reminder as sent so it won't be sent again
+      if (sessionSentOk) {
+        const updateField = reminderType === "24h" 
+          ? { reminder_24h_sent: true } 
+          : { reminder_1h_sent: true };
+        
+        await adminClient
+          .from("mentor_sessions")
+          .update(updateField)
+          .eq("id", session.id);
       }
     };
 
     // Process 24h reminders
     if (sessions24h) {
       for (const session of sessions24h) {
-        await processSession(session, "amanhã");
+        await processSession(session, "amanhã", "24h");
       }
     }
 
     // Process 1h reminders
     if (sessions1h) {
       for (const session of sessions1h) {
-        await processSession(session, "em 1 hora");
+        await processSession(session, "em 1 hora", "1h");
       }
     }
 

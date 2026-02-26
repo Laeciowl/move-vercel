@@ -206,7 +206,7 @@ const MentorPanel = () => {
             {mentorTags.length > 0 ? (
               <div className="flex flex-wrap gap-1 mt-0.5">
                 {mentorTags.map((tag) => (
-                  <span key={tag.id} className="text-[10px] px-1.5 py-0.5 rounded-md bg-primary/10 text-primary font-medium">
+                  <span key={tag.id} className="text-xs px-2 py-0.5 rounded-md bg-primary/15 text-primary font-semibold border border-primary/20">
                     {tag.name}
                   </span>
                 ))}
