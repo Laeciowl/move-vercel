@@ -560,8 +560,8 @@ const MentorshipSection = () => {
                           {formatDate(session.scheduled_at)}
                         </p>
                         {session.duration && (
-                          <Badge variant="secondary" className="text-[10px] mt-1 bg-muted/60">
-                            <Timer className="w-3 h-3 mr-0.5" />
+                          <Badge variant="secondary" className="text-xs mt-1 bg-primary/10 text-primary border border-primary/20 font-semibold">
+                            <Timer className="w-3 h-3 mr-1" />
                             {session.duration} min
                           </Badge>
                         )}

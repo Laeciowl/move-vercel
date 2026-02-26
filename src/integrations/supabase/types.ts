@@ -421,6 +421,8 @@ export type Database = {
           mentor_id: string
           mentor_notes: string | null
           notes: string | null
+          reminder_1h_sent: boolean
+          reminder_24h_sent: boolean
           scheduled_at: string
           status: Database["public"]["Enums"]["session_status"]
           user_id: string
@@ -440,6 +442,8 @@ export type Database = {
           mentor_id: string
           mentor_notes?: string | null
           notes?: string | null
+          reminder_1h_sent?: boolean
+          reminder_24h_sent?: boolean
           scheduled_at: string
           status?: Database["public"]["Enums"]["session_status"]
           user_id: string
@@ -459,6 +463,8 @@ export type Database = {
           mentor_id?: string
           mentor_notes?: string | null
           notes?: string | null
+          reminder_1h_sent?: boolean
+          reminder_24h_sent?: boolean
           scheduled_at?: string
           status?: Database["public"]["Enums"]["session_status"]
           user_id?: string
