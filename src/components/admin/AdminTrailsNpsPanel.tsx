@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 
 interface TrailStats {
+  trilha_id: string;
   titulo: string;
   icone: string;
   started: number;
@@ -34,7 +35,8 @@ const AdminTrailsNpsPanel = () => {
   const [showNpsDetail, setShowNpsDetail] = useState(false);
   const [npsByType, setNpsByType] = useState<{ mentors: NpsStats; mentees: NpsStats } | null>(null);
   const [recentFeedback, setRecentFeedback] = useState<{ nota: number; feedback: string; user_type: string; created_at: string }[]>([]);
-
+  const [trailMentees, setTrailMentees] = useState<Map<string, { name: string; progresso: number; concluido: boolean }[]>>(new Map());
+  const [loadingMentees, setLoadingMentees] = useState(false);
   const calcNps = (responses: { nota: number }[]): NpsStats => {
     if (responses.length === 0) return { total: 0, promoters: 0, passives: 0, detractors: 0, score: 0 };
     const promoters = responses.filter(r => r.nota >= 9).length;
@@ -72,6 +74,7 @@ const AdminTrailsNpsPanel = () => {
       });
 
       return {
+        trilha_id: t.id,
         titulo: t.titulo,
         icone: t.icone,
         started,
@@ -99,6 +102,43 @@ const AdminTrailsNpsPanel = () => {
 
     setLoading(false);
   }, []);
+
+  const fetchTrailMentees = useCallback(async (trilhaId: string) => {
+    if (trailMentees.has(trilhaId)) return;
+    setLoadingMentees(true);
+    try {
+      const { data: progressData } = await supabase
+        .from("progresso_trilha")
+        .select("mentorado_id, progresso_percentual, concluido_em")
+        .eq("trilha_id", trilhaId);
+
+      if (!progressData || progressData.length === 0) {
+        setTrailMentees(prev => new Map(prev).set(trilhaId, []));
+        setLoadingMentees(false);
+        return;
+      }
+
+      const menteeIds = progressData.map(p => p.mentorado_id);
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("user_id, name")
+        .in("user_id", menteeIds);
+
+      const nameMap = new Map((profiles || []).map(p => [p.user_id, p.name]));
+
+      const menteeList = progressData.map(p => ({
+        name: nameMap.get(p.mentorado_id) || "Desconhecido",
+        progresso: p.progresso_percentual,
+        concluido: !!p.concluido_em,
+      })).sort((a, b) => b.progresso - a.progresso);
+
+      setTrailMentees(prev => new Map(prev).set(trilhaId, menteeList));
+    } catch (err) {
+      console.error("Error fetching trail mentees:", err);
+    } finally {
+      setLoadingMentees(false);
+    }
+  }, [trailMentees]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -190,13 +230,50 @@ const AdminTrailsNpsPanel = () => {
               <div key={i} className="p-3 rounded-lg bg-muted/50 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="font-medium text-sm">{trail.icone} {trail.titulo}</span>
-                  <span className="text-xs text-muted-foreground">{trail.rate}%</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground">{trail.rate}%</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 px-2 text-xs"
+                      onClick={() => fetchTrailMentees(trail.trilha_id)}
+                    >
+                      Ver mentorados
+                    </Button>
+                  </div>
                 </div>
                 <Progress value={trail.rate} className="h-1.5" />
                 <div className="flex gap-4 text-xs text-muted-foreground">
                   <span>Iniciaram: {trail.started}</span>
                   <span>Concluíram: {trail.completed}</span>
                 </div>
+
+                {/* Mentee list for this trail */}
+                {trailMentees.has(trail.trilha_id) && (
+                  <div className="mt-2 space-y-1 border-t border-border/30 pt-2">
+                    <p className="text-xs font-semibold text-foreground mb-1">Mentorados:</p>
+                    {trailMentees.get(trail.trilha_id)!.length === 0 ? (
+                      <p className="text-xs text-muted-foreground italic">Nenhum mentorado</p>
+                    ) : (
+                      trailMentees.get(trail.trilha_id)!.map((mentee, j) => (
+                        <div key={j} className="flex items-center justify-between text-xs py-1">
+                          <span className="text-foreground">{mentee.name}</span>
+                          <div className="flex items-center gap-2">
+                            <Progress value={mentee.progresso} className="h-1 w-16" />
+                            <span className={mentee.concluido ? "text-emerald-600 font-semibold" : "text-muted-foreground"}>
+                              {mentee.concluido ? "✅ Concluída" : `${mentee.progresso}%`}
+                            </span>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
+                {loadingMentees && !trailMentees.has(trail.trilha_id) && (
+                  <div className="flex justify-center py-2">
+                    <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                  </div>
+                )}
               </div>
             ))}
           </div>
