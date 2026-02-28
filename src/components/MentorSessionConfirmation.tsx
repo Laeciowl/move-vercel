@@ -222,9 +222,7 @@ const MentorSessionConfirmation = ({ sessions, mentorName, mentorEmail, onUpdate
               {session.mentee_profile?.phone && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Phone className="w-3 h-3" />
-                  <a href={`tel:${session.mentee_profile.phone}`} className="hover:text-primary transition-colors">
-                    {session.mentee_profile.phone}
-                  </a>
+                  <span>{session.mentee_profile.phone}</span>
                 </div>
               )}
               
@@ -234,6 +232,24 @@ const MentorSessionConfirmation = ({ sessions, mentorName, mentorEmail, onUpdate
                 </p>
               )}
             </div>
+
+            {/* WhatsApp contact button - before accepting */}
+            {session.mentee_profile?.phone && (
+              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-xl p-3 space-y-2">
+                <p className="text-xs text-muted-foreground">
+                  Caso precise falar com o mentorado antes de aceitar a mentoria, entre em contato pelo WhatsApp:
+                </p>
+                <a
+                  href={`https://wa.me/${session.mentee_profile.phone.replace(/\D/g, "").startsWith("55") ? session.mentee_profile.phone.replace(/\D/g, "") : `55${session.mentee_profile.phone.replace(/\D/g, "")}`}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 w-full bg-green-600 hover:bg-green-700 text-white py-2.5 px-4 rounded-lg font-medium text-sm transition-colors"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  Conversar no WhatsApp
+                </a>
+              </div>
+            )}
 
             {/* Formation and Objective */}
             {(session.mentee_formation || session.mentee_objective) && (
