@@ -363,7 +363,7 @@ const Dashboard = () => {
               >
                 {!isVolunteer && (
                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                    <Badge className="text-xs px-3 py-1.5 rounded-full bg-primary/15 text-primary border border-primary/30 font-semibold cursor-default">
+                    <Badge variant="outline" className="text-xs px-3 py-1.5 rounded-full !bg-[hsl(24,95%,53%,0.15)] !text-[hsl(24,95%,53%)] !border-[hsl(24,95%,53%,0.3)] font-semibold cursor-default">
                       {professionalStatusLabels[profile.professional_status]}
                     </Badge>
                   </motion.div>
