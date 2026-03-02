@@ -12,6 +12,9 @@ import InterestsNotificationBanner from "@/components/InterestsNotificationBanne
 import PendingMentorBanner from "@/components/PendingMentorBanner";
 import VolunteerPanel from "@/components/VolunteerPanel";
 import NavigationGrid from "@/components/NavigationGrid";
+import MenteeSessions from "@/components/MenteeSessions";
+import MenteeInterestsEditor from "@/components/MenteeInterestsEditor";
+import ReferralSection from "@/components/ReferralSection";
 import { usePendingMentorCheck } from "@/hooks/usePendingMentorCheck";
 
 const Home = () => {
@@ -101,21 +104,38 @@ const Home = () => {
           </div>
         </motion.div>
 
-        {/* Banners — only when relevant */}
+        {/* Banners */}
         {isPendingMentor && !isVolunteer && <PendingMentorBanner />}
         {isMentorado && (
           <InterestsNotificationBanner onOpenInterestsEditor={() => setShowInterestsOnboarding(true)} />
         )}
 
-        {/* Volunteer Panel — only for volunteers */}
+        {/* Volunteer Panel */}
         <VolunteerPanel />
 
         {/* Navigation Grid */}
-        <motion.div
-          variants={{ initial: { opacity: 0 }, animate: { opacity: 1 } }}
-        >
+        <motion.div variants={{ initial: { opacity: 0 }, animate: { opacity: 1 } }}>
           <NavigationGrid isVolunteer={isVolunteer} isMentor={isMentor} />
         </motion.div>
+
+        {/* Mentee-only sections */}
+        {isMentorado && (
+          <>
+            {/* Minhas Mentorias */}
+            <MenteeSessions />
+
+            {/* Interesses + Referral grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <motion.div
+                variants={{ initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 } }}
+                className="bg-card rounded-2xl border border-border/40 p-5"
+              >
+                <MenteeInterestsEditor />
+              </motion.div>
+              <ReferralSection />
+            </div>
+          </>
+        )}
       </motion.div>
 
       {/* Modals */}
