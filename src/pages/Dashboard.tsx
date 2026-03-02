@@ -360,7 +360,7 @@ const Dashboard = () => {
         {(!isVolunteer || isMentor) && <MentorshipSection />}
 
         {/* Navigation Grid - Main Feature */}
-        <NavigationGrid isVolunteer={isVolunteer} isPendingMentor={isPendingMentor} />
+        <NavigationGrid isVolunteer={isVolunteer} />
 
         {/* Bottom section: evolution + community in a grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">

@@ -1,86 +1,31 @@
 import { motion } from "framer-motion";
-import { ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { cn } from "@/lib/utils";
 import type { LucideIcon } from "lucide-react";
 
 interface NavigationCardProps {
   icon: LucideIcon;
   title: string;
-  description: string;
   route: string;
-  iconBgClassName?: string;
-  iconClassName?: string;
-  onClick?: () => void;
-  external?: boolean;
-  externalUrl?: string;
-  badge?: string;
 }
 
-const NavigationCard = ({
-  icon: Icon,
-  title,
-  description,
-  route,
-  iconBgClassName,
-  iconClassName,
-  onClick,
-  external,
-  externalUrl,
-  badge,
-}: NavigationCardProps) => {
+const NavigationCard = ({ icon: Icon, title, route }: NavigationCardProps) => {
   const navigate = useNavigate();
-
-  const handleClick = () => {
-    if (onClick) {
-      onClick();
-    } else if (external && externalUrl) {
-      window.open(externalUrl, "_blank", "noopener,noreferrer");
-    } else {
-      navigate(route);
-    }
-  };
 
   return (
     <motion.button
-      onClick={handleClick}
-      whileHover={{ y: -2 }}
-      whileTap={{ scale: 0.98 }}
-      transition={{ type: "spring", stiffness: 400, damping: 25 }}
-      className={cn(
-        "relative w-full text-left p-5 rounded-2xl bg-card border border-border/40",
-        "hover:border-primary/30 hover:shadow-[0_8px_24px_-8px_hsl(var(--primary)/0.12)]",
-        "transition-all duration-300 group cursor-pointer",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2"
-      )}
+      onClick={() => navigate(route)}
+      whileHover={{ y: -8, scale: 1.02 }}
+      whileTap={{ scale: 0.97 }}
+      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      className="w-full flex flex-col items-center justify-center gap-6 p-10 rounded-[20px] bg-card border border-border/40 shadow-[0_2px_8px_rgba(0,0,0,0.04)] cursor-pointer transition-all duration-300 hover:border-primary/40 hover:shadow-[0_20px_40px_rgba(var(--primary-rgb),0.12)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 min-h-[200px] md:min-h-[240px] lg:min-h-[280px]"
       aria-label={`Navegar para ${title}`}
     >
-      {badge && (
-        <span className="absolute top-3 right-3 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
-          {badge}
-        </span>
-      )}
-
-      <div
-        className={cn(
-          "w-11 h-11 rounded-xl flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110",
-          iconBgClassName || "bg-gradient-to-br from-primary to-primary/80"
-        )}
-      >
-        <Icon className={cn("w-5 h-5", iconClassName || "text-primary-foreground")} />
+      <div className="w-[72px] h-[72px] rounded-[18px] bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
+        <Icon className="w-9 h-9 text-primary-foreground" />
       </div>
-
-      <h3 className="font-semibold text-foreground text-[15px] leading-tight mb-1">
+      <h3 className="text-xl font-semibold text-foreground text-center">
         {title}
       </h3>
-
-      <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
-        {description}
-      </p>
-
-      <div className="mt-3 flex items-center text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-        Acessar <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
-      </div>
     </motion.button>
   );
 };
