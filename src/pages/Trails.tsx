@@ -132,6 +132,15 @@ const Trails = () => {
   return (
     <AppLayout>
       <div className="max-w-3xl mx-auto space-y-6">
+        {/* Back button */}
+        <button
+          onClick={() => navigate("/inicio")}
+          className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Voltar ao Dashboard
+        </button>
+
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}

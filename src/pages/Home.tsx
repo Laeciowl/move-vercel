@@ -115,17 +115,23 @@ const Home = () => {
 
         {/* Navigation Grid */}
         <motion.div variants={{ initial: { opacity: 0 }, animate: { opacity: 1 } }}>
+          <h2 className="text-lg font-semibold text-foreground mb-4">Menu de navegação</h2>
           <NavigationGrid isVolunteer={isVolunteer} isMentor={isMentor} />
         </motion.div>
 
         {/* Mentee-only sections */}
         {isMentorado && (
-          <>
-            {/* Minhas Mentorias */}
-            <MenteeSessions />
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+            {/* Left column - Mentorias (3/5) */}
+            <motion.div
+              variants={{ initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 } }}
+              className="lg:col-span-3"
+            >
+              <MenteeSessions />
+            </motion.div>
 
-            {/* Interesses + Referral grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Right column - Interests + Referral (2/5) */}
+            <div className="lg:col-span-2 space-y-6">
               <motion.div
                 variants={{ initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 } }}
                 className="bg-card rounded-2xl border border-border/40 p-5"
@@ -134,7 +140,7 @@ const Home = () => {
               </motion.div>
               <ReferralSection />
             </div>
-          </>
+          </div>
         )}
       </motion.div>
 

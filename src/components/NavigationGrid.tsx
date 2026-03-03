@@ -12,8 +12,8 @@ import {
 } from "lucide-react";
 import NavigationCard from "./NavigationCard";
 
-const WHATSAPP_MENTORADOS = "https://chat.whatsapp.com/JugF130879CH7Lgo2Ycs1b";
-const WHATSAPP_MENTORES = "https://chat.whatsapp.com/LINK_MENTORES";
+const WHATSAPP_MENTORADOS = "https://chat.whatsapp.com/BFDDkhbwz5aFdg6WhIFU6C";
+const WHATSAPP_MENTORES = "https://chat.whatsapp.com/LKpz2hr7FnZDpCgNXdxwHl";
 
 interface NavigationGridProps {
   isVolunteer: boolean;
@@ -21,11 +21,11 @@ interface NavigationGridProps {
 }
 
 const menteeCards = [
+  { icon: Users, title: "Mentoria", route: "/mentores" },
   { icon: Target, title: "Meu PDI", route: "/plano" },
   { icon: GraduationCap, title: "Trilhas de Aprendizagem", route: "/trilhas" },
   { icon: BookOpen, title: "Conteúdos", route: "/conteudos" },
   { icon: Trophy, title: "Conquistas", route: "/conquistas" },
-  { icon: Users, title: "Mentoria", route: "/mentores" },
   { icon: MessageCircle, title: "WhatsApp", externalUrl: WHATSAPP_MENTORADOS },
   { icon: Users2, title: "Comunidades Parceiras", route: "/comunidades" },
   { icon: HelpCircle, title: "Ajuda", route: "/ajuda" },
@@ -50,7 +50,7 @@ const NavigationGrid = ({ isVolunteer }: NavigationGridProps) => {
     }`}>
       {cards.map((card, i) => (
         <motion.div
-          key={card.route}
+          key={card.route || card.externalUrl}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 + i * 0.06, duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
