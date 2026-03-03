@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import {
   HelpCircle, Loader2, ExternalLink, Lightbulb, Users, GraduationCap,
   MessageCircle, Send, Calendar, Clock, CheckSquare, Square, AlertTriangle,
-  BarChart3, Heart, ArrowRight, BookOpen, Rocket, Target, FileText
+  BarChart3, Heart, ArrowRight, BookOpen, Rocket, Target, FileText, ArrowLeft
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useVolunteerCheck } from "@/hooks/useVolunteerCheck";
@@ -44,6 +44,15 @@ const Help = () => {
         animate={{ opacity: 1, y: 0 }}
         className="max-w-4xl mx-auto space-y-6"
       >
+        {/* Back button */}
+        <button
+          onClick={() => navigate("/inicio")}
+          className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Voltar ao Dashboard
+        </button>
+
         {/* Header */}
         <div className="text-center space-y-2">
           <div className="w-14 h-14 rounded-2xl bg-gradient-hero flex items-center justify-center shadow-button mx-auto">

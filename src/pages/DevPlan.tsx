@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Target, ChevronRight, Plus, CheckCircle, Loader2, Clock, Trash2, Pencil, X, Save } from "lucide-react";
+import { Target, ChevronRight, Plus, CheckCircle, Loader2, Clock, Trash2, Pencil, X, Save, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -271,6 +271,13 @@ const DevPlan = () => {
     return (
       <AppLayout>
         <div className="max-w-lg mx-auto space-y-6">
+          <button
+            onClick={() => navigate("/inicio")}
+            className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Voltar ao Dashboard
+          </button>
           <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="text-center space-y-2">
             <div className="w-14 h-14 mx-auto bg-primary/10 rounded-2xl flex items-center justify-center mb-4">
               <Target className="w-7 h-7 text-primary" />
@@ -362,6 +369,13 @@ const DevPlan = () => {
   return (
     <AppLayout>
       <div className="max-w-3xl mx-auto space-y-6">
+        <button
+          onClick={() => navigate("/inicio")}
+          className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Voltar ao Dashboard
+        </button>
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}

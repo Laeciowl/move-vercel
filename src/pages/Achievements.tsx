@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Trophy, Lock, Star, BarChart3, Loader2, Share2, ChevronRight, Linkedin } from "lucide-react";
+import { Trophy, Lock, Star, BarChart3, Loader2, Share2, ChevronRight, Linkedin, ArrowLeft } from "lucide-react";
 import { useAchievements } from "@/hooks/useAchievements";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -70,6 +70,15 @@ const Achievements = () => {
         animate={{ opacity: 1, y: 0 }}
         className="space-y-6 max-w-4xl mx-auto"
       >
+        {/* Back button */}
+        <button
+          onClick={() => navigate("/inicio")}
+          className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Voltar ao Dashboard
+        </button>
+
         {/* Header */}
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-2xl bg-gradient-hero flex items-center justify-center shadow-button">
