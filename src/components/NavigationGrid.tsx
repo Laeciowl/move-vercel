@@ -7,8 +7,13 @@ import {
   HelpCircle,
   Trophy,
   Calendar,
+  MessageCircle,
+  Users2,
 } from "lucide-react";
 import NavigationCard from "./NavigationCard";
+
+const WHATSAPP_MENTORADOS = "https://chat.whatsapp.com/JugF130879CH7Lgo2Ycs1b";
+const WHATSAPP_MENTORES = "https://chat.whatsapp.com/LINK_MENTORES";
 
 interface NavigationGridProps {
   isVolunteer: boolean;
@@ -16,18 +21,21 @@ interface NavigationGridProps {
 }
 
 const menteeCards = [
-  { icon: Users, title: "Mentoria", route: "/mentores" },
+  { icon: Target, title: "Meu PDI", route: "/plano" },
   { icon: GraduationCap, title: "Trilhas de Aprendizagem", route: "/trilhas" },
   { icon: BookOpen, title: "Conteúdos", route: "/conteudos" },
-  { icon: Target, title: "Meu PDI", route: "/plano" },
   { icon: Trophy, title: "Conquistas", route: "/conquistas" },
+  { icon: Users, title: "Mentoria", route: "/mentores" },
+  { icon: MessageCircle, title: "WhatsApp", externalUrl: WHATSAPP_MENTORADOS },
+  { icon: Users2, title: "Comunidades Parceiras", route: "/comunidades" },
   { icon: HelpCircle, title: "Ajuda", route: "/ajuda" },
 ];
 
 const volunteerCards = [
-  { icon: Users, title: "Mentoria", route: "/mentores" },
+  { icon: Users, title: "Área de Mentoria", route: "/mentores" },
   { icon: Calendar, title: "Agenda", route: "/mentor/agenda" },
   { icon: Trophy, title: "Conquistas", route: "/conquistas" },
+  { icon: MessageCircle, title: "WhatsApp", externalUrl: WHATSAPP_MENTORES },
   { icon: HelpCircle, title: "Ajuda", route: "/ajuda" },
 ];
 
