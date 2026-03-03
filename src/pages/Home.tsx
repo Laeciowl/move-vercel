@@ -49,8 +49,8 @@ const Home = () => {
           </div>
           <p className="text-muted-foreground font-medium">Carregando...</p>
         </div>
-      </div>);
-
+      </div>
+    );
   }
 
   const isMentorado = !isVolunteer && !isPendingMentor;
@@ -66,31 +66,31 @@ const Home = () => {
         initial="initial"
         animate="animate"
         variants={{ initial: {}, animate: { transition: { staggerChildren: 0.06 } } }}
-        className="space-y-8 pb-6 max-w-5xl mx-auto">
-        
+        className="space-y-8 pb-6 max-w-5xl mx-auto"
+      >
         {/* Greeting */}
         <motion.div
           variants={{ initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 } }}
-          className="flex items-center gap-4 pt-4">
-          
+          className="flex items-center gap-4 pt-4"
+        >
           <motion.button
             onClick={() => setShowProfileEdit(true)}
             className="relative group shrink-0"
             whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}>
-            
+            whileTap={{ scale: 0.95 }}
+          >
             <div className="w-14 h-14 rounded-2xl bg-gradient-hero flex items-center justify-center overflow-hidden ring-2 ring-primary/20 group-hover:ring-primary/40 transition-all">
-              {profile.photo_url ?
-              <img src={profile.photo_url} alt={profile.name} className="w-full h-full object-cover" /> :
-
-              <User className="w-7 h-7 text-primary-foreground" />
-              }
+              {profile.photo_url ? (
+                <img src={profile.photo_url} alt={profile.name} className="w-full h-full object-cover" />
+              ) : (
+                <User className="w-7 h-7 text-primary-foreground" />
+              )}
             </div>
             <motion.div
               initial={{ scale: 0, opacity: 0 }}
               whileHover={{ scale: 1, opacity: 1 }}
-              className="absolute -bottom-0.5 -right-0.5 w-6 h-6 bg-card rounded-full flex items-center justify-center shadow-sm border border-border/50">
-              
+              className="absolute -bottom-0.5 -right-0.5 w-6 h-6 bg-card rounded-full flex items-center justify-center shadow-sm border border-border/50"
+            >
               <Edit className="w-3 h-3 text-primary" />
             </motion.div>
           </motion.button>
@@ -106,49 +106,49 @@ const Home = () => {
 
         {/* Banners */}
         {isPendingMentor && !isVolunteer && <PendingMentorBanner />}
-        {isMentorado &&
-        <InterestsNotificationBanner onOpenInterestsEditor={() => setShowInterestsOnboarding(true)} />
-        }
+        {isMentorado && (
+          <InterestsNotificationBanner onOpenInterestsEditor={() => setShowInterestsOnboarding(true)} />
+        )}
 
         {/* Volunteer Panel */}
         <VolunteerPanel />
 
         {/* Navigation Grid */}
         <motion.div variants={{ initial: { opacity: 0 }, animate: { opacity: 1 } }}>
-          <h2 className="text-lg font-semibold text-foreground mb-4">
-</h2>
+          <h2 className="text-lg font-semibold text-foreground mb-4">Menu de navegação</h2>
           <NavigationGrid isVolunteer={isVolunteer} isMentor={isMentor} />
         </motion.div>
 
         {/* Mentee-only sections */}
-        {isMentorado && <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        {isMentorado && (
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
             {/* Left column - Mentorias (3/5) */}
             <motion.div
-            variants={{ initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 } }}
-            className="lg:col-span-3">
-            
+              variants={{ initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 } }}
+              className="lg:col-span-3"
+            >
               <MenteeSessions />
             </motion.div>
 
             {/* Right column - Interests + Referral (2/5) */}
             <div className="lg:col-span-2 space-y-6">
               <motion.div
-              variants={{ initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 } }}
-              className="bg-card rounded-2xl border border-border/40 p-5">
-              
+                variants={{ initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 } }}
+                className="bg-card rounded-2xl border border-border/40 p-5"
+              >
                 <MenteeInterestsEditor />
               </motion.div>
               <ReferralSection />
             </div>
           </div>
-        }
+        )}
       </motion.div>
 
       {/* Modals */}
       <ProfileEditModal isOpen={showProfileEdit} onClose={() => setShowProfileEdit(false)} profile={profile} onProfileUpdated={refreshProfile} />
       <InterestsOnboardingModal open={showInterestsOnboarding} onClose={() => setShowInterestsOnboarding(false)} />
-    </AppLayout>);
-
+    </AppLayout>
+  );
 };
 
 export default Home;
