@@ -5,15 +5,24 @@ import type { LucideIcon } from "lucide-react";
 interface NavigationCardProps {
   icon: LucideIcon;
   title: string;
-  route: string;
+  route?: string;
+  externalUrl?: string;
 }
 
-const NavigationCard = ({ icon: Icon, title, route }: NavigationCardProps) => {
+const NavigationCard = ({ icon: Icon, title, route, externalUrl }: NavigationCardProps) => {
   const navigate = useNavigate();
+
+  const handleClick = () => {
+    if (externalUrl) {
+      window.open(externalUrl, "_blank", "noopener,noreferrer");
+    } else if (route) {
+      navigate(route);
+    }
+  };
 
   return (
     <motion.button
-      onClick={() => navigate(route)}
+      onClick={handleClick}
       whileHover={{ y: -8, scale: 1.02 }}
       whileTap={{ scale: 0.97 }}
       transition={{ type: "spring", stiffness: 300, damping: 20 }}
