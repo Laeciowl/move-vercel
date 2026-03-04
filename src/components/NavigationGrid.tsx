@@ -9,6 +9,7 @@ import {
   Calendar,
   MessageCircle,
   Users2,
+  Heart,
 } from "lucide-react";
 import NavigationCard from "./NavigationCard";
 
@@ -26,6 +27,7 @@ const menteeCards = [
   { icon: GraduationCap, title: "Trilhas de Aprendizagem", route: "/trilhas" },
   { icon: BookOpen, title: "Conteúdos", route: "/conteudos" },
   { icon: Trophy, title: "Conquistas", route: "/conquistas" },
+  { icon: Heart, title: "Meus Interesses", route: "/interesses" },
   { icon: MessageCircle, title: "WhatsApp", externalUrl: WHATSAPP_MENTORADOS },
   { icon: Users2, title: "Comunidades Parceiras", route: "/comunidades" },
   { icon: HelpCircle, title: "Ajuda", route: "/ajuda" },
