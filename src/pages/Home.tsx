@@ -13,7 +13,6 @@ import PendingMentorBanner from "@/components/PendingMentorBanner";
 import VolunteerPanel from "@/components/VolunteerPanel";
 import NavigationGrid from "@/components/NavigationGrid";
 import MenteeSessions from "@/components/MenteeSessions";
-import MenteeInterestsEditor from "@/components/MenteeInterestsEditor";
 import ReferralSection from "@/components/ReferralSection";
 import { usePendingMentorCheck } from "@/hooks/usePendingMentorCheck";
 
@@ -130,14 +129,8 @@ const Home = () => {
               <MenteeSessions />
             </motion.div>
 
-            {/* Right column - Interests + Referral (2/5) */}
+            {/* Right column - Referral (2/5) */}
             <div className="lg:col-span-2 space-y-6">
-              <motion.div
-                variants={{ initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 } }}
-                className="bg-card rounded-2xl border border-border/40 p-5"
-              >
-                <MenteeInterestsEditor />
-              </motion.div>
               <ReferralSection />
             </div>
           </div>
