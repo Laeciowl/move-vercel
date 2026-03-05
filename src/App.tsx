@@ -14,6 +14,7 @@ import Volunteer from "./pages/Volunteer";
 import VolunteerOnboarding from "./pages/VolunteerOnboarding";
 import Mentors from "./pages/Mentors";
 import MentorAgenda from "./pages/MentorAgenda";
+import MentorProfile from "./pages/MentorProfile";
 import Admin from "./pages/Admin";
 import Terms from "./pages/Terms";
 import ForMentees from "./pages/ForMentees";
@@ -79,6 +80,7 @@ const App = () => (
             <Route path="/onboarding-voluntario" element={<VolunteerOnboarding />} />
             <Route path="/mentores" element={<Mentors />} />
             <Route path="/mentor/agenda" element={<MentorAgenda />} />
+            <Route path="/mentor/perfil" element={<MentorProfile />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/termos" element={<Terms />} />
             <Route path="/para-mentorados" element={<ForMentees />} />
