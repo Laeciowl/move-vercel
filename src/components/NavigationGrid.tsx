@@ -10,6 +10,7 @@ import {
   MessageCircle,
   Users2,
   Heart,
+  UserCircle,
 } from "lucide-react";
 import NavigationCard from "./NavigationCard";
 
@@ -36,6 +37,7 @@ const menteeCards = [
 const volunteerCards = [
   { icon: Users, title: "Área de Mentoria", route: "/mentores" },
   { icon: Calendar, title: "Agenda", route: "/mentor/agenda" },
+  { icon: UserCircle, title: "Perfil", route: "/mentor/perfil" },
   { icon: Trophy, title: "Conquistas", route: "/conquistas" },
   { icon: MessageCircle, title: "WhatsApp", externalUrl: WHATSAPP_MENTORES },
   { icon: HelpCircle, title: "Ajuda", route: "/ajuda" },

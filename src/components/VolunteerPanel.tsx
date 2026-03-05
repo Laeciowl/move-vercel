@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Calendar, Loader2, User, Shield, Award, CheckCircle, Users } from "lucide-react";
+import { Calendar, Loader2, User, Shield, CheckCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useVolunteerCheck } from "@/hooks/useVolunteerCheck";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import MentorSessionConfirmation from "./MentorSessionConfirmation";
-import MentorCertificate from "./MentorCertificate";
+
 import { useMentorTags } from "@/hooks/useTags";
 import { isPast, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -335,37 +335,7 @@ const VolunteerPanel = () => {
         </div>
       )}
 
-      {/* NÍVEL 6: Stats + Certificate (compact) */}
-      {mentorData.status === "approved" && stats.completedSessions > 0 && (
-        <div className="bg-card/60 rounded-2xl border border-border/40 p-4 space-y-4">
-          <div className="flex items-center gap-2 mb-2">
-            <Award className="w-4 h-4 text-primary" />
-            <h4 className="text-sm font-semibold text-foreground">Seu Impacto</h4>
-          </div>
-          <div className="grid grid-cols-3 gap-3 text-center">
-            <div>
-              <div className="text-xl font-bold text-primary">{stats.completedSessions}</div>
-              <div className="text-[10px] text-muted-foreground">mentorias</div>
-            </div>
-            <div>
-              <div className="text-xl font-bold text-foreground">{stats.uniqueMentees}</div>
-              <div className="text-[10px] text-muted-foreground">vidas impactadas</div>
-            </div>
-            <div>
-              <div className="text-xl font-bold text-foreground">{stats.totalMinutes}</div>
-              <div className="text-[10px] text-muted-foreground">minutos</div>
-            </div>
-          </div>
-
-          <MentorCertificate
-            mentorName={mentorData.name}
-            mentorPhotoUrl={mentorData.photo_url ?? null}
-            uniqueMentees={stats.uniqueMentees}
-            completedSessions={stats.completedSessions}
-            totalMinutes={stats.totalMinutes}
-          />
-        </div>
-      )}
+      {/* Stats removed - moved to /mentor/perfil */}
     </motion.div>
   );
 };

@@ -576,6 +576,7 @@ export type Database = {
       }
       mentors: {
         Row: {
+          anos_experiencia: number | null
           area: string
           availability: Json
           card_message: string | null
@@ -596,6 +597,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          anos_experiencia?: number | null
           area: string
           availability?: Json
           card_message?: string | null
@@ -616,6 +618,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          anos_experiencia?: number | null
           area?: string
           availability?: Json
           card_message?: string | null
@@ -1027,6 +1030,7 @@ export type Database = {
           id: string
           mentor_id: string
           rating: number
+          review_publico: boolean | null
           session_id: string
           user_id: string
         }
@@ -1036,6 +1040,7 @@ export type Database = {
           id?: string
           mentor_id: string
           rating: number
+          review_publico?: boolean | null
           session_id: string
           user_id: string
         }
@@ -1045,6 +1050,7 @@ export type Database = {
           id?: string
           mentor_id?: string
           rating?: number
+          review_publico?: boolean | null
           session_id?: string
           user_id?: string
         }
@@ -1438,6 +1444,23 @@ export type Database = {
           display_order: number
           icon: string
           mentor_id: string
+        }[]
+      }
+      get_mentor_public_feedback_count: {
+        Args: { mentor_ids: string[] }
+        Returns: {
+          feedback_count: number
+          mentor_id: string
+        }[]
+      }
+      get_mentor_public_feedbacks: {
+        Args: { p_limit?: number; p_mentor_id: string; p_offset?: number }
+        Returns: {
+          comment: string
+          created_at: string
+          mentee_name: string
+          mentee_photo_url: string
+          review_id: string
         }[]
       }
       get_mentor_sessions_completed_count: {
