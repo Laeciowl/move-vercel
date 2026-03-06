@@ -1485,6 +1485,7 @@ export type Database = {
       get_mentors_with_match: {
         Args: { user_id_param?: string }
         Returns: {
+          anos_experiencia: number
           area: string
           availability: Json
           description: string
@@ -1506,6 +1507,7 @@ export type Database = {
       get_public_mentors: {
         Args: never
         Returns: {
+          anos_experiencia: number
           area: string
           availability: Json
           description: string

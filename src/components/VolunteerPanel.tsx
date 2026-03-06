@@ -161,13 +161,14 @@ const VolunteerPanel = () => {
       className="space-y-5"
     >
       {/* Header - Mentor Status */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
-            <Shield className="w-5 h-5 text-primary" />
-          </div>
-          <div>
-            <h3 className="font-semibold text-foreground">Área do Mentor</h3>
+      <div className="bg-card rounded-2xl border border-border/40 p-5 shadow-[0_1px_3px_rgba(0,0,0,0.08)]">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
+              <Shield className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-foreground">Área do Mentor</h3>
             {mentorTags.length > 0 ? (
               <div className="flex flex-wrap gap-1 mt-0.5">
                 {mentorTags.slice(0, 3).map((tag) => (
@@ -196,6 +197,7 @@ const VolunteerPanel = () => {
         >
           {mentorData.status === "approved" ? "Ativo" : "Pendente"}
         </Badge>
+        </div>
       </div>
 
       {/* NÍVEL 1: Solicitações Pendentes */}
@@ -320,7 +322,7 @@ const VolunteerPanel = () => {
 
       {/* NÍVEL 4: Estado Vazio */}
       {!hasAnyActivity && (
-        <div className="text-center py-8 bg-muted/20 rounded-2xl border border-dashed border-border">
+        <div className="text-center py-8 bg-card rounded-2xl border border-border/40 shadow-[0_1px_3px_rgba(0,0,0,0.08)]">
           <Calendar className="w-12 h-12 text-muted-foreground/40 mx-auto mb-3" />
           <p className="font-medium text-foreground">Nenhuma mentoria agendada no momento</p>
           <p className="text-sm text-muted-foreground mt-1">Quando mentorados solicitarem, aparecerá aqui</p>

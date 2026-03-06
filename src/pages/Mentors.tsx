@@ -59,6 +59,7 @@ interface Mentor {
   matchCount: number;
   matchingTags: TagItem[];
   temporarily_unavailable: boolean;
+  anos_experiencia: number | null;
 }
 
 const dayLabels: Record<string, string> = {
@@ -149,6 +150,7 @@ const Mentors = () => {
               matchCount: 0,
               matchingTags: [],
               temporarily_unavailable: (m as any).temporarily_unavailable ?? false,
+              anos_experiencia: (m as any).anos_experiencia ?? null,
             };
           });
           setMentors(formattedMentors);
@@ -206,6 +208,7 @@ const Mentors = () => {
           matchCount: m.match_count ?? 0,
           matchingTags: (m.matching_tags as unknown as TagItem[]) || [],
           temporarily_unavailable: (m as any).temporarily_unavailable ?? false,
+          anos_experiencia: (m as any).anos_experiencia ?? null,
         };
       });
 
@@ -573,26 +576,22 @@ const Mentors = () => {
                     </p>
                   </div>
 
-                  {/* Session count + Reviews - separated clearly */}
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-3 text-sm">
-                    <span className="flex items-center gap-1 text-muted-foreground">
-                      <Award className="w-4 h-4 text-green-600" />
-                      {mentor.sessions_completed_count} {mentor.sessions_completed_count === 1 ? 'sessão realizada' : 'sessões realizadas'}
-                    </span>
-                    <span className="text-muted-foreground/50">•</span>
-                    {mentor.totalReviews > 0 ? (
-                      <Button
-                        variant="link"
-                        size="sm"
-                        className="p-0 h-auto text-xs text-primary gap-1"
-                        onClick={() => openReviewsDialog(mentor)}
-                      >
-                        {mentor.totalReviews} {mentor.totalReviews === 1 ? 'review' : 'reviews'}
-                        <span className="underline">ver</span>
-                      </Button>
-                    ) : (
-                      <span className="text-xs text-muted-foreground">0 reviews</span>
-                    )}
+                  {/* 3-column stats grid */}
+                  <div className="grid grid-cols-3 gap-2 py-3 border-t border-border/30 text-center">
+                    <div>
+                      <div className="text-base font-bold text-foreground">
+                        {mentor.anos_experiencia ? `${mentor.anos_experiencia} anos` : "—"}
+                      </div>
+                      <div className="text-[11px] text-muted-foreground">Experiência</div>
+                    </div>
+                    <div>
+                      <div className="text-base font-bold text-foreground">{mentor.sessions_completed_count}</div>
+                      <div className="text-[11px] text-muted-foreground">Mentorias</div>
+                    </div>
+                    <div>
+                      <div className="text-base font-bold text-foreground">{mentor.totalReviews}</div>
+                      <div className="text-[11px] text-muted-foreground">Feedbacks</div>
+                    </div>
                   </div>
 
 

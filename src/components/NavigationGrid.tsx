@@ -20,6 +20,7 @@ const WHATSAPP_MENTORES = "https://chat.whatsapp.com/LKpz2hr7FnZDpCgNXdxwHl";
 interface NavigationGridProps {
   isVolunteer: boolean;
   isMentor?: boolean;
+  pendingReviewsCount?: number;
 }
 
 const menteeCards = [
@@ -43,7 +44,7 @@ const volunteerCards = [
   { icon: HelpCircle, title: "Ajuda", route: "/ajuda" },
 ];
 
-const NavigationGrid = ({ isVolunteer }: NavigationGridProps) => {
+const NavigationGrid = ({ isVolunteer, pendingReviewsCount = 0 }: NavigationGridProps) => {
   const cards = isVolunteer ? volunteerCards : menteeCards;
 
   return (
@@ -59,7 +60,10 @@ const NavigationGrid = ({ isVolunteer }: NavigationGridProps) => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 + i * 0.06, duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
         >
-          <NavigationCard {...card} />
+          <NavigationCard
+            {...card}
+            badge={!isVolunteer && card.title === "Mentoria" ? pendingReviewsCount : undefined}
+          />
         </motion.div>
       ))}
     </div>
