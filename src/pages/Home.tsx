@@ -14,6 +14,7 @@ import VolunteerPanel from "@/components/VolunteerPanel";
 import NavigationGrid from "@/components/NavigationGrid";
 import MenteeSessions from "@/components/MenteeSessions";
 import ReferralSection from "@/components/ReferralSection";
+import PendingReviewsBanner, { usePendingReviewsCount } from "@/components/PendingReviewsBanner";
 import { usePendingMentorCheck } from "@/hooks/usePendingMentorCheck";
 
 const Home = () => {
@@ -25,6 +26,7 @@ const Home = () => {
   const location = useLocation();
   const [showProfileEdit, setShowProfileEdit] = useState(false);
   const [showInterestsOnboarding, setShowInterestsOnboarding] = useState(false);
+  const pendingReviewsCount = usePendingReviewsCount(user?.id);
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
@@ -56,6 +58,7 @@ const Home = () => {
 
   const getGreetingMessage = () => {
     if (isVolunteer) return "Obrigado por transformar vidas ✨";
+    if (pendingReviewsCount > 0) return `Você tem ${pendingReviewsCount} ${pendingReviewsCount === 1 ? "mentoria" : "mentorias"} pendente${pendingReviewsCount === 1 ? "" : "s"} de avaliação`;
     return "Pronto para começar? Que tal agendar sua primeira mentoria?";
   };
 
@@ -70,38 +73,43 @@ const Home = () => {
         {/* Greeting */}
         <motion.div
           variants={{ initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 } }}
-          className="flex items-center gap-4 pt-4"
+          className="bg-card rounded-2xl border border-border/40 p-6 shadow-[0_1px_3px_rgba(0,0,0,0.08)]"
         >
-          <motion.button
-            onClick={() => setShowProfileEdit(true)}
-            className="relative group shrink-0"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <div className="w-14 h-14 rounded-2xl bg-gradient-hero flex items-center justify-center overflow-hidden ring-2 ring-primary/20 group-hover:ring-primary/40 transition-all">
-              {profile.photo_url ? (
-                <img src={profile.photo_url} alt={profile.name} className="w-full h-full object-cover" />
-              ) : (
-                <User className="w-7 h-7 text-primary-foreground" />
-              )}
-            </div>
-            <motion.div
-              initial={{ scale: 0, opacity: 0 }}
-              whileHover={{ scale: 1, opacity: 1 }}
-              className="absolute -bottom-0.5 -right-0.5 w-6 h-6 bg-card rounded-full flex items-center justify-center shadow-sm border border-border/50"
+          <div className="flex items-center gap-4">
+            <motion.button
+              onClick={() => setShowProfileEdit(true)}
+              className="relative group shrink-0"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
-              <Edit className="w-3 h-3 text-primary" />
-            </motion.div>
-          </motion.button>
-          <div>
-            <h1 className="text-2xl md:text-3xl font-semibold text-foreground">
-              Olá, {profile.name.split(" ")[0]}! 👋
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              {getGreetingMessage()}
-            </p>
+              <div className="w-14 h-14 rounded-2xl bg-gradient-hero flex items-center justify-center overflow-hidden ring-2 ring-primary/20 group-hover:ring-primary/40 transition-all">
+                {profile.photo_url ? (
+                  <img src={profile.photo_url} alt={profile.name} className="w-full h-full object-cover" />
+                ) : (
+                  <User className="w-7 h-7 text-primary-foreground" />
+                )}
+              </div>
+              <motion.div
+                initial={{ scale: 0, opacity: 0 }}
+                whileHover={{ scale: 1, opacity: 1 }}
+                className="absolute -bottom-0.5 -right-0.5 w-6 h-6 bg-card rounded-full flex items-center justify-center shadow-sm border border-border/50"
+              >
+                <Edit className="w-3 h-3 text-primary" />
+              </motion.div>
+            </motion.button>
+            <div>
+              <h1 className="text-2xl md:text-3xl font-semibold text-foreground">
+                Olá, {profile.name.split(" ")[0]}! 👋
+              </h1>
+              <p className="text-sm text-muted-foreground mt-1">
+                {getGreetingMessage()}
+              </p>
+            </div>
           </div>
         </motion.div>
+
+        {/* Pending Reviews Banner */}
+        {isMentorado && <PendingReviewsBanner />}
 
         {/* Banners */}
         {isPendingMentor && !isVolunteer && <PendingMentorBanner />}
@@ -115,12 +123,12 @@ const Home = () => {
         {/* Navigation Grid */}
         <motion.div variants={{ initial: { opacity: 0 }, animate: { opacity: 1 } }}>
           <h2 className="text-lg font-semibold text-foreground mb-4">Menu de navegação</h2>
-          <NavigationGrid isVolunteer={isVolunteer} isMentor={isMentor} />
+          <NavigationGrid isVolunteer={isVolunteer} isMentor={isMentor} pendingReviewsCount={isMentorado ? pendingReviewsCount : 0} />
         </motion.div>
 
         {/* Mentee-only sections */}
         {isMentorado && (
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6" data-mentee-sessions>
             {/* Left column - Mentorias (3/5) */}
             <motion.div
               variants={{ initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 } }}

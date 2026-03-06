@@ -263,7 +263,7 @@ const AdminMetricsPanel = () => {
 
       const [alertsRes, allMentorsRes, recentSessionsRes, pendingSessionsRes] = await Promise.all([
         supabase.rpc("get_admin_alerts"),
-        supabase.from("mentors").select("id, created_at").eq("status", "approved"),
+        supabase.from("mentors").select("id, created_at, temporarily_unavailable").eq("status", "approved"),
         supabase.from("mentor_sessions").select("mentor_id").gte("created_at", fourteenDaysAgo.toISOString()),
         supabase.from("mentor_sessions")
           .select("mentor_id")
@@ -273,16 +273,16 @@ const AdminMetricsPanel = () => {
       ]);
 
       const alertData = alertsRes.data as any;
-      // Only consider mentors created more than 14 days ago
+      // Only consider mentors created more than 14 days ago AND available
       const mentorsOldEnough = (allMentorsRes.data || []).filter((m: any) => {
         const created = new Date(m.created_at);
-        return created.getTime() <= fourteenDaysAgo.getTime();
+        return created.getTime() <= fourteenDaysAgo.getTime() && !m.temporarily_unavailable;
       });
       const mentorIds = new Set(mentorsOldEnough.map((m: any) => m.id));
       const mentorsWithSessions = new Set(recentSessionsRes.data?.map((s: any) => s.mentor_id) || []);
       const mentorsWithPending = new Set(pendingSessionsRes.data?.map((s: any) => s.mentor_id) || []);
 
-      // Mentors without any requests in 14+ days (excluding recently joined)
+      // Mentors without any requests in 14+ days (excluding recently joined AND unavailable)
       let noRequestsCount = 0;
       mentorIds.forEach((id) => {
         if (!mentorsWithSessions.has(id)) noRequestsCount++;
