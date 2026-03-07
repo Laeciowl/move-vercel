@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Calendar, Clock, User, ChevronRight, Loader2, CheckCircle, XCircle, Star } from "lucide-react";
+import { Calendar, Clock, User, ChevronRight, Loader2, CheckCircle, XCircle, Star, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -8,12 +8,14 @@ import { format, isPast, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import SessionReviewModal from "./SessionReviewModal";
+import { toast } from "sonner";
 
 interface Session {
   id: string;
   scheduled_at: string;
   status: string;
   confirmed_by_mentor: boolean | null;
+  confirmed_at: string | null;
   mentor_name: string | null;
   mentor_id: string | null;
   duration: number | null;
@@ -24,6 +26,12 @@ interface ReviewedSession {
   comment: string | null;
 }
 
+const isSessionPast = (scheduledAt: string, duration: number = 30): boolean => {
+  const end = new Date(scheduledAt);
+  end.setMinutes(end.getMinutes() + duration);
+  return isPast(end);
+};
+
 const MenteeSessions = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -31,6 +39,7 @@ const MenteeSessions = () => {
   const [reviewedSessions, setReviewedSessions] = useState<Map<string, ReviewedSession>>(new Map());
   const [loading, setLoading] = useState(true);
   const [reviewModal, setReviewModal] = useState<{ open: boolean; session: Session | null }>({ open: false, session: null });
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -42,7 +51,7 @@ const MenteeSessions = () => {
     const [sessionsRes, reviewsRes] = await Promise.all([
       supabase
         .from("mentor_sessions_with_names")
-        .select("id, scheduled_at, status, confirmed_by_mentor, mentor_name, mentor_id, duration")
+        .select("id, scheduled_at, status, confirmed_by_mentor, confirmed_at, mentor_name, mentor_id, duration")
         .eq("user_id", user.id)
         .order("scheduled_at", { ascending: false })
         .limit(20),
@@ -63,6 +72,34 @@ const MenteeSessions = () => {
     setLoading(false);
   };
 
+  const handleConfirmCompletion = async (sessionId: string, happened: boolean) => {
+    setConfirmingId(sessionId);
+    if (happened) {
+      const { error } = await supabase
+        .from("mentor_sessions")
+        .update({ status: "completed", completed_at: new Date().toISOString() })
+        .eq("id", sessionId);
+      if (!error) {
+        toast.success("Sessão confirmada como realizada!");
+        fetchSessions();
+      } else {
+        toast.error("Erro ao confirmar sessão");
+      }
+    } else {
+      const { error } = await supabase
+        .from("mentor_sessions")
+        .update({ status: "cancelled", mentor_notes: "Não realizada (confirmado pelo mentorado)" })
+        .eq("id", sessionId);
+      if (!error) {
+        toast.success("Sessão marcada como não realizada");
+        fetchSessions();
+      } else {
+        toast.error("Erro ao atualizar sessão");
+      }
+    }
+    setConfirmingId(null);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-6">
@@ -72,10 +109,13 @@ const MenteeSessions = () => {
   }
 
   const upcoming = sessions.filter(
-    (s) => s.status === "scheduled" && !isPast(parseISO(s.scheduled_at))
+    (s) => s.status === "scheduled" && !isSessionPast(s.scheduled_at, s.duration || 30)
+  );
+  const pastUnconfirmed = sessions.filter(
+    (s) => s.status === "scheduled" && isSessionPast(s.scheduled_at, s.duration || 30) && !s.confirmed_at
   );
   const completedOrPast = sessions.filter(
-    (s) => s.status === "completed" || (s.status === "scheduled" && isPast(parseISO(s.scheduled_at)))
+    (s) => s.status === "completed"
   );
   const cancelled = sessions.filter((s) => s.status === "cancelled");
 
@@ -110,8 +150,7 @@ const MenteeSessions = () => {
 
   const isReviewed = (sessionId: string) => reviewedSessions.has(sessionId);
   const canReview = (session: Session) =>
-    (session.status === "completed" || (session.status === "scheduled" && isPast(parseISO(session.scheduled_at)))) &&
-    !isReviewed(session.id);
+    session.status === "completed" && !isReviewed(session.id);
 
   const SessionItem = ({ session }: { session: Session }) => {
     const reviewed = isReviewed(session.id);
@@ -149,7 +188,6 @@ const MenteeSessions = () => {
           </div>
         </div>
 
-        {/* Review status */}
         {needsReview && (
           <div className="mt-3 flex items-center justify-between">
             <span className="text-xs font-medium text-primary flex items-center gap-1">
@@ -225,6 +263,59 @@ const MenteeSessions = () => {
           </Button>
         </div>
 
+        {/* Past sessions needing confirmation */}
+        {pastUnconfirmed.length > 0 && (
+          <div className="mb-4">
+            <p className="text-xs font-medium text-amber-600 uppercase tracking-wider mb-2 px-1 flex items-center gap-1">
+              <AlertCircle className="w-3 h-3" /> Confirme se aconteceram ({pastUnconfirmed.length})
+            </p>
+            <div className="space-y-2">
+              {pastUnconfirmed.map((s) => (
+                <div key={s.id} className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 rounded-xl p-4">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-9 h-9 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center shrink-0">
+                      <User className="w-4 h-4 text-amber-600" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">
+                        {s.mentor_name || "Mentor"}
+                      </p>
+                      <p className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Calendar className="w-3 h-3" />
+                        {format(parseISO(s.scheduled_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                      </p>
+                    </div>
+                  </div>
+                  <p className="text-xs text-amber-700 dark:text-amber-400 font-medium mb-2">
+                    Essa mentoria aconteceu?
+                  </p>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      onClick={() => handleConfirmCompletion(s.id, true)}
+                      disabled={confirmingId === s.id}
+                      className="text-xs bg-green-600 hover:bg-green-700 text-white h-7"
+                    >
+                      <CheckCircle className="w-3 h-3 mr-1" />
+                      Sim, aconteceu
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleConfirmCompletion(s.id, false)}
+                      disabled={confirmingId === s.id}
+                      className="text-xs text-destructive border-destructive/50 hover:bg-destructive/10 h-7"
+                    >
+                      <XCircle className="w-3 h-3 mr-1" />
+                      Não aconteceu
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {upcoming.length > 0 && (
           <div className="mb-3">
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2 px-1">
@@ -265,7 +356,6 @@ const MenteeSessions = () => {
         )}
       </motion.div>
 
-      {/* Review Modal */}
       {reviewModal.session && (
         <SessionReviewModal
           open={reviewModal.open}

@@ -15,6 +15,7 @@ import NavigationGrid from "@/components/NavigationGrid";
 import MenteeSessions from "@/components/MenteeSessions";
 import ReferralSection from "@/components/ReferralSection";
 import PendingReviewsBanner, { usePendingReviewsCount } from "@/components/PendingReviewsBanner";
+import ProfileCompletionBanner from "@/components/ProfileCompletionBanner";
 import { usePendingMentorCheck } from "@/hooks/usePendingMentorCheck";
 
 const Home = () => {
@@ -110,6 +111,7 @@ const Home = () => {
 
         {/* Pending Reviews Banner */}
         {isMentorado && <PendingReviewsBanner />}
+        {isMentorado && <ProfileCompletionBanner />}
 
         {/* Banners */}
         {isPendingMentor && !isVolunteer && <PendingMentorBanner />}

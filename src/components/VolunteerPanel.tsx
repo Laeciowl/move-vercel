@@ -160,45 +160,7 @@ const VolunteerPanel = () => {
       transition={{ duration: 0.4 }}
       className="space-y-5"
     >
-      {/* Header - Mentor Status */}
-      <div className="bg-card rounded-2xl border border-border/40 p-5 shadow-[0_1px_3px_rgba(0,0,0,0.08)]">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
-              <Shield className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-foreground">Área do Mentor</h3>
-            {mentorTags.length > 0 ? (
-              <div className="flex flex-wrap gap-1 mt-0.5">
-                {mentorTags.slice(0, 3).map((tag) => (
-                  <span key={tag.id} className="text-[10px] px-1.5 py-0.5 rounded-md bg-primary/10 text-primary font-medium">
-                    {tag.name}
-                  </span>
-                ))}
-                {mentorTags.length > 3 && (
-                  <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-muted text-muted-foreground">
-                    +{mentorTags.length - 3}
-                  </span>
-                )}
-              </div>
-            ) : (
-              <p className="text-xs text-muted-foreground">{mentorData.area}</p>
-            )}
-          </div>
-        </div>
-        <Badge
-          variant="outline"
-          className={`text-xs ${
-            mentorData.status === "approved"
-              ? "border-green-500/50 text-green-600 bg-green-500/10"
-              : "border-amber-500/50 text-amber-600 bg-amber-500/10"
-          }`}
-        >
-          {mentorData.status === "approved" ? "Ativo" : "Pendente"}
-        </Badge>
-        </div>
-      </div>
+      {/* Header removed - "Área do Mentor" rectangle not needed */}
 
       {/* NÍVEL 1: Solicitações Pendentes */}
       {pendingRequests.length > 0 && (
