@@ -48,10 +48,10 @@ const NavigationGrid = ({ isVolunteer, pendingReviewsCount = 0 }: NavigationGrid
   const cards = isVolunteer ? volunteerCards : menteeCards;
 
   return (
-    <div className={`grid gap-4 md:gap-6 lg:gap-8 ${
+    <div className={`grid gap-3 md:gap-6 lg:gap-8 ${
       isVolunteer 
-        ? "grid-cols-1 sm:grid-cols-2" 
-        : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+        ? "grid-cols-2 sm:grid-cols-2 lg:grid-cols-3" 
+        : "grid-cols-2 sm:grid-cols-2 lg:grid-cols-3"
     }`}>
       {cards.map((card, i) => (
         <motion.div

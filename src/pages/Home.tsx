@@ -111,6 +111,7 @@ const Home = () => {
 
         {/* Pending Reviews Banner */}
         {isMentorado && <PendingReviewsBanner />}
+        {isMentorado && <ProfileCompletionBanner />}
 
         {/* Banners */}
         {isPendingMentor && !isVolunteer && <PendingMentorBanner />}
