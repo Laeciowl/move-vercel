@@ -56,6 +56,8 @@ const Contents = () => {
         <ContentSubmissionModal
           isOpen={showSubmitModal}
           onClose={() => setShowSubmitModal(false)}
+          onSuccess={() => setShowSubmitModal(false)}
+          category="aulas_lives"
         />
       )}
     </AppLayout>
