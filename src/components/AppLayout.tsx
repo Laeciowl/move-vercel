@@ -63,7 +63,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
     if (isVolunteer || isMentor) {
       return [
         { path: "/inicio", label: "Início", icon: Home },
-        { path: "/mentor/agenda", label: "Mentorias", icon: Calendar },
+        { path: "/mentor/agenda", label: "Agenda", icon: Calendar },
         { path: "/conquistas", label: "Conquistas", icon: Trophy },
         { path: "/conteudos", label: "Conteúdos", icon: BookOpen },
         { path: "/ajuda", label: "Ajuda", icon: HelpCircle },
