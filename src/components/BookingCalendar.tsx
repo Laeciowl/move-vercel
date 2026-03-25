@@ -2,12 +2,22 @@ import { useState, useMemo } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { format, addDays, startOfDay, isSameDay, getDay, addMinutes, addHours, isWithinInterval, parseISO, isBefore, isAfter } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Clock, Loader2, AlertCircle, Timer, GraduationCap, Target, Info } from "lucide-react";
+import { Clock, Loader2, AlertCircle, Timer, GraduationCap, Target, Info, ShieldCheck } from "lucide-react";
 import { isDateBlocked, getBlockedReason, isHoliday } from "@/lib/brazilianHolidays";
 import { motion } from "framer-motion";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 interface Availability {
   day: string;
@@ -75,6 +85,8 @@ const BookingCalendar = ({
   const [selectedDuration, setSelectedDuration] = useState<number>(30);
   const [formation, setFormation] = useState<string>("");
   const [objective, setObjective] = useState<string>("");
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   // Get max duration for a specific day from mentor's availability
   const getMaxDurationForDay = (date: Date): number => {
@@ -206,8 +218,15 @@ const BookingCalendar = ({
     return getBlockedReason(date, blockedPeriods);
   };
 
-  const handleConfirm = async () => {
+  const handleConfirmClick = () => {
     if (!selectedDate || !selectedTime || !formation.trim() || !objective.trim()) return;
+    setAcceptedTerms(false);
+    setShowConfirmDialog(true);
+  };
+
+  const handleFinalConfirm = async () => {
+    if (!selectedDate || !selectedTime || !formation.trim() || !objective.trim()) return;
+    setShowConfirmDialog(false);
     
     const [hours, minutes] = selectedTime.split(":").map(Number);
     const bookingDate = new Date(selectedDate);
@@ -402,7 +421,7 @@ const BookingCalendar = ({
 
       {/* Confirm button */}
       <motion.button
-        onClick={handleConfirm}
+        onClick={handleConfirmClick}
         disabled={!isFormComplete || loading}
         whileHover={{ scale: 1.01 }}
         whileTap={{ scale: 0.99 }}
@@ -411,6 +430,66 @@ const BookingCalendar = ({
         {loading && <Loader2 className="w-4 h-4 animate-spin" />}
         Confirmar agendamento ({DURATION_OPTIONS.find(d => d.value === selectedDuration)?.label})
       </motion.button>
+
+      {/* Reconfirmation Terms Dialog */}
+      <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ShieldCheck className="w-5 h-5 text-primary" />
+              Compromisso de Presença
+            </DialogTitle>
+            <DialogDescription>
+              Antes de confirmar, leia e aceite os termos abaixo.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-2">
+            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 rounded-xl p-4 space-y-2">
+              <p className="text-sm text-foreground font-medium">⏰ Reconfirmação obrigatória</p>
+              <p className="text-sm text-muted-foreground">
+                Você receberá um e-mail <strong>6 horas antes</strong> da mentoria pedindo para confirmar sua presença.
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Se você <strong>não confirmar até 3 horas antes</strong>, a sessão será <strong>cancelada automaticamente</strong> e registrada como falta.
+              </p>
+            </div>
+
+            <div className="bg-muted/50 border border-border/50 rounded-xl p-4 space-y-2">
+              <p className="text-sm text-foreground font-medium">🧡 Respeite o voluntário</p>
+              <p className="text-sm text-muted-foreground">
+                Mentores são voluntários doando seu tempo. Faltas sem aviso geram punições escalonadas (aviso → bloqueio 7 dias → bloqueio 30 dias → banimento).
+              </p>
+            </div>
+
+            <div className="flex items-start gap-3 pt-2">
+              <Checkbox
+                id="accept-terms"
+                checked={acceptedTerms}
+                onCheckedChange={(checked) => setAcceptedTerms(checked === true)}
+                className="mt-0.5"
+              />
+              <label htmlFor="accept-terms" className="text-sm text-foreground cursor-pointer leading-relaxed">
+                Confirmo que vou reconfirmar minha presença até 3 horas antes da mentoria e me comprometo a respeitar o horário do mentor voluntário.
+              </label>
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setShowConfirmDialog(false)}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleFinalConfirm}
+              disabled={!acceptedTerms || loading}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2"
+            >
+              {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+              Confirmar Agendamento
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Legend */}
       <div className="flex flex-wrap gap-4 text-xs text-muted-foreground pt-2">
