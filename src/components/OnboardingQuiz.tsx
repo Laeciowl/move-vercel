@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import logoMove from "@/assets/logo-move.png";
+import MenteeLinkedInShareCard from "@/components/MenteeLinkedInShareCard";
 
 const toEmbedUrl = (url: string): string => {
   if (!url) return "";
