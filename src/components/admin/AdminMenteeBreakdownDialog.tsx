@@ -183,12 +183,15 @@ const AdminMenteeBreakdownDialog = ({ open, onOpenChange, activeCount, pendingCo
                         </Badge>
                       )}
                     </div>
-                    <div className="flex items-center gap-3 mt-0.5 text-[11px] text-muted-foreground">
+                    <div className="flex items-center gap-3 mt-0.5 text-[11px] text-muted-foreground flex-wrap">
                       <span>Entrou: {format(new Date(m.created_at), "dd/MM/yyyy", { locale: ptBR })}</span>
                       {m.first_session_date ? (
                         <span>1ª mentoria: {format(new Date(m.first_session_date), "dd/MM/yyyy", { locale: ptBR })}</span>
                       ) : (
                         <span className="italic">Sem mentoria realizada</span>
+                      )}
+                      {m.daysToFirst !== null && (
+                        <span className="font-medium text-primary">{m.daysToFirst}d até 1ª</span>
                       )}
                       {m.total_sessions > 0 && (
                         <span className="font-medium text-foreground">{m.total_sessions} sessões</span>
