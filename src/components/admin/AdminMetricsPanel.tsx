@@ -181,6 +181,7 @@ const AdminMetricsPanel = () => {
         profilesRes, mentorsRes, completedRes, livesRes, scheduledRes,
         activationRes, confirmationRes, completionRes, retentionRes,
         thisMonthRes, lastMonthRes,
+        quizPassedRes, quizNotPassedRes,
       ] = await Promise.all([
         supabase.from("profiles").select("id", { count: "exact", head: true }),
         supabase.from("mentors").select("id", { count: "exact", head: true }).eq("status", "approved"),
@@ -191,7 +192,6 @@ const AdminMetricsPanel = () => {
         supabase.rpc("get_confirmation_rate"),
         supabase.rpc("get_completion_rate"),
         supabase.rpc("get_retention_rate"),
-        // FIX: use status='completed' and completed_at
         supabase.from("mentor_sessions")
           .select("id", { count: "exact", head: true })
           .eq("status", "completed")
@@ -201,6 +201,8 @@ const AdminMetricsPanel = () => {
           .eq("status", "completed")
           .gte("completed_at", lastMonthStart)
           .lte("completed_at", lastMonthEnd),
+        supabase.from("profiles").select("id", { count: "exact", head: true }).eq("onboarding_quiz_passed", true),
+        supabase.from("profiles").select("id", { count: "exact", head: true }).eq("onboarding_quiz_passed", false),
       ]);
 
       const totalUsers = profilesRes.count || 0;
@@ -210,6 +212,8 @@ const AdminMetricsPanel = () => {
         totalUsers,
         totalMentors,
         totalMentees: totalUsers - totalMentors,
+        menteesQuizPassed: quizPassedRes.count || 0,
+        menteesQuizNotPassed: quizNotPassedRes.count || 0,
         completedSessions: (completedRes.data as number) ?? 0,
         completedThisMonth: thisMonthRes.count ?? 0,
         completedLastMonth: lastMonthRes.count ?? 0,
