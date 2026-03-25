@@ -104,6 +104,8 @@ const Signup = () => {
   const [mentorData, setMentorData] = useState({
     description: "",
     education: "",
+    cargoEmpresa: "",
+    anosExperiencia: "",
   });
 
   const [selectedTags, setSelectedTags] = useState<TagItem[]>([]);
@@ -249,6 +251,16 @@ const Signup = () => {
 
     if (!mentorData.description.trim()) {
       toast.error("Escreve um pouquinho sobre você! Ajuda os mentorados te conhecerem.");
+      return false;
+    }
+
+    if (!mentorData.cargoEmpresa.trim()) {
+      toast.error("Informe seu cargo e empresa atual");
+      return false;
+    }
+
+    if (!mentorData.anosExperiencia || parseInt(mentorData.anosExperiencia) < 0) {
+      toast.error("Informe seus anos de experiência profissional");
       return false;
     }
 
@@ -465,13 +477,14 @@ const Signup = () => {
         const { data: mentorInsertData, error: mentorError } = await supabase.from("mentors").insert([{
           name: formData.name.trim(),
           email: formData.email.trim(),
-          area: selectedTags.map(t => t.name).join(", ") || "Mentoria",
+          area: mentorData.cargoEmpresa.trim() || selectedTags.map(t => t.name).join(", ") || "Mentoria",
           description: mentorData.description.trim(),
           education: mentorData.education.trim() || null,
           photo_url: photoUrl,
           availability: JSON.parse(JSON.stringify(availability)),
           disclaimer_accepted: true,
           disclaimer_accepted_at: new Date().toISOString(),
+          anos_experiencia: mentorData.anosExperiencia ? parseInt(mentorData.anosExperiencia) : null,
         }]).select('id').single();
 
         if (mentorError) {
@@ -992,6 +1005,40 @@ const Signup = () => {
                       subtitle="Escolha as áreas em que você pode ajudar os mentorados"
                     />
                   )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Cargo | Empresa *
+                  </label>
+                  <input
+                    type="text"
+                    value={mentorData.cargoEmpresa}
+                    onChange={(e) => setMentorData({ ...mentorData, cargoEmpresa: e.target.value })}
+                    className="w-full px-4 py-3 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    placeholder="Ex: Analista de Marketing | Google"
+                    required
+                    maxLength={150}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Será exibido como destaque no seu perfil público
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Anos de experiência profissional *
+                  </label>
+                  <input
+                    type="number"
+                    value={mentorData.anosExperiencia}
+                    onChange={(e) => setMentorData({ ...mentorData, anosExperiencia: e.target.value })}
+                    className="w-full px-4 py-3 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    placeholder="Ex: 5"
+                    min={0}
+                    max={50}
+                    required
+                  />
                 </div>
 
                 <div>
