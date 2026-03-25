@@ -136,6 +136,13 @@ const Home = () => {
           <NavigationGrid isVolunteer={isVolunteer} isMentor={isMentor} pendingReviewsCount={isMentorado ? pendingReviewsCount : 0} />
         </motion.div>
 
+        {/* Share card */}
+        {isMentorado && (
+          <motion.div variants={{ initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 } }}>
+            <MenteeLinkedInShareCard />
+          </motion.div>
+        )}
+
         {/* Referral section */}
         {isMentorado && (
           <motion.div variants={{ initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 } }}>
