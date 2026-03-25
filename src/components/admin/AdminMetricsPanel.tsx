@@ -170,6 +170,8 @@ const AdminMetricsPanel = () => {
   const [showRetentionDialog, setShowRetentionDialog] = useState(false);
   const [expandedMetric, setExpandedMetric] = useState<string | null>(null);
 
+  const [showMenteeBreakdown, setShowMenteeBreakdown] = useState(false);
+
   // ─── Data Fetching ─────────────────────────────────
   const fetchCoreAndHealth = useCallback(async () => {
     try {
