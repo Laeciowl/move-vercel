@@ -254,6 +254,16 @@ const Signup = () => {
       return false;
     }
 
+    if (!mentorData.cargoEmpresa.trim()) {
+      toast.error("Informe seu cargo e empresa atual");
+      return false;
+    }
+
+    if (!mentorData.anosExperiencia || parseInt(mentorData.anosExperiencia) < 0) {
+      toast.error("Informe seus anos de experiência profissional");
+      return false;
+    }
+
     try {
       availabilitySchema.parse(availability);
     } catch (error) {
