@@ -46,7 +46,7 @@ function generateReconfirmationHtml(
           VOCÊ PRECISA CONFIRMAR SUA PRESENÇA:
         </p>
         <div style="margin: 15px 0;">
-          <a href="${confirmUrl}" style="background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%); color: white; padding: 14px 40px; text-decoration: none; border-radius: 12px; font-weight: bold; display: inline-block; font-size: 16px; margin: 5px;">
+          <a href="${confirmUrl}" style="background-color: #16a34a; color: white; padding: 14px 40px; text-decoration: none; border-radius: 12px; font-weight: bold; display: inline-block; font-size: 16px; margin: 5px;">
             ✅ Confirmar Presença
           </a>
         </div>
@@ -163,7 +163,7 @@ Deno.serve(async (req) => {
         if (!menteeEmail) continue;
 
         // Build confirmation/cancellation URLs
-        const baseUrl = "https://movecarreiras.org";
+        const baseUrl = "https://movesocial.lovable.app";
         const confirmUrl = `${baseUrl}/reconfirmar?session=${session.id}&action=confirm`;
         const cancelUrl = `${baseUrl}/reconfirmar?session=${session.id}&action=cancel`;
 
