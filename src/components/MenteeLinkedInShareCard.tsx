@@ -163,12 +163,22 @@ const MenteeLinkedInShareCard = ({ compact = false }: MenteeLinkedInShareCardPro
                   }}>
                     Agora faço parte de uma rede que conecta quem quer crescer com quem já chegou lá. Com acesso a mentores experientes de diversas empresas, estou pronto(a) para mover minha carreira! 🚀
                   </p>
+                  <p style={{
+                    fontSize: "13px",
+                    fontWeight: 500,
+                    lineHeight: 1.4,
+                    margin: "10px 0 0 0",
+                    textAlign: "center",
+                    color: "rgba(255,255,255,0.85)",
+                  }}>
+                    Interessado(a)? Venha você também se inscrever na Movê!
+                  </p>
                 </div>
               </div>
 
               {/* Footer */}
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "12px", paddingTop: "12px", borderTop: "1px solid rgba(255,255,255,0.2)" }}>
-                <span style={{ fontSize: "14px", fontWeight: 500, color: "rgba(255,255,255,0.8)" }}>movesocial.lovable.app</span>
+                <span style={{ fontSize: "14px", fontWeight: 500, color: "rgba(255,255,255,0.8)" }}>movecarreiras.org</span>
                 <div style={{ backgroundColor: "white", color: "#f97316", fontWeight: "bold", padding: "8px 16px", borderRadius: "20px", fontSize: "14px" }}>
                   Movê
                 </div>
