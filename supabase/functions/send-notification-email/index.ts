@@ -617,6 +617,32 @@ const emailTemplates: Record<string, { subject: string; html: (name: string, dat
       </div>
     `,
   },
+  mentee_reconfirmed: {
+    subject: "✅ Mentorado confirmou presença na mentoria",
+    html: (name: string, data?: Record<string, string>) => `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #fffbf7;">
+        <h1 style="color: ${MOVE_COLORS.success}; text-align: center;">✅ Presença confirmada!</h1>
+        <p style="color: ${MOVE_COLORS.text}; font-size: 16px; line-height: 1.6;">
+          Olá, ${name}!
+        </p>
+        <p style="color: ${MOVE_COLORS.text}; font-size: 16px; line-height: 1.6;">
+          O mentorado <strong style="color: ${MOVE_COLORS.primary};">${data?.menteeName || "seu mentorado"}</strong> confirmou presença para a mentoria de hoje às <strong>${data?.sessionTime || ""}</strong>.
+        </p>
+        <div style="background-color: #f0fdf4; padding: 15px; border-radius: 12px; margin: 15px 0; border-left: 4px solid ${MOVE_COLORS.success};">
+          <p style="color: ${MOVE_COLORS.text}; margin: 0;">A sessão está confirmada! Prepare-se para a mentoria. 🎯</p>
+        </div>
+        <div style="text-align: center; margin-top: 25px;">
+          <a href="https://movecarreiras.org/agenda" 
+             style="background: linear-gradient(135deg, ${MOVE_COLORS.primary} 0%, #fb923c 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 12px; font-weight: bold; display: inline-block;">
+            Ver Agenda
+          </a>
+        </div>
+        ${founderSignature}
+        ${emailFooter}
+      </div>
+    `,
+    isTransactional: true,
+  },
 };
 
 // Check if user has email notifications enabled
