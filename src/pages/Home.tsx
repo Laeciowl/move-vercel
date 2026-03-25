@@ -109,6 +109,13 @@ const Home = () => {
           </div>
         </motion.div>
 
+        {/* Mentee Sessions - Top priority */}
+        {isMentorado && (
+          <motion.div variants={{ initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 } }}>
+            <MenteeSessions />
+          </motion.div>
+        )}
+
         {/* Pending Reviews Banner */}
         {isMentorado && <PendingReviewsBanner />}
         {isMentorado && <ProfileCompletionBanner />}
@@ -128,22 +135,11 @@ const Home = () => {
           <NavigationGrid isVolunteer={isVolunteer} isMentor={isMentor} pendingReviewsCount={isMentorado ? pendingReviewsCount : 0} />
         </motion.div>
 
-        {/* Mentee-only sections */}
+        {/* Referral section */}
         {isMentorado && (
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6" data-mentee-sessions>
-            {/* Left column - Mentorias (3/5) */}
-            <motion.div
-              variants={{ initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 } }}
-              className="lg:col-span-3"
-            >
-              <MenteeSessions />
-            </motion.div>
-
-            {/* Right column - Referral (2/5) */}
-            <div className="lg:col-span-2 space-y-6">
-              <ReferralSection />
-            </div>
-          </div>
+          <motion.div variants={{ initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 } }}>
+            <ReferralSection />
+          </motion.div>
         )}
       </motion.div>
 
