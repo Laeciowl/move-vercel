@@ -29,6 +29,8 @@ interface MentorSession {
   duration?: number;
   completed_at?: string;
   meeting_link?: string | null;
+  reconfirmation_sent?: boolean | null;
+  reconfirmation_confirmed?: boolean | null;
   hasReview?: boolean;
   reviewComment?: string | null;
   mentor?: {
