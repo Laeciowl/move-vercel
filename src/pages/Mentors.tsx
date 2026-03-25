@@ -508,7 +508,7 @@ const Mentors = () => {
                   {/* Area (Cargo | Empresa) */}
                   <p className="text-sm font-semibold text-primary text-center mt-1 flex items-center gap-1">
                     <Briefcase className="w-3.5 h-3.5 shrink-0" />
-                    <span className="line-clamp-1">{mentor.area}</span>
+                    <span className="line-clamp-2">{mentor.area.length > 60 ? mentor.area.slice(0, 57) + "..." : mentor.area}</span>
                   </p>
 
                   {/* Tags — max 3, compact */}
