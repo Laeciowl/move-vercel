@@ -376,6 +376,9 @@ const OnboardingQuiz = ({ onPassed }: { onPassed: () => void }) => {
                     </ul>
                   </div>
 
+                  {/* LinkedIn share card */}
+                  <MenteeLinkedInShareCard />
+
                   {/* Confirm checkbox */}
                   <div className="flex items-start gap-3 text-left pt-2">
                     <Checkbox
