@@ -14,13 +14,13 @@ import {
 
 const LINKEDIN_POST_TEXT = `🚀 Agora sou mentorado(a) Movê!
 
-Feliz em fazer parte de uma rede do bem, com acesso a mentores voluntários incríveis do mercado, pronto(a) para mover minha carreira!
+Agora faço parte de uma rede que conecta quem quer crescer com quem já chegou lá. Com acesso a mentores experientes de diversas empresas, estou pronto(a) para mover minha carreira!
+
+Se você também é um jovem profissional e quer direcionamento, venha pra Movê! 💜
 
 O Movê é uma plataforma social de desenvolvimento profissional que conecta jovens a mentores de diversas áreas — tudo gratuito e movido por quem acredita no poder da orientação.
 
-Bora mover juntos? 💜
-
-#Movê #Mentoria #DesenvolvimentoProfissional #RedeDosBem #CarreiraProfissional`;
+#Movê #Mentoria #DesenvolvimentoProfissional #CarreiraProfissional`;
 
 const CARD_SIZE = 500;
 
@@ -161,7 +161,7 @@ const MenteeLinkedInShareCard = ({ compact = false }: MenteeLinkedInShareCardPro
                     wordWrap: "break-word",
                     overflowWrap: "break-word",
                   }}>
-                    Agora faço parte de uma rede do bem, com acesso a mentores voluntários do mercado. Pronto(a) para mover minha carreira! 🚀
+                    Agora faço parte de uma rede que conecta quem quer crescer com quem já chegou lá. Com acesso a mentores experientes de diversas empresas, estou pronto(a) para mover minha carreira! 🚀
                   </p>
                 </div>
               </div>
