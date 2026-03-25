@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import AdminTrailsNpsPanel from "./AdminTrailsNpsPanel";
+import AdminMenteeBreakdownDialog from "./AdminMenteeBreakdownDialog";
 import { toast } from "sonner";
 import { format, startOfMonth, endOfMonth, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
