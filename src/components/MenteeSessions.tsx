@@ -350,8 +350,12 @@ const MenteeSessions = () => {
               {pastUnconfirmed.map((s) => (
                 <div key={s.id} className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 rounded-xl p-4">
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="w-9 h-9 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center shrink-0">
-                      <User className="w-4 h-4 text-amber-600" />
+                    <div className="w-9 h-9 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center shrink-0 overflow-hidden">
+                      {s.mentor_photo_url ? (
+                        <img src={s.mentor_photo_url} alt={s.mentor_name || "Mentor"} className="w-full h-full object-cover" />
+                      ) : (
+                        <User className="w-4 h-4 text-amber-600" />
+                      )}
                     </div>
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-foreground truncate">
