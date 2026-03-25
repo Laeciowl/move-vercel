@@ -28,7 +28,8 @@ type EmailType =
   | "registration_confirmation"
   | "volunteer_approved"
   | "volunteer_application_received"
-  | "new_user_admin_notification";
+  | "new_user_admin_notification"
+  | "mentee_reconfirmed";
 
 interface NotificationEmailRequest {
   to: string;
@@ -616,6 +617,32 @@ const emailTemplates: Record<string, { subject: string; html: (name: string, dat
       </div>
     `,
   },
+  mentee_reconfirmed: {
+    subject: "✅ Mentorado confirmou presença na mentoria",
+    html: (name: string, data?: Record<string, string>) => `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #fffbf7;">
+        <h1 style="color: ${MOVE_COLORS.success}; text-align: center;">✅ Presença confirmada!</h1>
+        <p style="color: ${MOVE_COLORS.text}; font-size: 16px; line-height: 1.6;">
+          Olá, ${name}!
+        </p>
+        <p style="color: ${MOVE_COLORS.text}; font-size: 16px; line-height: 1.6;">
+          O mentorado <strong style="color: ${MOVE_COLORS.primary};">${data?.menteeName || "seu mentorado"}</strong> confirmou presença para a mentoria de hoje às <strong>${data?.sessionTime || ""}</strong>.
+        </p>
+        <div style="background-color: #f0fdf4; padding: 15px; border-radius: 12px; margin: 15px 0; border-left: 4px solid ${MOVE_COLORS.success};">
+          <p style="color: ${MOVE_COLORS.text}; margin: 0;">A sessão está confirmada! Prepare-se para a mentoria. 🎯</p>
+        </div>
+        <div style="text-align: center; margin-top: 25px;">
+          <a href="https://movecarreiras.org/agenda" 
+             style="background: linear-gradient(135deg, ${MOVE_COLORS.primary} 0%, #fb923c 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 12px; font-weight: bold; display: inline-block;">
+            Ver Agenda
+          </a>
+        </div>
+        ${founderSignature}
+        ${emailFooter}
+      </div>
+    `,
+    isTransactional: true,
+  },
 };
 
 // Check if user has email notifications enabled
@@ -696,6 +723,66 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Use verified custom domain
     const fromEmail = "Movê <noreply@movecarreiras.org>";
+
+    // Handle mentee_reconfirmed - fetch session data and notify mentor
+    if (type === "mentee_reconfirmed" && data?.sessionId) {
+      const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
+      const { data: session } = await supabase
+        .from("mentor_sessions")
+        .select("*, mentors(name, email)")
+        .eq("id", data.sessionId)
+        .maybeSingle();
+
+      if (!session) {
+        return new Response(JSON.stringify({ success: false, error: "Session not found" }), {
+          status: 404, headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+      }
+
+      const mentorName = (session.mentors as any)?.name || "Mentor";
+      const mentorEmail = (session.mentors as any)?.email;
+      if (!mentorEmail) {
+        return new Response(JSON.stringify({ success: false, error: "Mentor email not found" }), {
+          status: 404, headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+      }
+
+      // Get mentee name
+      const { data: menteeProfile } = await supabase
+        .from("profiles")
+        .select("name")
+        .eq("user_id", session.user_id)
+        .maybeSingle();
+      const menteeName = menteeProfile?.name || "Mentorado";
+
+      const scheduledAt = new Date(session.scheduled_at);
+      const sessionTime = scheduledAt.toLocaleTimeString('pt-BR', {
+        hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo'
+      });
+
+      const res = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${RESEND_API_KEY}` },
+        body: JSON.stringify({
+          from: fromEmail,
+          to: [mentorEmail],
+          subject: template.subject,
+          html: template.html(mentorName, { menteeName, sessionTime }),
+        }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        console.error("Resend API error:", errorData);
+        throw new Error(`Resend API error: ${JSON.stringify(errorData)}`);
+      }
+
+      const emailResponse = await res.json();
+      console.log("Reconfirmation notification sent to mentor:", mentorEmail);
+      return new Response(JSON.stringify(emailResponse), {
+        status: 200, headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
 
     // Handle admin notification emails - send to all admins
     if (type === "new_user_admin_notification") {
