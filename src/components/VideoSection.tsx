@@ -2,6 +2,19 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 
+const toEmbedUrl = (url: string): string => {
+  if (!url) return "";
+  // Already embed format
+  if (url.includes("youtube.com/embed/")) return url;
+  // youtu.be/VIDEO_ID format
+  const shortMatch = url.match(/youtu\.be\/([^?&]+)/);
+  if (shortMatch) return `https://www.youtube.com/embed/${shortMatch[1]}`;
+  // youtube.com/watch?v=VIDEO_ID format
+  const watchMatch = url.match(/[?&]v=([^?&]+)/);
+  if (watchMatch) return `https://www.youtube.com/embed/${watchMatch[1]}`;
+  return url;
+};
+
 const VideoSection = () => {
   const [videoUrl, setVideoUrl] = useState("https://www.youtube.com/embed/9AoueBf7Tr0");
 
@@ -12,7 +25,7 @@ const VideoSection = () => {
         .select("youtube_url")
         .eq("key", "hero_video")
         .single();
-      if (data?.youtube_url) setVideoUrl(data.youtube_url);
+      if (data?.youtube_url) setVideoUrl(toEmbedUrl(data.youtube_url));
     };
     fetchVideo();
   }, []);

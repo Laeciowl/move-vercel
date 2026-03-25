@@ -8,6 +8,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 
+const toEmbedUrl = (url: string): string => {
+  if (!url) return "";
+  if (url.includes("youtube.com/embed/")) return url;
+  const shortMatch = url.match(/youtu\.be\/([^?&]+)/);
+  if (shortMatch) return `https://www.youtube.com/embed/${shortMatch[1]}`;
+  const watchMatch = url.match(/[?&]v=([^?&]+)/);
+  if (watchMatch) return `https://www.youtube.com/embed/${watchMatch[1]}`;
+  return url;
+};
+
 interface PlatformVideo {
   id: string;
   key: string;
@@ -300,9 +310,9 @@ const VideoEditor = ({
           {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
         </Button>
       </div>
-      {url && url.includes("youtube") && (
+      {url && (url.includes("youtube") || url.includes("youtu.be")) && (
         <div className="aspect-video max-w-xs rounded-lg overflow-hidden border border-border/30">
-          <iframe src={url} className="w-full h-full" title={label} />
+          <iframe src={toEmbedUrl(url)} className="w-full h-full" title={label} />
         </div>
       )}
     </div>
