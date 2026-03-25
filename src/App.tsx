@@ -43,7 +43,7 @@ const GlobalOnboarding = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
-    if (profile && !profile.onboarding_completed && (profile as any).onboarding_quiz_passed && user) {
+    if (profile && !profile.onboarding_completed && profile.onboarding_quiz_passed && user) {
       supabase.from("user_roles").select("role").eq("user_id", user.id).eq("role", "voluntario").maybeSingle()
         .then(({ data }) => {
           if (!data) setShowOnboarding(true);

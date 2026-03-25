@@ -17,6 +17,7 @@ interface Profile {
   description: string | null;
   phone: string | null;
   onboarding_completed: boolean;
+  onboarding_quiz_passed: boolean;
   first_mentorship_booked: boolean;
 }
 
