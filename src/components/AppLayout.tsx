@@ -35,18 +35,28 @@ const AppLayout = ({ children }: AppLayoutProps) => {
   const rolesLoading = adminLoading || volunteerLoading || mentorLoading;
 
   // Check if mentee needs onboarding quiz
+  // Only block users who never had ANY session (no interaction at all)
   useEffect(() => {
-    if (rolesLoading || !profile) {
+    if (rolesLoading || !profile || !user) {
       setNeedsQuiz(null);
       return;
     }
     const quizPassed = profile.onboarding_quiz_passed;
     if (!quizPassed && !isAdmin && !isVolunteer && !isMentor) {
-      setNeedsQuiz(true);
+      // Check if user has any sessions at all — if yes, they're active and exempt
+      import("@/integrations/supabase/client").then(({ supabase }) => {
+        supabase
+          .from("mentor_sessions")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", user.id)
+          .then(({ count }) => {
+            setNeedsQuiz((count ?? 0) === 0);
+          });
+      });
     } else {
       setNeedsQuiz(false);
     }
-  }, [profile, rolesLoading, isAdmin, isVolunteer, isMentor]);
+  }, [profile, user, rolesLoading, isAdmin, isVolunteer, isMentor]);
 
   const handleLogout = async () => {
     await signOut();
