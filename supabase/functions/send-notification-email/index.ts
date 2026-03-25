@@ -724,6 +724,66 @@ const handler = async (req: Request): Promise<Response> => {
     // Use verified custom domain
     const fromEmail = "Movê <noreply@movecarreiras.org>";
 
+    // Handle mentee_reconfirmed - fetch session data and notify mentor
+    if (type === "mentee_reconfirmed" && data?.sessionId) {
+      const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
+      const { data: session } = await supabase
+        .from("mentor_sessions")
+        .select("*, mentors(name, email)")
+        .eq("id", data.sessionId)
+        .maybeSingle();
+
+      if (!session) {
+        return new Response(JSON.stringify({ success: false, error: "Session not found" }), {
+          status: 404, headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+      }
+
+      const mentorName = (session.mentors as any)?.name || "Mentor";
+      const mentorEmail = (session.mentors as any)?.email;
+      if (!mentorEmail) {
+        return new Response(JSON.stringify({ success: false, error: "Mentor email not found" }), {
+          status: 404, headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+      }
+
+      // Get mentee name
+      const { data: menteeProfile } = await supabase
+        .from("profiles")
+        .select("name")
+        .eq("user_id", session.user_id)
+        .maybeSingle();
+      const menteeName = menteeProfile?.name || "Mentorado";
+
+      const scheduledAt = new Date(session.scheduled_at);
+      const sessionTime = scheduledAt.toLocaleTimeString('pt-BR', {
+        hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo'
+      });
+
+      const res = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${RESEND_API_KEY}` },
+        body: JSON.stringify({
+          from: fromEmail,
+          to: [mentorEmail],
+          subject: template.subject,
+          html: template.html(mentorName, { menteeName, sessionTime }),
+        }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        console.error("Resend API error:", errorData);
+        throw new Error(`Resend API error: ${JSON.stringify(errorData)}`);
+      }
+
+      const emailResponse = await res.json();
+      console.log("Reconfirmation notification sent to mentor:", mentorEmail);
+      return new Response(JSON.stringify(emailResponse), {
+        status: 200, headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
     // Handle admin notification emails - send to all admins
     if (type === "new_user_admin_notification") {
       const adminEmails = await getAdminEmails();
