@@ -86,15 +86,10 @@ const MenteeSessions = () => {
         toast.error("Erro ao confirmar sessão");
       }
     } else {
-      const { error } = await supabase
-        .from("mentor_sessions")
-        .update({ status: "cancelled", mentor_notes: "Não realizada (confirmado pelo mentorado)" })
-        .eq("id", sessionId);
-      if (!error) {
-        toast.success("Sessão marcada como não realizada");
-        fetchSessions();
-      } else {
-        toast.error("Erro ao atualizar sessão");
+      // Open review modal so mentee can indicate WHY it didn't happen
+      const session = sessions.find(s => s.id === sessionId);
+      if (session) {
+        setReviewModal({ open: true, session, preselect: "nao_aconteceu" });
       }
     }
     setConfirmingId(null);
