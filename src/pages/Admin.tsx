@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Shield, Users, BookOpen, Loader2, FileCheck, Bug, BarChart3, Image, Calendar, Handshake, Star, UserX, ArrowLeft } from "lucide-react";
+import { Shield, Users, BookOpen, Loader2, FileCheck, Bug, BarChart3, Image, Calendar, Handshake, Star, UserX, ArrowLeft, Video } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -16,6 +16,7 @@ import AdminMentorSessionsPanel from "@/components/admin/AdminMentorSessionsPane
 import AdminCommunitiesPanel from "@/components/admin/AdminCommunitiesPanel";
 import AdminQualityPanel from "@/components/admin/AdminQualityPanel";
 import AdminNoShowPanel from "@/components/admin/AdminNoShowPanel";
+import AdminVideosQuizPanel from "@/components/admin/AdminVideosQuizPanel";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -182,7 +183,7 @@ const Admin = () => {
             </div>
 
             <Tabs defaultValue="metrics" className="w-full">
-              <TabsList className="grid w-full grid-cols-8 mb-6 bg-card/80 backdrop-blur-sm border border-border/50 p-1 rounded-2xl h-auto overflow-x-auto">
+              <TabsList className="grid w-full grid-cols-9 mb-6 bg-card/80 backdrop-blur-sm border border-border/50 p-1 rounded-2xl h-auto overflow-x-auto">
                 <TabsTrigger
                   value="metrics"
                   className="gap-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-button transition-all duration-300"
@@ -239,6 +240,16 @@ const Admin = () => {
                   <Handshake className="w-4 h-4" />
                   <span className="hidden sm:inline">Comunidades</span>
                 </TabsTrigger>
+                <TabsTrigger
+                  value="videos"
+                  className="gap-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-button transition-all duration-300"
+                >
+                  <Video className="w-4 h-4" />
+                  <span className="hidden sm:inline">Vídeos</span>
+                </TabsTrigger>
+                  <Handshake className="w-4 h-4" />
+                  <span className="hidden sm:inline">Comunidades</span>
+                </TabsTrigger>
               </TabsList>
 
               <AnimatePresence mode="wait">
@@ -273,6 +284,9 @@ const Admin = () => {
                   </TabsContent>
                   <TabsContent value="communities" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
                     <AdminCommunitiesPanel />
+                  </TabsContent>
+                  <TabsContent value="videos" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+                    <AdminVideosQuizPanel />
                   </TabsContent>
                 </motion.div>
               </AnimatePresence>
