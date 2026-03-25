@@ -777,6 +777,13 @@ const AdminMetricsPanel = () => {
                         <p><strong className="text-foreground">{metric.details.cancelled}</strong> foram canceladas.</p>
                       </>
                     )}
+                    {metric.type === "time_to_first" && (
+                      <>
+                        <p><strong className="text-foreground">{metric.details.total_with_session}</strong> mentorados realizaram pelo menos 1 mentoria.</p>
+                        <p>Mediana: <strong className="text-foreground">{metric.details.median} dias</strong></p>
+                        <p>Mínimo: <strong className="text-foreground">{metric.details.min} dias</strong> · Máximo: <strong className="text-foreground">{metric.details.max} dias</strong></p>
+                      </>
+                    )}
                   </div>
                 )}
               </div>
