@@ -214,7 +214,7 @@ const AdminMetricsPanel = () => {
           .eq("status", "completed")
           .gte("completed_at", lastMonthStart)
           .lte("completed_at", lastMonthEnd),
-        supabase.from("profiles").select("user_id, onboarding_quiz_passed, first_mentorship_booked"),
+        supabase.from("profiles").select("user_id, created_at, onboarding_quiz_passed, first_mentorship_booked"),
         supabase.from("mentor_sessions").select("user_id, completed_at, status"),
       ]);
 
