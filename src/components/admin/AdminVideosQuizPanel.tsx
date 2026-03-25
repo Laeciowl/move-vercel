@@ -300,9 +300,9 @@ const VideoEditor = ({
           {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
         </Button>
       </div>
-      {url && url.includes("youtube") && (
+      {url && (url.includes("youtube") || url.includes("youtu.be")) && (
         <div className="aspect-video max-w-xs rounded-lg overflow-hidden border border-border/30">
-          <iframe src={url} className="w-full h-full" title={label} />
+          <iframe src={toEmbedUrl(url)} className="w-full h-full" title={label} />
         </div>
       )}
     </div>
