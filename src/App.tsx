@@ -96,6 +96,7 @@ const App = () => (
             <Route path="/plano" element={<DevPlan />} />
             <Route path="/avaliar" element={<Nps />} />
             <Route path="/interesses" element={<Interests />} />
+            <Route path="/minhas-mentorias" element={<MinhasMentorias />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
