@@ -506,9 +506,8 @@ const Mentors = () => {
                   </h3>
 
                   {/* Area (Cargo | Empresa) */}
-                  <p className="text-sm font-semibold text-primary text-center mt-1 flex items-center gap-1">
-                    <Briefcase className="w-3.5 h-3.5 shrink-0" />
-                    <span className="line-clamp-2">{mentor.area.length > 60 ? mentor.area.slice(0, 57) + "..." : mentor.area}</span>
+                  <p className="text-sm font-semibold text-primary text-center mt-1 truncate px-2">
+                    {mentor.area.length > 40 ? mentor.area.slice(0, 37) + "..." : mentor.area}
                   </p>
 
                   {/* Tags — max 3, compact */}
