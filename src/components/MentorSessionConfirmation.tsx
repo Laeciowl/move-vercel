@@ -15,6 +15,7 @@ interface MentorSession {
   confirmed_by_mentor: boolean;
   mentor_notes: string | null;
   duration?: number;
+  user_id?: string;
   mentee_email?: string;
   mentee_formation?: string | null;
   mentee_objective?: string | null;
@@ -262,7 +263,9 @@ const MentorSessionConfirmation = ({ sessions, mentorName, mentorEmail, onUpdate
             )}
 
             {/* Attendance History Badge */}
-            <MenteeAttendanceBadge menteeUserId={session.mentee_profile ? (sessions.find(s => s.id === session.id)?.mentee_profile as any)?.user_id || "" : ""} />
+            {session.user_id && (
+              <MenteeAttendanceBadge menteeUserId={session.user_id} />
+            )}
 
             {/* Formation and Objective */}
             {(session.mentee_formation || session.mentee_objective) && (
