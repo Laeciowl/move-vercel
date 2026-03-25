@@ -86,13 +86,23 @@ interface RetentionMentee {
 }
 
 // ─── Helpers ─────────────────────────────────────────────
-const getStatusIcon = (value: number, good: number, alert: number) => {
+const getStatusIcon = (value: number, good: number, alert: number, lowerIsBetter = false) => {
+  if (lowerIsBetter) {
+    if (value <= good) return <CheckCircle className="w-4 h-4 text-emerald-500" />;
+    if (value <= alert) return <AlertTriangle className="w-4 h-4 text-amber-500" />;
+    return <AlertTriangle className="w-4 h-4 text-destructive" />;
+  }
   if (value >= good) return <CheckCircle className="w-4 h-4 text-emerald-500" />;
   if (value >= alert) return <AlertTriangle className="w-4 h-4 text-amber-500" />;
   return <AlertTriangle className="w-4 h-4 text-destructive" />;
 };
 
-const getStatusColor = (value: number, good: number, alert: number) => {
+const getStatusColor = (value: number, good: number, alert: number, lowerIsBetter = false) => {
+  if (lowerIsBetter) {
+    if (value <= good) return "text-emerald-500";
+    if (value <= alert) return "text-amber-500";
+    return "text-destructive";
+  }
   if (value >= good) return "text-emerald-500";
   if (value >= alert) return "text-amber-500";
   return "text-destructive";
