@@ -300,6 +300,18 @@ const AdminMetricsPanel = () => {
           type: "retention",
           details: { total: retention?.total, retained: retention?.retained },
         },
+        {
+          label: "Tempo até 1ª Mentoria",
+          value: daysToFirst.length > 0 ? Math.round(daysToFirst.reduce((a, b) => a + b, 0) / daysToFirst.length) : 0,
+          benchmarkGood: 7, benchmarkAlert: 14, suffix: " dias",
+          type: "time_to_first",
+          details: {
+            total_with_session: daysToFirst.length,
+            median: daysToFirst.length > 0 ? daysToFirst.sort((a, b) => a - b)[Math.floor(daysToFirst.length / 2)] : 0,
+            min: daysToFirst.length > 0 ? Math.min(...daysToFirst) : 0,
+            max: daysToFirst.length > 0 ? Math.max(...daysToFirst) : 0,
+          },
+        },
       ]);
     } catch (err) {
       console.error("Error fetching core metrics:", err);
