@@ -38,7 +38,7 @@ const MenteeSessions = () => {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [reviewedSessions, setReviewedSessions] = useState<Map<string, ReviewedSession>>(new Map());
   const [loading, setLoading] = useState(true);
-  const [reviewModal, setReviewModal] = useState<{ open: boolean; session: Session | null }>({ open: false, session: null });
+  const [reviewModal, setReviewModal] = useState<{ open: boolean; session: Session | null; preselect?: string }>({ open: false, session: null });
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -360,6 +360,7 @@ const MenteeSessions = () => {
           mentorName={reviewModal.session.mentor_name || "Mentor"}
           userId={user?.id || ""}
           onReviewSubmitted={fetchSessions}
+          initialAttendance={reviewModal.preselect}
         />
       )}
     </>
