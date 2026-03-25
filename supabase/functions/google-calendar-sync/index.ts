@@ -51,7 +51,6 @@ async function getValidToken(adminClient: any, userId: string): Promise<string |
 }
 
 async function getOrchestratorToken(adminClient: any): Promise<string | null> {
-  // Find the orchestrator user by google_email
   const { data: tokenRow } = await adminClient
     .from("google_calendar_tokens")
     .select("*")
@@ -64,6 +63,46 @@ async function getOrchestratorToken(adminClient: any): Promise<string | null> {
   }
 
   return getValidToken(adminClient, tokenRow.user_id);
+}
+
+// Try to get the mentor's own Google Calendar token by their email
+async function getMentorToken(adminClient: any, mentorEmail: string): Promise<{ token: string; googleEmail: string } | null> {
+  // First try to find a google_calendar_tokens entry matching the mentor's email
+  const { data: tokenByEmail } = await adminClient
+    .from("google_calendar_tokens")
+    .select("*")
+    .eq("google_email", mentorEmail)
+    .maybeSingle();
+
+  if (tokenByEmail) {
+    const token = await getValidToken(adminClient, tokenByEmail.user_id);
+    if (token) {
+      console.log("Found mentor token by google_email:", mentorEmail);
+      return { token, googleEmail: mentorEmail };
+    }
+  }
+
+  // Also try finding the mentor's user account by email and check if they have a token
+  const { data: mentorUser } = await adminClient.auth.admin.listUsers();
+  const mentorAccount = mentorUser?.users?.find((u: any) => u.email === mentorEmail);
+  
+  if (mentorAccount) {
+    const { data: tokenByUserId } = await adminClient
+      .from("google_calendar_tokens")
+      .select("*")
+      .eq("user_id", mentorAccount.id)
+      .maybeSingle();
+
+    if (tokenByUserId) {
+      const token = await getValidToken(adminClient, mentorAccount.id);
+      if (token) {
+        console.log("Found mentor token by user_id:", mentorAccount.id, "google_email:", tokenByUserId.google_email);
+        return { token, googleEmail: tokenByUserId.google_email || mentorEmail };
+      }
+    }
+  }
+
+  return null;
 }
 
 async function createCalendarEvent(accessToken: string, event: any): Promise<any> {
@@ -121,7 +160,7 @@ Deno.serve(async (req) => {
   const url = new URL(req.url);
   const action = url.searchParams.get("action");
 
-  // ACTION: create-event — create calendar event via orchestrator account
+  // ACTION: create-event — create calendar event via mentor's account (preferred) or orchestrator (fallback)
   if (action === "create-event") {
     const body = await req.json();
     const { session_id } = body;
@@ -129,14 +168,6 @@ Deno.serve(async (req) => {
 
     if (!session_id) {
       return new Response(JSON.stringify({ error: "session_id required" }), { status: 400, headers: corsHeaders });
-    }
-
-    // Get orchestrator token
-    const orchestratorToken = await getOrchestratorToken(adminClient);
-    if (!orchestratorToken) {
-      return new Response(JSON.stringify({ error: "Orchestrator Google Calendar not connected" }), {
-        status: 500, headers: corsHeaders,
-      });
     }
 
     const { data: session } = await adminClient
@@ -169,10 +200,44 @@ Deno.serve(async (req) => {
       menteeEmail = menteeUser.user.email || null;
     }
 
-    console.log("create-event: Creating via orchestrator. Mentor:", mentorEmail, "Mentee:", menteeEmail);
+    // Try mentor's own Google Calendar first, then fall back to orchestrator
+    let calendarToken: string | null = null;
+    let createdBy = "orchestrator";
+
+    if (mentorEmail) {
+      const mentorTokenResult = await getMentorToken(adminClient, mentorEmail);
+      if (mentorTokenResult) {
+        calendarToken = mentorTokenResult.token;
+        createdBy = "mentor";
+        console.log("create-event: Using MENTOR's Google Calendar account:", mentorTokenResult.googleEmail);
+      }
+    }
+
+    if (!calendarToken) {
+      calendarToken = await getOrchestratorToken(adminClient);
+      createdBy = "orchestrator";
+      console.log("create-event: Mentor not connected, falling back to orchestrator");
+    }
+
+    if (!calendarToken) {
+      return new Response(JSON.stringify({ error: "No Google Calendar account available" }), {
+        status: 500, headers: corsHeaders,
+      });
+    }
 
     const scheduledDate = scheduledAt.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric', timeZone: 'America/Sao_Paulo' });
     const scheduledTime = scheduledAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' });
+
+    // Build attendees list - when mentor is the organizer, only add the mentee
+    const attendees: { email: string }[] = [];
+    if (createdBy === "mentor") {
+      // Mentor is the organizer, so only add mentee as attendee
+      if (menteeEmail) attendees.push({ email: menteeEmail });
+    } else {
+      // Orchestrator is the organizer, add both as attendees
+      if (mentorEmail) attendees.push({ email: mentorEmail });
+      if (menteeEmail) attendees.push({ email: menteeEmail });
+    }
 
     const eventPayload = {
       summary: `Sua Mentoria Movê com o mentor ${mentorName} está confirmada!`,
@@ -207,10 +272,7 @@ Deno.serve(async (req) => {
       ].join('\n'),
       start: { dateTime: scheduledAt.toISOString(), timeZone: "America/Sao_Paulo" },
       end: { dateTime: endAt.toISOString(), timeZone: "America/Sao_Paulo" },
-      attendees: [
-        ...(mentorEmail ? [{ email: mentorEmail }] : []),
-        ...(menteeEmail ? [{ email: menteeEmail }] : []),
-      ],
+      attendees,
       conferenceData: {
         createRequest: {
           requestId: `move-session-${session_id}`,
@@ -226,10 +288,39 @@ Deno.serve(async (req) => {
       },
     };
 
-    const res = await createCalendarEvent(orchestratorToken, eventPayload);
-    console.log("Orchestrator calendar event response:", JSON.stringify(res));
+    const res = await createCalendarEvent(calendarToken, eventPayload);
+    console.log(`Calendar event response (created by ${createdBy}):`, JSON.stringify(res));
 
     if (!res.id) {
+      // If mentor's account failed, try orchestrator as fallback
+      if (createdBy === "mentor") {
+        console.log("Mentor calendar failed, trying orchestrator fallback...");
+        const orchestratorToken = await getOrchestratorToken(adminClient);
+        if (orchestratorToken) {
+          // Reset attendees for orchestrator
+          eventPayload.attendees = [
+            ...(mentorEmail ? [{ email: mentorEmail }] : []),
+            ...(menteeEmail ? [{ email: menteeEmail }] : []),
+          ];
+          const fallbackRes = await createCalendarEvent(orchestratorToken, eventPayload);
+          console.log("Orchestrator fallback result:", JSON.stringify(fallbackRes));
+          
+          if (fallbackRes.id) {
+            const meetLink = fallbackRes.hangoutLink || fallbackRes.conferenceData?.entryPoints?.find((e: any) => e.entryPointType === "video")?.uri;
+            const updateData: any = { google_calendar_event_id: fallbackRes.id };
+            if (meetLink) updateData.meeting_link = meetLink;
+            await adminClient.from("mentor_sessions").update(updateData).eq("id", session_id);
+            
+            return new Response(JSON.stringify({ 
+              success: true, 
+              results: { event_id: fallbackRes.id, meetingLink: meetLink, createdBy: "orchestrator_fallback" } 
+            }), {
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+          }
+        }
+      }
+
       return new Response(JSON.stringify({ error: res.error?.message || "Failed to create event" }), {
         status: 500, headers: corsHeaders,
       });
@@ -250,11 +341,11 @@ Deno.serve(async (req) => {
       .update(updateData)
       .eq("id", session_id);
 
-    console.log("Saved calendar event ID:", res.id);
+    console.log(`Saved calendar event ID: ${res.id} (created by ${createdBy})`);
 
     return new Response(JSON.stringify({ 
       success: true, 
-      results: { event_id: res.id, meetingLink: meetLink } 
+      results: { event_id: res.id, meetingLink: meetLink, createdBy } 
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
@@ -293,7 +384,7 @@ Deno.serve(async (req) => {
     });
   }
 
-  // ACTION: cancel-event — cancel calendar event via orchestrator
+  // ACTION: cancel-event — cancel calendar event (try mentor first, then orchestrator)
   if (action === "cancel-event") {
     const body = await req.json();
     const { session_id } = body;
@@ -305,7 +396,7 @@ Deno.serve(async (req) => {
 
     const { data: session } = await adminClient
       .from("mentor_sessions")
-      .select("google_calendar_event_id")
+      .select("google_calendar_event_id, mentors(email)")
       .eq("id", session_id)
       .maybeSingle();
 
@@ -316,15 +407,31 @@ Deno.serve(async (req) => {
     const results: any = { deleted: false };
 
     if (session.google_calendar_event_id) {
-      const orchestratorToken = await getOrchestratorToken(adminClient);
-      if (orchestratorToken) {
-        const ok = await deleteCalendarEvent(orchestratorToken, session.google_calendar_event_id);
-        results.deleted = ok;
-        console.log("cancel-event: Event delete:", ok ? "deleted" : "failed");
-      } else {
-        results.error = "orchestrator_not_connected";
-        console.error("cancel-event: Orchestrator token not available");
+      let deleted = false;
+      const mentorEmail = (session.mentors as any)?.email;
+
+      // Try deleting from mentor's calendar first
+      if (mentorEmail) {
+        const mentorTokenResult = await getMentorToken(adminClient, mentorEmail);
+        if (mentorTokenResult) {
+          deleted = await deleteCalendarEvent(mentorTokenResult.token, session.google_calendar_event_id);
+          console.log("cancel-event: Tried mentor delete:", deleted ? "success" : "failed");
+        }
       }
+
+      // If mentor delete failed or mentor not connected, try orchestrator
+      if (!deleted) {
+        const orchestratorToken = await getOrchestratorToken(adminClient);
+        if (orchestratorToken) {
+          deleted = await deleteCalendarEvent(orchestratorToken, session.google_calendar_event_id);
+          console.log("cancel-event: Tried orchestrator delete:", deleted ? "success" : "failed");
+        } else {
+          results.error = "no_calendar_account_available";
+          console.error("cancel-event: No calendar account available for deletion");
+        }
+      }
+
+      results.deleted = deleted;
 
       // Clear event ID and meeting link
       await adminClient
@@ -332,6 +439,7 @@ Deno.serve(async (req) => {
         .update({
           google_calendar_event_id: null,
           google_calendar_mentee_event_id: null,
+          meeting_link: null,
         })
         .eq("id", session_id);
     }
