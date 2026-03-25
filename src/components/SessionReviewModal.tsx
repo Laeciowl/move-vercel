@@ -72,8 +72,8 @@ const SessionReviewModal = ({
 
     setSubmitting(true);
 
-    // Use rating 0 for sessions that didn't happen (won't count in averages)
-    const finalRating = mentoriaRealizada ? rating! : 0;
+    // Use rating 1 for sessions that didn't happen (DB requires 1-5, won't count in public averages)
+    const finalRating = mentoriaRealizada ? rating! : 1;
 
     const { error } = await supabase.from("session_reviews").insert({
       session_id: sessionId,
