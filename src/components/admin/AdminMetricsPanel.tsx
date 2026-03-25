@@ -59,7 +59,7 @@ interface HealthMetricData {
   benchmarkGood: number;
   benchmarkAlert: number;
   suffix: string;
-  type: "activation" | "confirmation" | "completion" | "retention";
+  type: "activation" | "confirmation" | "completion" | "retention" | "time_to_first";
   details: Record<string, any>;
 }
 
@@ -205,15 +205,45 @@ const AdminMetricsPanel = () => {
           .gte("completed_at", lastMonthStart)
           .lte("completed_at", lastMonthEnd),
         supabase.from("profiles").select("user_id, onboarding_quiz_passed, first_mentorship_booked"),
-        supabase.from("mentor_sessions").select("user_id").eq("status", "completed"),
+        supabase.from("mentor_sessions").select("user_id, completed_at, status"),
       ]);
 
       const totalUsers = profilesRes.count || 0;
       const totalMentors = mentorsRes.count || 0;
 
-      // Determine active vs pending mentees
+      // Build profile + session data for active/pending and time-to-first calc
       const allProfiles = quizPassedRes.data || [];
-      const completedUserIds = new Set((quizNotPassedRes.data || []).map((s: any) => s.user_id));
+      const allSessions = quizNotPassedRes.data || [];
+      const completedUserIds = new Set<string>();
+      
+      // Map: user_id -> earliest completed_at
+      const firstSessionMap = new Map<string, string>();
+      allSessions.forEach((s: any) => {
+        if (s.status === "completed" && s.completed_at) {
+          completedUserIds.add(s.user_id);
+          const existing = firstSessionMap.get(s.user_id);
+          if (!existing || s.completed_at < existing) {
+            firstSessionMap.set(s.user_id, s.completed_at);
+          }
+        } else {
+          // has any session at all
+          completedUserIds.add(s.user_id);
+        }
+      });
+
+      // Calculate time-to-first-mentorship (days) for users who have completed sessions
+      const daysToFirst: number[] = [];
+      const profileCreatedMap = new Map<string, string>();
+      allProfiles.forEach((p: any) => {
+        profileCreatedMap.set(p.user_id, p.created_at);
+        const firstSession = firstSessionMap.get(p.user_id);
+        if (firstSession) {
+          const signupDate = new Date(p.created_at).getTime();
+          const sessionDate = new Date(firstSession).getTime();
+          const days = Math.max(0, Math.round((sessionDate - signupDate) / (1000 * 60 * 60 * 24)));
+          daysToFirst.push(days);
+        }
+      });
       
       let activeCount = 0;
       let pendingCount = 0;
