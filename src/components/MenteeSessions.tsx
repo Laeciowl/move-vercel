@@ -17,6 +17,7 @@ interface Session {
   confirmed_by_mentor: boolean | null;
   confirmed_at: string | null;
   mentor_name: string | null;
+  mentor_photo_url: string | null;
   mentor_id: string | null;
   duration: number | null;
   reconfirmation_sent: boolean | null;
@@ -33,7 +34,7 @@ interface RawSession {
   duration: number | null;
   reconfirmation_sent: boolean | null;
   reconfirmation_confirmed: boolean | null;
-  mentors: { name: string } | null;
+  mentors: { name: string; photo_url: string | null } | null;
 }
 
 interface ReviewedSession {
