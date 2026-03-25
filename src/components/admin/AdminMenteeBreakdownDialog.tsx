@@ -75,6 +75,13 @@ const AdminMenteeBreakdownDialog = ({ open, onOpenChange, activeCount, pendingCo
       const rows: MenteeRow[] = profiles.map((p: any) => {
         const sessionData = userSessionMap.get(p.user_id);
         const isActive = p.onboarding_quiz_passed || p.first_mentorship_booked || (sessionData?.hasAny ?? false);
+        const firstDate = sessionData?.firstDate ?? null;
+        let daysToFirst: number | null = null;
+        if (firstDate) {
+          const signupMs = new Date(p.created_at).getTime();
+          const sessionMs = new Date(firstDate).getTime();
+          daysToFirst = Math.max(0, Math.round((sessionMs - signupMs) / (1000 * 60 * 60 * 24)));
+        }
         return {
           user_id: p.user_id,
           name: p.name,
@@ -82,8 +89,9 @@ const AdminMenteeBreakdownDialog = ({ open, onOpenChange, activeCount, pendingCo
           created_at: p.created_at,
           onboarding_quiz_passed: p.onboarding_quiz_passed,
           first_mentorship_booked: p.first_mentorship_booked,
-          first_session_date: sessionData?.firstDate ?? null,
+          first_session_date: firstDate,
           total_sessions: sessionData?.completedCount ?? 0,
+          daysToFirst,
           status: isActive ? "ativo" : "pendente",
         };
       });
