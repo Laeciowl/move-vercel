@@ -118,9 +118,9 @@ const AppLayout = ({ children }: AppLayoutProps) => {
 
   if (needsQuiz) {
     return (
-      <OnboardingQuiz onPassed={() => {
+      <OnboardingQuiz onPassed={async () => {
+        await refreshProfile();
         setNeedsQuiz(false);
-        refreshProfile();
       }} />
     );
   }
