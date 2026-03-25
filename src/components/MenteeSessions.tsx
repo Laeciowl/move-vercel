@@ -128,10 +128,11 @@ const MenteeSessions = () => {
   const pastUnconfirmed = sessions.filter(
     (s) => s.status === "scheduled" && isSessionPast(s.scheduled_at, s.duration || 30) && !s.confirmed_at
   );
-  const completedOrPast = sessions.filter(
-    (s) => s.status === "completed"
+  const pendingReview = sessions.filter(
+    (s) => s.status === "completed" && !reviewedSessions.has(s.id)
   );
-  const cancelled = sessions.filter((s) => s.status === "cancelled");
+
+  const hasActionableItems = upcoming.length > 0 || pastUnconfirmed.length > 0 || pendingReview.length > 0;
 
   const getStatusBadge = (session: Session) => {
     if (session.status === "completed") {
@@ -386,8 +387,23 @@ const MenteeSessions = () => {
           </div>
         )}
 
+        {/* Pending reviews */}
+        {pendingReview.length > 0 && (
+          <div className="mb-4">
+            <p className="text-xs font-medium text-primary uppercase tracking-wider mb-2 px-1 flex items-center gap-1">
+              <Star className="w-3 h-3" /> Pendentes de avaliação ({pendingReview.length})
+            </p>
+            <div className="space-y-1">
+              {pendingReview.map((s) => (
+                <SessionItem key={s.id} session={s} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Upcoming sessions */}
         {upcoming.length > 0 && (
-          <div className="mb-3">
+          <div>
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2 px-1">
               Próximas
             </p>
@@ -399,29 +415,20 @@ const MenteeSessions = () => {
           </div>
         )}
 
-        {completedOrPast.length > 0 && (
-          <div className="mb-3">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2 px-1">
-              Realizadas
+        {/* Empty actionable state */}
+        {!hasActionableItems && (
+          <div className="text-center py-2">
+            <p className="text-sm text-muted-foreground mb-3">
+              Nenhuma mentoria pendente. Que tal agendar uma nova?
             </p>
-            <div className="space-y-2">
-              {completedOrPast.slice(0, 5).map((s) => (
-                <SessionItem key={s.id} session={s} />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {cancelled.length > 0 && (
-          <div>
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2 px-1">
-              Canceladas
-            </p>
-            <div className="space-y-1">
-              {cancelled.slice(0, 2).map((s) => (
-                <SessionItem key={s.id} session={s} />
-              ))}
-            </div>
+            <Button
+              onClick={() => navigate("/mentores")}
+              size="sm"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl gap-2"
+            >
+              <User className="w-4 h-4" />
+              Agendar mentoria
+            </Button>
           </div>
         )}
       </motion.div>
