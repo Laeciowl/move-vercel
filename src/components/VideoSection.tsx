@@ -1,6 +1,22 @@
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
 
 const VideoSection = () => {
+  const [videoUrl, setVideoUrl] = useState("https://www.youtube.com/embed/9AoueBf7Tr0");
+
+  useEffect(() => {
+    const fetchVideo = async () => {
+      const { data } = await supabase
+        .from("platform_videos")
+        .select("youtube_url")
+        .eq("key", "hero_video")
+        .single();
+      if (data?.youtube_url) setVideoUrl(data.youtube_url);
+    };
+    fetchVideo();
+  }, []);
+
   return (
     <section className="py-16 md:py-24 bg-muted/30">
       <div className="container mx-auto px-4">
@@ -28,7 +44,7 @@ const VideoSection = () => {
         >
           <div className="relative w-full aspect-video rounded-2xl overflow-hidden shadow-2xl border border-border/50">
             <iframe
-              src="https://www.youtube.com/embed/9AoueBf7Tr0"
+              src={videoUrl}
               title="Apresentação do Movê"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               allowFullScreen

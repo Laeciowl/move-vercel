@@ -19,6 +19,7 @@ import VolunteerPanel from "@/components/VolunteerPanel";
 import BugReportButton from "@/components/BugReportButton";
 import NpsModal from "@/components/NpsModal";
 import OnboardingTour from "@/components/OnboardingTour";
+import OnboardingQuiz from "@/components/OnboardingQuiz";
 import NavigationGrid from "@/components/NavigationGrid";
 
 import PlatformGuide from "@/components/PlatformGuide";
@@ -70,6 +71,7 @@ const Dashboard = () => {
   const [showProfileEdit, setShowProfileEdit] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showInterestsOnboarding, setShowInterestsOnboarding] = useState(false);
+  const [needsQuiz, setNeedsQuiz] = useState(false);
   const [updating, setUpdating] = useState(false);
   const [updateData, setUpdateData] = useState({
     professionalStatus: "",
@@ -106,8 +108,16 @@ const Dashboard = () => {
       if (!profile.onboarding_completed && !isVolunteer) {
         setShowOnboarding(true);
       }
+
+      // Check if mentee needs onboarding quiz
+      // Applies to: new signups AND mentees who haven't booked a mentorship yet
+      // Exempt: admins, volunteers, mentors
+      const quizPassed = (profile as any).onboarding_quiz_passed;
+      if (!quizPassed && !isAdmin && !isVolunteer && !isMentor && !profile.first_mentorship_booked) {
+        setNeedsQuiz(true);
+      }
     }
-  }, [profile, isVolunteer]);
+  }, [profile, isVolunteer, isAdmin, isMentor]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -184,6 +194,11 @@ const Dashboard = () => {
         </motion.div>
       </div>
     );
+  }
+
+  // Show quiz gate if needed
+  if (needsQuiz) {
+    return <OnboardingQuiz onPassed={() => setNeedsQuiz(false)} />;
   }
 
   return (

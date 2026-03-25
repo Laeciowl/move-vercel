@@ -796,6 +796,66 @@ export type Database = {
         }
         Relationships: []
       }
+      onboarding_questions: {
+        Row: {
+          active: boolean
+          correct_option_index: number
+          created_at: string
+          id: string
+          options: Json
+          question: string
+          sort_order: number
+        }
+        Insert: {
+          active?: boolean
+          correct_option_index?: number
+          created_at?: string
+          id?: string
+          options?: Json
+          question: string
+          sort_order?: number
+        }
+        Update: {
+          active?: boolean
+          correct_option_index?: number
+          created_at?: string
+          id?: string
+          options?: Json
+          question?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      onboarding_quiz_attempts: {
+        Row: {
+          answers: Json
+          attempted_at: string
+          id: string
+          passed: boolean
+          score: number
+          total_questions: number
+          user_id: string
+        }
+        Insert: {
+          answers?: Json
+          attempted_at?: string
+          id?: string
+          passed?: boolean
+          score?: number
+          total_questions?: number
+          user_id: string
+        }
+        Update: {
+          answers?: Json
+          attempted_at?: string
+          id?: string
+          passed?: boolean
+          score?: number
+          total_questions?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       partner_communities: {
         Row: {
           active: boolean
@@ -956,6 +1016,33 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_videos: {
+        Row: {
+          id: string
+          key: string
+          title: string
+          updated_at: string
+          updated_by: string | null
+          youtube_url: string
+        }
+        Insert: {
+          id?: string
+          key: string
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+          youtube_url: string
+        }
+        Update: {
+          id?: string
+          key?: string
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+          youtube_url?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           age: number
@@ -970,6 +1057,7 @@ export type Database = {
           lgpd_consent_at: string | null
           name: string
           onboarding_completed: boolean
+          onboarding_quiz_passed: boolean
           phone: string | null
           photo_url: string | null
           professional_status: Database["public"]["Enums"]["professional_status"]
@@ -990,6 +1078,7 @@ export type Database = {
           lgpd_consent_at?: string | null
           name: string
           onboarding_completed?: boolean
+          onboarding_quiz_passed?: boolean
           phone?: string | null
           photo_url?: string | null
           professional_status: Database["public"]["Enums"]["professional_status"]
@@ -1010,6 +1099,7 @@ export type Database = {
           lgpd_consent_at?: string | null
           name?: string
           onboarding_completed?: boolean
+          onboarding_quiz_passed?: boolean
           phone?: string | null
           photo_url?: string | null
           professional_status?: Database["public"]["Enums"]["professional_status"]
