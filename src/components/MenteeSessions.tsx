@@ -67,7 +67,7 @@ const MenteeSessions = () => {
     const [sessionsRes, reviewsRes] = await Promise.all([
       supabase
         .from("mentor_sessions")
-        .select("id, scheduled_at, status, confirmed_by_mentor, confirmed_at, mentor_id, duration, reconfirmation_sent, reconfirmation_confirmed, mentors:mentor_id(name)")
+        .select("id, scheduled_at, status, confirmed_by_mentor, confirmed_at, mentor_id, duration, reconfirmation_sent, reconfirmation_confirmed, mentors:mentor_id(name, photo_url)")
         .eq("user_id", user.id)
         .order("scheduled_at", { ascending: false })
         .limit(20),
@@ -81,6 +81,7 @@ const MenteeSessions = () => {
       const mapped = (sessionsRes.data as unknown as RawSession[]).map((s) => ({
         ...s,
         mentor_name: s.mentors?.name || null,
+        mentor_photo_url: s.mentors?.photo_url || null,
       }));
       setSessions(mapped as Session[]);
     }
