@@ -20,6 +20,7 @@ interface MenteeRow {
   first_mentorship_booked: boolean;
   first_session_date: string | null;
   total_sessions: number;
+  daysToFirst: number | null;
   status: "ativo" | "pendente";
 }
 
