@@ -66,18 +66,31 @@ const AdminNoShowPanel = () => {
     // Fetch profile names AND photos for penalty users
     if (penaltiesData && penaltiesData.length > 0) {
       const userIds = penaltiesData.map(p => p.user_id);
-      const { data: profiles } = await supabase
+      const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
         .select("user_id, name, photo_url")
         .in("user_id", userIds);
 
-      const enriched = penaltiesData.map(p => ({
-        ...p,
-        profile_name: profiles?.find(pr => pr.user_id === p.user_id)?.name || "Usuário",
-        profile_photo: profiles?.find(pr => pr.user_id === p.user_id)?.photo_url || null,
-      }));
+      if (profilesError) {
+        console.error("Error fetching profiles for penalties:", profilesError);
+      }
+
+      const profileMap = new Map(
+        (profiles || []).map(pr => [pr.user_id, pr])
+      );
+
+      const enriched = penaltiesData.map(p => {
+        const prof = profileMap.get(p.user_id);
+        return {
+          ...p,
+          profile_name: prof?.name || "Usuário desconhecido",
+          profile_photo: prof?.photo_url || null,
+        };
+      });
 
       setPenalties(enriched);
+    } else {
+      setPenalties([]);
     }
 
     // Calculate stats
