@@ -551,6 +551,13 @@ const Mentors = () => {
                     </button>
                   </div>
 
+                  {/* Feedback preview */}
+                  <MentorCardFeedbackPreview
+                    mentorId={mentor.id}
+                    totalReviews={mentor.totalReviews}
+                    onViewAll={() => openReviewsDialog(mentor)}
+                  />
+
                   {/* Spacer pushes bottom content down */}
                   <div className="flex-1 min-h-2" />
 
