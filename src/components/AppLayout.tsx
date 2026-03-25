@@ -41,7 +41,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
       return;
     }
     const quizPassed = profile.onboarding_quiz_passed;
-    if (!quizPassed && !isAdmin && !isVolunteer && !isMentor && !profile.first_mentorship_booked) {
+    if (!quizPassed && !isAdmin && !isVolunteer && !isMentor) {
       setNeedsQuiz(true);
     } else {
       setNeedsQuiz(false);
