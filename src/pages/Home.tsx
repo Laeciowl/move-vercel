@@ -16,6 +16,7 @@ import MenteeSessions from "@/components/MenteeSessions";
 import ReferralSection from "@/components/ReferralSection";
 import PendingReviewsBanner, { usePendingReviewsCount } from "@/components/PendingReviewsBanner";
 import ProfileCompletionBanner from "@/components/ProfileCompletionBanner";
+import MenteeLinkedInShareCard from "@/components/MenteeLinkedInShareCard";
 import { usePendingMentorCheck } from "@/hooks/usePendingMentorCheck";
 
 const Home = () => {
