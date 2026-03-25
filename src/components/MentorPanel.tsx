@@ -15,6 +15,7 @@ import MentorAdvanceNoticeEditor from "./MentorAdvanceNoticeEditor";
 import MentorTagsEditor from "./MentorTagsEditor";
 import MentorFeaturedAchievementsEditor from "./MentorFeaturedAchievementsEditor";
 import SessionManagement from "./SessionManagement";
+import MentorAttendanceReport from "./MentorAttendanceReport";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 interface Availability {
@@ -408,6 +409,13 @@ const MentorPanel = () => {
           </AnimatePresence>
         </div>
       </motion.div>
+
+      {/* Attendance Reporting for past sessions */}
+      <MentorAttendanceReport
+        sessions={sessions}
+        mentorId={mentorData.id}
+        onUpdate={fetchMentorData}
+      />
 
       {/* Session Confirmation */}
       <MentorSessionConfirmation 

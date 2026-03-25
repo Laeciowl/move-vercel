@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import WhatsAppTemplates from "./WhatsAppTemplates";
+import MenteeAttendanceBadge from "./MenteeAttendanceBadge";
 
 interface MentorSession {
   id: string;
@@ -14,6 +15,7 @@ interface MentorSession {
   confirmed_by_mentor: boolean;
   mentor_notes: string | null;
   duration?: number;
+  user_id?: string;
   mentee_email?: string;
   mentee_formation?: string | null;
   mentee_objective?: string | null;
@@ -258,6 +260,11 @@ const MentorSessionConfirmation = ({ sessions, mentorName, mentorEmail, onUpdate
                   Conversar no WhatsApp
                 </a>
               </div>
+            )}
+
+            {/* Attendance History Badge */}
+            {session.user_id && (
+              <MenteeAttendanceBadge menteeUserId={session.user_id} />
             )}
 
             {/* Formation and Objective */}
