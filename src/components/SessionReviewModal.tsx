@@ -23,6 +23,7 @@ interface SessionReviewModalProps {
   mentorName: string;
   userId: string;
   onReviewSubmitted?: () => void;
+  initialAttendance?: string;
 }
 
 const ratingEmojis = [
@@ -48,11 +49,12 @@ const SessionReviewModal = ({
   mentorName,
   userId,
   onReviewSubmitted,
+  initialAttendance,
 }: SessionReviewModalProps) => {
   const [rating, setRating] = useState<number | null>(null);
   const [comment, setComment] = useState("");
   const [reviewPublico, setReviewPublico] = useState(true);
-  const [mentoriaAconteceu, setMentoriaAconteceu] = useState<string | null>(null);
+  const [mentoriaAconteceu, setMentoriaAconteceu] = useState<string | null>(initialAttendance || null);
   const [motivoNaoAconteceu, setMotivoNaoAconteceu] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
