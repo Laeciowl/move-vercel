@@ -21,7 +21,6 @@ import MentorShareButton from "@/components/MentorShareButton";
 import MentorTagFilter from "@/components/MentorTagFilter";
 import MentorMatchBadge from "@/components/MentorMatchBadge";
 import { Button } from "@/components/ui/button";
-import { Button } from "@/components/ui/button";
 import type { TagItem } from "@/components/TagSelector";
 
 interface Availability {
@@ -95,7 +94,6 @@ const Mentors = () => {
   const [selectedMentorForReviews, setSelectedMentorForReviews] = useState<Mentor | null>(null);
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
   const [selectedMentorForProfile, setSelectedMentorForProfile] = useState<Mentor | null>(null);
-  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
 
   const userInterestTagIds = useMemo(() => userInterests.map(t => t.id), [userInterests]);
