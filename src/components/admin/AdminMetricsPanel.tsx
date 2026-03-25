@@ -627,6 +627,9 @@ const AdminMetricsPanel = () => {
         <Card className="border-border/50 overflow-hidden">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">👥 Usuários</CardTitle>
+            <Button variant="ghost" size="sm" className="text-xs h-6" onClick={() => setShowMenteeBreakdown(true)}>
+              Ver detalhes
+            </Button>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{coreMetrics.totalUsers}</div>
@@ -655,6 +658,13 @@ const AdminMetricsPanel = () => {
             )}
           </CardContent>
         </Card>
+
+        <AdminMenteeBreakdownDialog
+          open={showMenteeBreakdown}
+          onOpenChange={setShowMenteeBreakdown}
+          activeCount={coreMetrics.menteesQuizPassed}
+          pendingCount={coreMetrics.menteesQuizNotPassed}
+        />
       </div>
 
       {/* Health Metrics */}
