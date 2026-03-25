@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import AdminTrailsNpsPanel from "./AdminTrailsNpsPanel";
+import AdminMenteeBreakdownDialog from "./AdminMenteeBreakdownDialog";
 import { toast } from "sonner";
 import { format, startOfMonth, endOfMonth, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -168,6 +169,8 @@ const AdminMetricsPanel = () => {
   const [showNotRespDialog, setShowNotRespDialog] = useState(false);
   const [showRetentionDialog, setShowRetentionDialog] = useState(false);
   const [expandedMetric, setExpandedMetric] = useState<string | null>(null);
+
+  const [showMenteeBreakdown, setShowMenteeBreakdown] = useState(false);
 
   // ─── Data Fetching ─────────────────────────────────
   const fetchCoreAndHealth = useCallback(async () => {
@@ -624,6 +627,9 @@ const AdminMetricsPanel = () => {
         <Card className="border-border/50 overflow-hidden">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">👥 Usuários</CardTitle>
+            <Button variant="ghost" size="sm" className="text-xs h-6" onClick={() => setShowMenteeBreakdown(true)}>
+              Ver detalhes
+            </Button>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{coreMetrics.totalUsers}</div>
@@ -652,6 +658,13 @@ const AdminMetricsPanel = () => {
             )}
           </CardContent>
         </Card>
+
+        <AdminMenteeBreakdownDialog
+          open={showMenteeBreakdown}
+          onOpenChange={setShowMenteeBreakdown}
+          activeCount={coreMetrics.menteesQuizPassed}
+          pendingCount={coreMetrics.menteesQuizNotPassed}
+        />
       </div>
 
       {/* Health Metrics */}
