@@ -708,18 +708,6 @@ const Mentors = () => {
                   <p className="text-primary font-medium mt-1">
                     {selectedMentorForProfile.area}
                   </p>
-                  {selectedMentorForProfile.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mt-2 justify-center">
-                      {selectedMentorForProfile.tags.map((tag) => (
-                        <span
-                          key={tag.id}
-                          className="px-2.5 py-1 rounded-lg text-xs font-medium bg-primary/10 text-primary border border-primary/20"
-                        >
-                          {tag.name}
-                        </span>
-                      ))}
-                    </div>
-                  )}
                 </div>
 
                 {selectedMentorForProfile.education && (
