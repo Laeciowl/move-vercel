@@ -1,7 +1,7 @@
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Shield, Users, BookOpen, Loader2, FileCheck, Bug, BarChart3, Image, Calendar, Handshake, Star } from "lucide-react";
+import { Shield, Users, BookOpen, Loader2, FileCheck, Bug, BarChart3, Image, Calendar, Handshake, Star, UserX, ArrowLeft } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -16,23 +16,73 @@ import AdminMentorSessionsPanel from "@/components/admin/AdminMentorSessionsPane
 import AdminCommunitiesPanel from "@/components/admin/AdminCommunitiesPanel";
 import AdminQualityPanel from "@/components/admin/AdminQualityPanel";
 import AdminNoShowPanel from "@/components/admin/AdminNoShowPanel";
+import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+
+// Dedicated page view for quality or no-shows
+const DedicatedView = ({ type, onBack }: { type: "quality" | "noshows"; onBack: () => void }) => (
+  <div className="space-y-4">
+    <Button variant="ghost" onClick={onBack} className="gap-2 -ml-2">
+      <ArrowLeft className="w-4 h-4" />
+      Voltar ao painel
+    </Button>
+    {type === "quality" ? <AdminQualityPanel /> : <AdminNoShowPanel />}
+  </div>
+);
 
 const Admin = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user, loading: authLoading } = useAuth();
   const { isAdmin, loading: adminLoading } = useAdminCheck();
+  const [dedicatedView, setDedicatedView] = useState<"quality" | "noshows" | null>(null);
+
+  // Quick stats for the hub cards
+  const [qualityAvg, setQualityAvg] = useState<number | null>(null);
+  const [noShowCount, setNoShowCount] = useState<number | null>(null);
 
   useEffect(() => {
-    if (!authLoading && !user) {
-      navigate("/auth");
-    }
+    if (!authLoading && !user) navigate("/auth");
   }, [user, authLoading, navigate]);
 
   useEffect(() => {
-    if (!adminLoading && !isAdmin && user) {
-      navigate("/inicio");
-    }
+    if (!adminLoading && !isAdmin && user) navigate("/inicio");
   }, [isAdmin, adminLoading, user, navigate]);
+
+  // Check URL params for dedicated view
+  useEffect(() => {
+    const view = searchParams.get("view");
+    if (view === "quality" || view === "noshows") {
+      setDedicatedView(view);
+    }
+  }, [searchParams]);
+
+  // Fetch quick stats for hub cards
+  useEffect(() => {
+    if (!isAdmin) return;
+    const fetchQuickStats = async () => {
+      const [reviewsRes, penaltiesRes] = await Promise.all([
+        supabase.from("session_reviews").select("rating"),
+        supabase.from("mentee_penalties").select("total_no_shows").gt("total_no_shows", 0),
+      ]);
+      if (reviewsRes.data && reviewsRes.data.length > 0) {
+        const avg = reviewsRes.data.reduce((a, b) => a + b.rating, 0) / reviewsRes.data.length;
+        setQualityAvg(Math.round(avg * 10) / 10);
+      }
+      setNoShowCount(penaltiesRes.data?.length || 0);
+    };
+    fetchQuickStats();
+  }, [isAdmin]);
+
+  const openDedicatedView = (view: "quality" | "noshows") => {
+    setDedicatedView(view);
+    setSearchParams({ view });
+  };
+
+  const closeDedicatedView = () => {
+    setDedicatedView(null);
+    setSearchParams({});
+  };
 
   if (authLoading || adminLoading) {
     return (
@@ -54,20 +104,12 @@ const Admin = () => {
     );
   }
 
-  if (!isAdmin) {
-    return null;
-  }
+  if (!isAdmin) return null;
 
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
+    visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
   };
-
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0 },
@@ -75,13 +117,12 @@ const Admin = () => {
 
   return (
     <AppLayout>
-      <motion.div 
+      <motion.div
         className="max-w-5xl mx-auto"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
-
         <motion.div variants={itemVariants} className="mb-8">
           <div className="flex items-center gap-4 mb-3">
             <div className="w-14 h-14 bg-gradient-to-br from-primary to-primary/80 rounded-2xl flex items-center justify-center shadow-button">
@@ -96,124 +137,148 @@ const Admin = () => {
           </div>
         </motion.div>
 
-        <motion.div variants={itemVariants}>
-          <Tabs defaultValue="volunteers" className="w-full">
-            <TabsList className="grid w-full grid-cols-10 mb-6 bg-card/80 backdrop-blur-sm border border-border/50 p-1 rounded-2xl h-auto overflow-x-auto">
-              <TabsTrigger 
-                value="metrics" 
-                className="gap-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-button transition-all duration-300"
+        {/* Dedicated view for quality or no-shows */}
+        {dedicatedView ? (
+          <motion.div variants={itemVariants}>
+            <div className="bg-card/80 backdrop-blur-sm rounded-3xl shadow-card border border-border/50 p-6">
+              <DedicatedView type={dedicatedView} onBack={closeDedicatedView} />
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div variants={itemVariants}>
+            {/* Quick access hub cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+              <button
+                onClick={() => openDedicatedView("quality")}
+                className="flex items-center gap-4 bg-card/80 backdrop-blur-sm rounded-2xl shadow-card border border-border/50 p-5 text-left hover:border-primary/30 hover:shadow-lg transition-all group"
               >
-                <BarChart3 className="w-4 h-4" />
-                <span className="hidden sm:inline">Métricas</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="sessions" 
-                className="gap-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-button transition-all duration-300"
-              >
-                <Calendar className="w-4 h-4" />
-                <span className="hidden sm:inline">Mentorias</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="volunteers" 
-                className="gap-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-button transition-all duration-300"
-              >
-                <Users className="w-4 h-4" />
-                <span className="hidden sm:inline">Voluntários</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="cards" 
-                className="gap-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-button transition-all duration-300"
-              >
-                <Image className="w-4 h-4" />
-                <span className="hidden sm:inline">Cards</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="submissions" 
-                className="gap-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-button transition-all duration-300"
-              >
-                <FileCheck className="w-4 h-4" />
-                <span className="hidden sm:inline">Submissões</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="content" 
-                className="gap-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-button transition-all duration-300"
-              >
-                <BookOpen className="w-4 h-4" />
-                <span className="hidden sm:inline">Materiais</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="bugs" 
-                className="gap-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-button transition-all duration-300"
-              >
-                <Bug className="w-4 h-4" />
-                <span className="hidden sm:inline">Erros</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="communities" 
-                className="gap-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-button transition-all duration-300"
-              >
-                <Handshake className="w-4 h-4" />
-                <span className="hidden sm:inline">Comunidades</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="quality" 
-                className="gap-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-button transition-all duration-300"
-              >
-                <Star className="w-4 h-4" />
-                <span className="hidden sm:inline">Qualidade</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="noshows" 
-                className="gap-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-button transition-all duration-300"
-              >
-                <Users className="w-4 h-4" />
-                <span className="hidden sm:inline">No-Shows</span>
-              </TabsTrigger>
-            </TabsList>
+                <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Star className="w-6 h-6 text-amber-500" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-foreground">Qualidade das Mentorias</p>
+                  <p className="text-xs text-muted-foreground">
+                    {qualityAvg !== null ? `Média geral: ${qualityAvg} ⭐` : "Ver avaliações dos mentores"}
+                  </p>
+                </div>
+                <span className="text-muted-foreground text-sm">→</span>
+              </button>
 
-            <AnimatePresence mode="wait">
-              <motion.div 
-                key="tab-content"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2 }}
-                className="bg-card/80 backdrop-blur-sm rounded-3xl shadow-card border border-border/50 p-6"
+              <button
+                onClick={() => openDedicatedView("noshows")}
+                className="flex items-center gap-4 bg-card/80 backdrop-blur-sm rounded-2xl shadow-card border border-border/50 p-5 text-left hover:border-destructive/30 hover:shadow-lg transition-all group"
               >
-                <TabsContent value="metrics" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
-                  <AdminMetricsPanel />
-                </TabsContent>
-                <TabsContent value="sessions" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
-                  <AdminMentorSessionsPanel />
-                </TabsContent>
-                <TabsContent value="volunteers" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
-                  <AdminVolunteersPanel />
-                </TabsContent>
-                <TabsContent value="cards" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
-                  <AdminMentorCardsPanel />
-                </TabsContent>
-                <TabsContent value="submissions" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
-                  <AdminSubmissionsPanel />
-                </TabsContent>
-                <TabsContent value="content" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
-                  <AdminContentPanel />
-                </TabsContent>
-                <TabsContent value="bugs" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
-                  <AdminBugReportsPanel />
-                </TabsContent>
-                <TabsContent value="communities" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
-                  <AdminCommunitiesPanel />
-                </TabsContent>
-                <TabsContent value="quality" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
-                  <AdminQualityPanel />
-                </TabsContent>
-                <TabsContent value="noshows" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
-                  <AdminNoShowPanel />
-                </TabsContent>
-              </motion.div>
-            </AnimatePresence>
-          </Tabs>
-        </motion.div>
+                <div className="w-12 h-12 rounded-xl bg-red-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <UserX className="w-6 h-6 text-red-500" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-foreground">No-Shows & Penalidades</p>
+                  <p className="text-xs text-muted-foreground">
+                    {noShowCount !== null ? `${noShowCount} mentorado${noShowCount !== 1 ? "s" : ""} com faltas` : "Gerenciar comparecimento"}
+                  </p>
+                </div>
+                <span className="text-muted-foreground text-sm">→</span>
+              </button>
+            </div>
+
+            <Tabs defaultValue="metrics" className="w-full">
+              <TabsList className="grid w-full grid-cols-8 mb-6 bg-card/80 backdrop-blur-sm border border-border/50 p-1 rounded-2xl h-auto overflow-x-auto">
+                <TabsTrigger
+                  value="metrics"
+                  className="gap-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-button transition-all duration-300"
+                >
+                  <BarChart3 className="w-4 h-4" />
+                  <span className="hidden sm:inline">Métricas</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="sessions"
+                  className="gap-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-button transition-all duration-300"
+                >
+                  <Calendar className="w-4 h-4" />
+                  <span className="hidden sm:inline">Mentorias</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="volunteers"
+                  className="gap-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-button transition-all duration-300"
+                >
+                  <Users className="w-4 h-4" />
+                  <span className="hidden sm:inline">Voluntários</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="cards"
+                  className="gap-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-button transition-all duration-300"
+                >
+                  <Image className="w-4 h-4" />
+                  <span className="hidden sm:inline">Cards</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="submissions"
+                  className="gap-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-button transition-all duration-300"
+                >
+                  <FileCheck className="w-4 h-4" />
+                  <span className="hidden sm:inline">Submissões</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="content"
+                  className="gap-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-button transition-all duration-300"
+                >
+                  <BookOpen className="w-4 h-4" />
+                  <span className="hidden sm:inline">Materiais</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="bugs"
+                  className="gap-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-button transition-all duration-300"
+                >
+                  <Bug className="w-4 h-4" />
+                  <span className="hidden sm:inline">Erros</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="communities"
+                  className="gap-2 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-button transition-all duration-300"
+                >
+                  <Handshake className="w-4 h-4" />
+                  <span className="hidden sm:inline">Comunidades</span>
+                </TabsTrigger>
+              </TabsList>
+
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key="tab-content"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                  className="bg-card/80 backdrop-blur-sm rounded-3xl shadow-card border border-border/50 p-6"
+                >
+                  <TabsContent value="metrics" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+                    <AdminMetricsPanel />
+                  </TabsContent>
+                  <TabsContent value="sessions" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+                    <AdminMentorSessionsPanel />
+                  </TabsContent>
+                  <TabsContent value="volunteers" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+                    <AdminVolunteersPanel />
+                  </TabsContent>
+                  <TabsContent value="cards" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+                    <AdminMentorCardsPanel />
+                  </TabsContent>
+                  <TabsContent value="submissions" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+                    <AdminSubmissionsPanel />
+                  </TabsContent>
+                  <TabsContent value="content" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+                    <AdminContentPanel />
+                  </TabsContent>
+                  <TabsContent value="bugs" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+                    <AdminBugReportsPanel />
+                  </TabsContent>
+                  <TabsContent value="communities" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+                    <AdminCommunitiesPanel />
+                  </TabsContent>
+                </motion.div>
+              </AnimatePresence>
+            </Tabs>
+          </motion.div>
+        )}
       </motion.div>
     </AppLayout>
   );

@@ -215,39 +215,6 @@ const AdminMentorSessionsPanel = () => {
         </div>
       </div>
 
-      {/* No-show alert summary */}
-      {(noShowMentorado > 0 || noShowMentor > 0) && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {noShowMentorado > 0 && (
-            <button
-              onClick={() => setStatusFilter("no_show_mentorado")}
-              className="flex items-center gap-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-3 text-left hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
-            >
-              <div className="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center">
-                <UserX className="w-5 h-5 text-red-600" />
-              </div>
-              <div>
-                <div className="text-lg font-bold text-red-700 dark:text-red-400">{noShowMentorado}</div>
-                <div className="text-xs text-red-600 dark:text-red-400">Mentorados faltaram</div>
-              </div>
-            </button>
-          )}
-          {noShowMentor > 0 && (
-            <button
-              onClick={() => setStatusFilter("no_show_mentor")}
-              className="flex items-center gap-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-xl p-3 text-left hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors"
-            >
-              <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center">
-                <AlertTriangle className="w-5 h-5 text-orange-600" />
-              </div>
-              <div>
-                <div className="text-lg font-bold text-orange-700 dark:text-orange-400">{noShowMentor}</div>
-                <div className="text-xs text-orange-600 dark:text-orange-400">Mentores faltaram</div>
-              </div>
-            </button>
-          )}
-        </div>
-      )}
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
