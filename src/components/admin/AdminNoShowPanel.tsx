@@ -1,13 +1,12 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { AlertTriangle, Ban, ShieldCheck, Loader2, UserX, BarChart3, Eye, Undo2, Search } from "lucide-react";
+import { AlertTriangle, Ban, Loader2, UserX, Undo2, Search, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface PenaltyRecord {
   id: string;
@@ -19,18 +18,7 @@ interface PenaltyRecord {
   block_reason: string | null;
   updated_at: string;
   profile_name?: string;
-  profile_email?: string;
-}
-
-interface AttendanceRecord {
-  id: string;
-  session_id: string;
-  mentor_id: string;
-  mentee_user_id: string;
-  status: string;
-  mentee_avisou: boolean;
-  mentor_observations: string | null;
-  reported_at: string;
+  profile_photo?: string | null;
 }
 
 const statusLabels: Record<string, string> = {
@@ -51,7 +39,6 @@ const statusColors: Record<string, string> = {
 
 const AdminNoShowPanel = () => {
   const [penalties, setPenalties] = useState<PenaltyRecord[]>([]);
-  const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [updating, setUpdating] = useState<string | null>(null);
@@ -70,31 +57,27 @@ const AdminNoShowPanel = () => {
       .select("*")
       .order("total_no_shows", { ascending: false });
 
-    // Fetch attendance records
+    // Fetch attendance stats
     const { data: attendanceData } = await supabase
       .from("mentee_attendance")
-      .select("*")
-      .order("reported_at", { ascending: false })
-      .limit(100);
+      .select("status")
+      .limit(1000);
 
-    // Fetch profile names for penalty users
+    // Fetch profile names AND photos for penalty users
     if (penaltiesData && penaltiesData.length > 0) {
       const userIds = penaltiesData.map(p => p.user_id);
       const { data: profiles } = await supabase
         .from("profiles")
-        .select("user_id, name")
+        .select("user_id, name, photo_url")
         .in("user_id", userIds);
 
       const enriched = penaltiesData.map(p => ({
         ...p,
         profile_name: profiles?.find(pr => pr.user_id === p.user_id)?.name || "Usuário",
+        profile_photo: profiles?.find(pr => pr.user_id === p.user_id)?.photo_url || null,
       }));
 
       setPenalties(enriched);
-    }
-
-    if (attendanceData) {
-      setAttendance(attendanceData);
     }
 
     // Calculate stats
@@ -109,7 +92,7 @@ const AdminNoShowPanel = () => {
     setLoading(false);
   };
 
-  const handleForgive = async (penaltyId: string, userId: string) => {
+  const handleForgive = async (penaltyId: string) => {
     setUpdating(penaltyId);
     const { error } = await supabase
       .from("mentee_penalties")
@@ -183,10 +166,74 @@ const AdminNoShowPanel = () => {
 
   const critical = penalties.filter(p => p.total_no_shows >= 3);
   const warning = penalties.filter(p => p.total_no_shows === 2);
-  const notice = penalties.filter(p => p.total_no_shows === 1);
 
   const filteredPenalties = penalties.filter(p =>
     !search || (p.profile_name?.toLowerCase().includes(search.toLowerCase()))
+  );
+
+  const renderUserRow = (p: PenaltyRecord, showActions = true) => (
+    <div key={p.id} className="flex items-center justify-between py-2">
+      <div className="flex items-center gap-3 min-w-0">
+        <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center overflow-hidden shrink-0 border border-border/50">
+          {p.profile_photo ? (
+            <img src={p.profile_photo} alt="" className="w-full h-full object-cover" />
+          ) : (
+            <User className="w-4 h-4 text-muted-foreground" />
+          )}
+        </div>
+        <div className="min-w-0">
+          <p className="text-sm font-medium text-foreground truncate">{p.profile_name}</p>
+          <p className="text-xs text-muted-foreground">
+            {p.total_completed} realizadas · {p.total_no_shows} falta{p.total_no_shows !== 1 ? "s" : ""}
+            {p.blocked_until && ` · Bloqueado até ${format(new Date(p.blocked_until), "dd/MM/yyyy", { locale: ptBR })}`}
+          </p>
+        </div>
+      </div>
+      <div className="flex items-center gap-2 shrink-0">
+        <span className={`px-2 py-0.5 rounded-md text-xs font-medium ${statusColors[p.status] || "bg-muted text-foreground"}`}>
+          {statusLabels[p.status] || p.status}
+        </span>
+        {showActions && (
+          <>
+            {p.total_no_shows > 0 && p.status !== "banido" && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => handleForgive(p.id)}
+                disabled={updating === p.id}
+                className="h-7 text-xs"
+              >
+                {updating === p.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Undo2 className="w-3 h-3 mr-1" />}
+                Perdoar
+              </Button>
+            )}
+            {(p.status === "bloqueado_7d" || p.status === "bloqueado_30d" || p.status === "banido") && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => handleUnblock(p.id)}
+                disabled={updating === p.id}
+                className="h-7 text-xs"
+              >
+                {updating === p.id ? <Loader2 className="w-3 h-3 animate-spin" /> : "Desbloquear"}
+              </Button>
+            )}
+            {p.status !== "banido" && p.total_no_shows >= 3 && (
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={() => handleBan(p.id)}
+                disabled={updating === p.id}
+                className="h-7 text-xs"
+              >
+                <Ban className="w-3 h-3 mr-1" />
+                Banir
+              </Button>
+            )}
+          </>
+        )}
+      </div>
+    </div>
   );
 
   return (
@@ -220,58 +267,22 @@ const AdminNoShowPanel = () => {
 
       {/* Alerts */}
       {critical.length > 0 && (
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-xl p-4 space-y-2">
-          <p className="text-sm font-bold text-red-700 dark:text-red-400 flex items-center gap-2">
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-xl p-4 space-y-1">
+          <p className="text-sm font-bold text-red-700 dark:text-red-400 flex items-center gap-2 mb-2">
             <AlertTriangle className="w-4 h-4" />
             🔴 CRÍTICOS ({critical.length})
           </p>
-          {critical.map(p => (
-            <div key={p.id} className="flex items-center justify-between py-2 border-b border-red-200/50 last:border-0">
-              <span className="text-sm text-foreground">
-                {p.profile_name} — {p.total_no_shows} no-shows ({statusLabels[p.status]})
-              </span>
-              <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => handleForgive(p.id, p.user_id)}
-                  disabled={updating === p.id}
-                  className="h-7 text-xs"
-                >
-                  {updating === p.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Undo2 className="w-3 h-3 mr-1" />}
-                  Perdoar
-                </Button>
-                {p.status !== "banido" && (
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    onClick={() => handleBan(p.id)}
-                    disabled={updating === p.id}
-                    className="h-7 text-xs"
-                  >
-                    <Ban className="w-3 h-3 mr-1" />
-                    Banir
-                  </Button>
-                )}
-              </div>
-            </div>
-          ))}
+          {critical.map(p => renderUserRow(p))}
         </div>
       )}
 
       {warning.length > 0 && (
-        <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-xl p-4 space-y-2">
-          <p className="text-sm font-bold text-yellow-700 dark:text-yellow-400 flex items-center gap-2">
+        <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-xl p-4 space-y-1">
+          <p className="text-sm font-bold text-yellow-700 dark:text-yellow-400 flex items-center gap-2 mb-2">
             <AlertTriangle className="w-4 h-4" />
             🟡 ATENÇÃO ({warning.length})
           </p>
-          {warning.map(p => (
-            <div key={p.id} className="flex items-center justify-between py-1">
-              <span className="text-sm text-foreground">
-                {p.profile_name} — 2 no-shows ({statusLabels[p.status]})
-              </span>
-            </div>
-          ))}
+          {warning.map(p => renderUserRow(p, false))}
         </div>
       )}
 
@@ -294,43 +305,9 @@ const AdminNoShowPanel = () => {
                 key={p.id}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="bg-card border border-border/50 rounded-xl p-4 flex items-center justify-between"
+                className="bg-card border border-border/50 rounded-xl p-4"
               >
-                <div>
-                  <p className="text-sm font-medium text-foreground">{p.profile_name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {p.total_completed} realizadas · {p.total_no_shows} falta{p.total_no_shows !== 1 ? "s" : ""}
-                    {p.blocked_until && ` · Bloqueado até ${format(new Date(p.blocked_until), "dd/MM/yyyy", { locale: ptBR })}`}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className={`px-2 py-0.5 rounded-md text-xs font-medium ${statusColors[p.status] || "bg-muted text-foreground"}`}>
-                    {statusLabels[p.status] || p.status}
-                  </span>
-                  {(p.status === "bloqueado_7d" || p.status === "bloqueado_30d" || p.status === "banido") && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleUnblock(p.id)}
-                      disabled={updating === p.id}
-                      className="h-7 text-xs"
-                    >
-                      {updating === p.id ? <Loader2 className="w-3 h-3 animate-spin" /> : "Desbloquear"}
-                    </Button>
-                  )}
-                  {p.total_no_shows > 0 && p.status !== "banido" && (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => handleForgive(p.id, p.user_id)}
-                      disabled={updating === p.id}
-                      className="h-7 text-xs"
-                    >
-                      <Undo2 className="w-3 h-3 mr-1" />
-                      Perdoar
-                    </Button>
-                  )}
-                </div>
+                {renderUserRow(p)}
               </motion.div>
             ))}
           </div>
