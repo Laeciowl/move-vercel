@@ -170,7 +170,9 @@ Deno.serve(async (req) => {
       .gte("scheduled_at", in23h)
       .lte("scheduled_at", in25h);
 
-    const { data: sessions1h } = await adminClient
+    // For 1h reminders, also exclude sessions where reconfirmation was sent but NOT confirmed
+    // (these will be auto-cancelled or already cancelled)
+    const { data: sessions1hRaw } = await adminClient
       .from("mentor_sessions")
       .select("*, mentors(name, email)")
       .eq("status", "scheduled")
@@ -178,6 +180,15 @@ Deno.serve(async (req) => {
       .eq("reminder_1h_sent", false)
       .gte("scheduled_at", in50m)
       .lte("scheduled_at", in70m);
+
+    // Filter out sessions where reconfirmation was sent but not yet confirmed
+    const sessions1h = (sessions1hRaw || []).filter(session => {
+      if (session.reconfirmation_sent && session.reconfirmation_confirmed !== true) {
+        console.log(`Skipping 1h reminder for session ${session.id}: reconfirmation sent but not confirmed`);
+        return false;
+      }
+      return true;
+    });
 
     let sentCount = 0;
     let failedCount = 0;
