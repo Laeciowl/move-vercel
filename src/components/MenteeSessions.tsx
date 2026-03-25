@@ -216,10 +216,14 @@ const MenteeSessions = () => {
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 min-w-0">
-            <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
+            <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 overflow-hidden ${
               needsReconfirmation ? "bg-amber-100 dark:bg-amber-900/30" : needsReview ? "bg-primary/15" : "bg-primary/10"
             }`}>
-              <User className="w-4 h-4 text-primary" />
+              {session.mentor_photo_url ? (
+                <img src={session.mentor_photo_url} alt={session.mentor_name || "Mentor"} className="w-full h-full object-cover" />
+              ) : (
+                <User className="w-4 h-4 text-primary" />
+              )}
             </div>
             <div className="min-w-0">
               <p className="text-sm font-medium text-foreground truncate">
