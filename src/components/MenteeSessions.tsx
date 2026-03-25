@@ -128,10 +128,11 @@ const MenteeSessions = () => {
   const pastUnconfirmed = sessions.filter(
     (s) => s.status === "scheduled" && isSessionPast(s.scheduled_at, s.duration || 30) && !s.confirmed_at
   );
-  const completedOrPast = sessions.filter(
-    (s) => s.status === "completed"
+  const pendingReview = sessions.filter(
+    (s) => s.status === "completed" && !reviewedSessions.has(s.id)
   );
-  const cancelled = sessions.filter((s) => s.status === "cancelled");
+
+  const hasActionableItems = upcoming.length > 0 || pastUnconfirmed.length > 0 || pendingReview.length > 0;
 
   const getStatusBadge = (session: Session) => {
     if (session.status === "completed") {
