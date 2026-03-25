@@ -42,7 +42,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
       return;
     }
     const quizPassed = profile.onboarding_quiz_passed;
-    if (!quizPassed && !isAdmin && !isVolunteer && !isMentor) {
+    if (!quizPassed && !isVolunteer && !isMentor) {
       // Check if user has any sessions at all — if yes, they're active and exempt
       import("@/integrations/supabase/client").then(({ supabase }) => {
         supabase
