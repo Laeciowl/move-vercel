@@ -146,9 +146,7 @@ const MenteeLinkedInShareCard = ({ compact = false }: MenteeLinkedInShareCardPro
                   borderRadius: "16px",
                   padding: "20px",
                   border: "1px solid rgba(255,255,255,0.2)",
-                  minHeight: "120px",
                   display: "flex",
-                  flexDirection: "column",
                   alignItems: "center",
                   justifyContent: "center",
                 }}>
@@ -164,17 +162,17 @@ const MenteeLinkedInShareCard = ({ compact = false }: MenteeLinkedInShareCardPro
                   }}>
                     Agora faço parte de uma rede que conecta quem quer crescer com quem já chegou lá. Com acesso a mentores experientes de diversas empresas, estou pronto(a) para mover minha carreira! 🚀
                   </p>
-                  <p style={{
-                    fontSize: "13px",
-                    fontWeight: 500,
-                    lineHeight: 1.4,
-                    margin: "10px 0 0 0",
-                    textAlign: "center",
-                    color: "rgba(255,255,255,0.85)",
-                  }}>
-                    Interessado(a)? Venha você também se inscrever na Movê!
-                  </p>
                 </div>
+                <p style={{
+                  fontSize: "13px",
+                  fontWeight: 500,
+                  lineHeight: 1.4,
+                  margin: "10px 0 0 0",
+                  textAlign: "center",
+                  color: "rgba(255,255,255,0.85)",
+                }}>
+                  Interessado(a)? Venha você também se inscrever na Movê!
+                </p>
               </div>
 
               {/* Footer */}
