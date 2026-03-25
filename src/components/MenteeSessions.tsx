@@ -19,6 +19,21 @@ interface Session {
   mentor_name: string | null;
   mentor_id: string | null;
   duration: number | null;
+  reconfirmation_sent: boolean | null;
+  reconfirmation_confirmed: boolean | null;
+}
+
+interface RawSession {
+  id: string;
+  scheduled_at: string;
+  status: string;
+  confirmed_by_mentor: boolean | null;
+  confirmed_at: string | null;
+  mentor_id: string | null;
+  duration: number | null;
+  reconfirmation_sent: boolean | null;
+  reconfirmation_confirmed: boolean | null;
+  mentors: { name: string } | null;
 }
 
 interface ReviewedSession {
@@ -50,8 +65,8 @@ const MenteeSessions = () => {
     if (!user) return;
     const [sessionsRes, reviewsRes] = await Promise.all([
       supabase
-        .from("mentor_sessions_with_names")
-        .select("id, scheduled_at, status, confirmed_by_mentor, confirmed_at, mentor_name, mentor_id, duration")
+        .from("mentor_sessions")
+        .select("id, scheduled_at, status, confirmed_by_mentor, confirmed_at, mentor_id, duration, reconfirmation_sent, reconfirmation_confirmed, mentors:mentor_id(name)")
         .eq("user_id", user.id)
         .order("scheduled_at", { ascending: false })
         .limit(20),
@@ -62,7 +77,11 @@ const MenteeSessions = () => {
     ]);
 
     if (!sessionsRes.error && sessionsRes.data) {
-      setSessions(sessionsRes.data as Session[]);
+      const mapped = (sessionsRes.data as unknown as RawSession[]).map((s) => ({
+        ...s,
+        mentor_name: s.mentors?.name || null,
+      }));
+      setSessions(mapped as Session[]);
     }
     if (!reviewsRes.error && reviewsRes.data) {
       const map = new Map<string, ReviewedSession>();
@@ -147,24 +166,55 @@ const MenteeSessions = () => {
   const canReview = (session: Session) =>
     session.status === "completed" && !isReviewed(session.id);
 
+  const handleReconfirm = async (sessionId: string) => {
+    const { error } = await supabase
+      .from("mentor_sessions")
+      .update({
+        reconfirmation_confirmed: true,
+        reconfirmation_confirmed_at: new Date().toISOString(),
+      })
+      .eq("id", sessionId);
+
+    if (error) {
+      toast.error("Erro ao confirmar presença");
+    } else {
+      toast.success("Presença confirmada! ✅");
+      try {
+        await supabase.functions.invoke("send-notification-email", {
+          body: { type: "mentee_reconfirmed", data: { sessionId } },
+        });
+      } catch (e) {
+        console.error("Error notifying mentor:", e);
+      }
+      fetchSessions();
+    }
+  };
+
   const SessionItem = ({ session }: { session: Session }) => {
     const reviewed = isReviewed(session.id);
     const needsReview = canReview(session);
     const reviewData = reviewedSessions.get(session.id);
+    const needsReconfirmation = session.status === "scheduled" 
+      && session.reconfirmation_sent === true 
+      && session.reconfirmation_confirmed === null
+      && !isSessionPast(session.scheduled_at, session.duration || 30);
+    const isReconfirmed = session.reconfirmation_confirmed === true;
 
     return (
       <div
         className={`rounded-xl transition-colors ${
-          needsReview
-            ? "bg-[#FFF9F5] border-2 border-primary/60 cursor-pointer hover:shadow-md"
-            : "hover:bg-muted/30 border border-transparent"
+          needsReconfirmation
+            ? "bg-amber-50 dark:bg-amber-900/20 border-2 border-amber-400/60"
+            : needsReview
+              ? "bg-accent/50 border-2 border-primary/60 cursor-pointer hover:shadow-md"
+              : "hover:bg-muted/30 border border-transparent"
         } p-4`}
-        onClick={needsReview ? () => setReviewModal({ open: true, session }) : undefined}
+        onClick={needsReview && !needsReconfirmation ? () => setReviewModal({ open: true, session }) : undefined}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 min-w-0">
             <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
-              needsReview ? "bg-primary/15" : "bg-primary/10"
+              needsReconfirmation ? "bg-amber-100 dark:bg-amber-900/30" : needsReview ? "bg-primary/15" : "bg-primary/10"
             }`}>
               <User className="w-4 h-4 text-primary" />
             </div>
@@ -182,6 +232,31 @@ const MenteeSessions = () => {
             {getStatusBadge(session)}
           </div>
         </div>
+
+        {/* Reconfirmation needed */}
+        {needsReconfirmation && (
+          <div className="mt-3 space-y-2">
+            <p className="text-xs font-medium text-amber-700 dark:text-amber-400 flex items-center gap-1">
+              <AlertCircle className="w-3.5 h-3.5" /> Confirme sua presença até 3h antes!
+            </p>
+            <Button
+              size="sm"
+              onClick={(e) => { e.stopPropagation(); handleReconfirm(session.id); }}
+              className="h-7 text-xs gap-1 bg-green-600 hover:bg-green-700 text-white rounded-lg"
+            >
+              <CheckCircle className="w-3 h-3" /> Confirmar Presença
+            </Button>
+          </div>
+        )}
+
+        {/* Reconfirmed badge */}
+        {isReconfirmed && session.status === "scheduled" && (
+          <div className="mt-2">
+            <span className="inline-flex items-center gap-1 text-xs text-green-600 font-medium">
+              <CheckCircle className="w-3 h-3" /> Presença confirmada
+            </span>
+          </div>
+        )}
 
         {needsReview && (
           <div className="mt-3 flex items-center justify-between">
