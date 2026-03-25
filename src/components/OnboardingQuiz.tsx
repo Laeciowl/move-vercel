@@ -41,6 +41,7 @@ const OnboardingQuiz = ({ onPassed }: { onPassed: () => void }) => {
   const [cooldownUntil, setCooldownUntil] = useState<Date | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [videoWatched, setVideoWatched] = useState(false);
+  const [valuesUnderstood, setValuesUnderstood] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -122,9 +123,7 @@ const OnboardingQuiz = ({ onPassed }: { onPassed: () => void }) => {
     setStep("result");
     setSubmitting(false);
 
-    if (passed) {
-      setTimeout(() => onPassed(), 2500);
-    }
+    // Don't auto-redirect — user must confirm values understood
   };
 
   if (loading) {
@@ -340,12 +339,63 @@ const OnboardingQuiz = ({ onPassed }: { onPassed: () => void }) => {
             >
               {result.passed ? (
                 <>
-                  <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto" />
+                  <div className="relative mx-auto w-20 h-20">
+                    <div className="absolute inset-0 bg-green-500/20 rounded-full animate-ping" />
+                    <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center">
+                      <CheckCircle2 className="w-10 h-10 text-white" />
+                    </div>
+                  </div>
                   <h2 className="text-2xl font-bold text-foreground">Aprovado! 🎉</h2>
                   <p className="text-muted-foreground">
                     Você acertou {result.score}/{result.total} ({Math.round((result.score / result.total) * 100)}%).
-                    Bem-vindo à comunidade Movê!
                   </p>
+
+                  <div className="bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 rounded-xl p-5 text-center space-y-1">
+                    <Rocket className="w-6 h-6 text-primary mx-auto mb-1" />
+                    <p className="text-base font-bold text-foreground">
+                      Você agora faz parte de quem move a carreira! 🚀
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Uma comunidade de pessoas que acreditam no poder da mentoria para transformar trajetórias.
+                    </p>
+                  </div>
+
+                  {/* Values reminder */}
+                  <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 text-left">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Heart className="w-4 h-4 text-primary" />
+                      <p className="text-sm font-semibold text-foreground">Nossos valores</p>
+                    </div>
+                    <ul className="text-xs text-muted-foreground space-y-1">
+                      <li>• O Movê é um <strong>projeto social</strong> — todos os mentores são voluntários</li>
+                      <li>• <strong>Respeite o tempo dos mentores</strong> — confirme presença e compareça</li>
+                      <li>• Faltas sem aviso resultam em <strong>penalidades progressivas</strong></li>
+                      <li>• Use a plataforma com <strong>responsabilidade e gratidão</strong></li>
+                    </ul>
+                  </div>
+
+                  {/* Confirm checkbox */}
+                  <div className="flex items-start gap-3 text-left pt-2">
+                    <Checkbox
+                      id="values-understood"
+                      checked={valuesUnderstood}
+                      onCheckedChange={(checked) => setValuesUnderstood(checked === true)}
+                      className="mt-0.5"
+                    />
+                    <label htmlFor="values-understood" className="text-sm text-foreground cursor-pointer leading-snug">
+                      Eu entendi e me comprometo com os valores da comunidade Movê
+                    </label>
+                  </div>
+
+                  <Button
+                    onClick={onPassed}
+                    disabled={!valuesUnderstood}
+                    className="w-full rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg"
+                    size="lg"
+                  >
+                    <Rocket className="w-4 h-4 mr-2" />
+                    Acessar a plataforma
+                  </Button>
                 </>
               ) : (
                 <>
@@ -377,22 +427,22 @@ const OnboardingQuiz = ({ onPassed }: { onPassed: () => void }) => {
                       </p>
                     </div>
                   )}
+
+                  {/* Values reminder */}
+                  <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 text-left mt-6">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Heart className="w-4 h-4 text-primary" />
+                      <p className="text-sm font-semibold text-foreground">Lembre-se dos valores do Movê</p>
+                    </div>
+                    <ul className="text-xs text-muted-foreground space-y-1">
+                      <li>• O Movê é um <strong>projeto social</strong> — todos os mentores são voluntários</li>
+                      <li>• <strong>Respeite o tempo dos mentores</strong> — confirme presença e compareça</li>
+                      <li>• Faltas sem aviso resultam em <strong>penalidades progressivas</strong></li>
+                      <li>• Use a plataforma com <strong>responsabilidade e gratidão</strong></li>
+                    </ul>
+                  </div>
                 </>
               )}
-
-              {/* Values reminder */}
-              <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 text-left mt-6">
-                <div className="flex items-center gap-2 mb-2">
-                  <Heart className="w-4 h-4 text-primary" />
-                  <p className="text-sm font-semibold text-foreground">Lembre-se dos valores do Movê</p>
-                </div>
-                <ul className="text-xs text-muted-foreground space-y-1">
-                  <li>• O Movê é um <strong>projeto social</strong> — todos os mentores são voluntários</li>
-                  <li>• <strong>Respeite o tempo dos mentores</strong> — confirme presença e compareça</li>
-                  <li>• Faltas sem aviso resultam em <strong>penalidades progressivas</strong></li>
-                  <li>• Use a plataforma com <strong>responsabilidade e gratidão</strong></li>
-                </ul>
-              </div>
             </motion.div>
           )}
         </AnimatePresence>
