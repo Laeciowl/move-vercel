@@ -23,6 +23,19 @@ interface Session {
   reconfirmation_confirmed: boolean | null;
 }
 
+interface RawSession {
+  id: string;
+  scheduled_at: string;
+  status: string;
+  confirmed_by_mentor: boolean | null;
+  confirmed_at: string | null;
+  mentor_id: string | null;
+  duration: number | null;
+  reconfirmation_sent: boolean | null;
+  reconfirmation_confirmed: boolean | null;
+  mentors: { name: string } | null;
+}
+
 interface ReviewedSession {
   session_id: string;
   comment: string | null;
@@ -64,7 +77,11 @@ const MenteeSessions = () => {
     ]);
 
     if (!sessionsRes.error && sessionsRes.data) {
-      setSessions(sessionsRes.data as Session[]);
+      const mapped = (sessionsRes.data as unknown as RawSession[]).map((s) => ({
+        ...s,
+        mentor_name: s.mentors?.name || null,
+      }));
+      setSessions(mapped as Session[]);
     }
     if (!reviewsRes.error && reviewsRes.data) {
       const map = new Map<string, ReviewedSession>();
