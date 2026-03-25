@@ -17,6 +17,7 @@ interface Session {
   confirmed_by_mentor: boolean | null;
   confirmed_at: string | null;
   mentor_name: string | null;
+  mentor_photo_url: string | null;
   mentor_id: string | null;
   duration: number | null;
   reconfirmation_sent: boolean | null;
@@ -33,7 +34,7 @@ interface RawSession {
   duration: number | null;
   reconfirmation_sent: boolean | null;
   reconfirmation_confirmed: boolean | null;
-  mentors: { name: string } | null;
+  mentors: { name: string; photo_url: string | null } | null;
 }
 
 interface ReviewedSession {
@@ -66,7 +67,7 @@ const MenteeSessions = () => {
     const [sessionsRes, reviewsRes] = await Promise.all([
       supabase
         .from("mentor_sessions")
-        .select("id, scheduled_at, status, confirmed_by_mentor, confirmed_at, mentor_id, duration, reconfirmation_sent, reconfirmation_confirmed, mentors:mentor_id(name)")
+        .select("id, scheduled_at, status, confirmed_by_mentor, confirmed_at, mentor_id, duration, reconfirmation_sent, reconfirmation_confirmed, mentors:mentor_id(name, photo_url)")
         .eq("user_id", user.id)
         .order("scheduled_at", { ascending: false })
         .limit(20),
@@ -80,6 +81,7 @@ const MenteeSessions = () => {
       const mapped = (sessionsRes.data as unknown as RawSession[]).map((s) => ({
         ...s,
         mentor_name: s.mentors?.name || null,
+        mentor_photo_url: s.mentors?.photo_url || null,
       }));
       setSessions(mapped as Session[]);
     }
@@ -214,10 +216,14 @@ const MenteeSessions = () => {
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 min-w-0">
-            <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
+            <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 overflow-hidden ${
               needsReconfirmation ? "bg-amber-100 dark:bg-amber-900/30" : needsReview ? "bg-primary/15" : "bg-primary/10"
             }`}>
-              <User className="w-4 h-4 text-primary" />
+              {session.mentor_photo_url ? (
+                <img src={session.mentor_photo_url} alt={session.mentor_name || "Mentor"} className="w-full h-full object-cover" />
+              ) : (
+                <User className="w-4 h-4 text-primary" />
+              )}
             </div>
             <div className="min-w-0">
               <p className="text-sm font-medium text-foreground truncate">
@@ -344,8 +350,12 @@ const MenteeSessions = () => {
               {pastUnconfirmed.map((s) => (
                 <div key={s.id} className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 rounded-xl p-4">
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="w-9 h-9 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center shrink-0">
-                      <User className="w-4 h-4 text-amber-600" />
+                    <div className="w-9 h-9 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center shrink-0 overflow-hidden">
+                      {s.mentor_photo_url ? (
+                        <img src={s.mentor_photo_url} alt={s.mentor_name || "Mentor"} className="w-full h-full object-cover" />
+                      ) : (
+                        <User className="w-4 h-4 text-amber-600" />
+                      )}
                     </div>
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-foreground truncate">
