@@ -89,7 +89,7 @@ const MenteeSessions = () => {
       // Open review modal so mentee can indicate WHY it didn't happen
       const session = sessions.find(s => s.id === sessionId);
       if (session) {
-        setReviewModal({ open: true, session, preselect: "nao_aconteceu" });
+        setReviewModal({ open: true, session });
       }
     }
     setConfirmingId(null);
