@@ -69,6 +69,7 @@ const Dashboard = () => {
   const [showUpdateForm, setShowUpdateForm] = useState(false);
   const [showProfileEdit, setShowProfileEdit] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showInterestsOnboarding, setShowInterestsOnboarding] = useState(false);
   const [needsQuiz, setNeedsQuiz] = useState(false); // kept for legacy, quiz gate is now in AppLayout
   const [updating, setUpdating] = useState(false);
   const [updateData, setUpdateData] = useState({
