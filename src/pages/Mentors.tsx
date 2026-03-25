@@ -581,10 +581,18 @@ const Mentors = () => {
                     </div>
                   )}
 
-                  {/* Bio — 2 lines max */}
-                  <p className="text-xs text-muted-foreground text-center mt-2.5 line-clamp-2 leading-relaxed">
-                    {mentor.description}
-                  </p>
+                  {/* Bio — 2 lines max + "ver mais" */}
+                  <div className="text-center mt-2.5">
+                    <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                      {mentor.description}
+                    </p>
+                    <button
+                      onClick={() => openProfileDialog(mentor)}
+                      className="text-xs text-primary font-medium hover:underline mt-1 transition-colors"
+                    >
+                      Ver perfil completo →
+                    </button>
+                  </div>
 
                   {/* Spacer pushes bottom content down */}
                   <div className="flex-1 min-h-2" />
