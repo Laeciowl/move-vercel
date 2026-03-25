@@ -1,0 +1,1 @@
+UPDATE public.mentor_sessions SET reconfirmation_sent = false, reconfirmation_sent_at = NULL WHERE id = '9910d8cc-7dd3-4f63-8f94-4531f6b5cb32'
