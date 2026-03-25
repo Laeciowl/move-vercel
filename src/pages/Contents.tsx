@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useVolunteerCheck } from "@/hooks/useVolunteerCheck";
+import { useMentorCheck } from "@/hooks/useMentorCheck";
 import AppLayout from "@/components/AppLayout";
 import ContentLibrary from "@/components/ContentLibrary";
 import ContentSubmissionModal from "@/components/ContentSubmissionModal";
@@ -11,6 +12,7 @@ import { Button } from "@/components/ui/button";
 const Contents = () => {
   const { user, loading: authLoading } = useAuth();
   const { isVolunteer } = useVolunteerCheck();
+  const { isMentor } = useMentorCheck();
   const navigate = useNavigate();
   const [showSubmitModal, setShowSubmitModal] = useState(false);
 
@@ -39,7 +41,7 @@ const Contents = () => {
             <ArrowLeft className="w-4 h-4" />
             Voltar ao Dashboard
           </button>
-          {isVolunteer && (
+          {(isVolunteer || isMentor) && (
             <Button
               onClick={() => setShowSubmitModal(true)}
               size="sm"
