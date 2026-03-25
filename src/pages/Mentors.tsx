@@ -768,30 +768,6 @@ const Mentors = () => {
                   </p>
                 </div>
 
-                {/* Stats + LinkedIn */}
-                <div className="mb-4 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                  {selectedMentorForProfile.sessions_completed_count > 0 && (
-                    <span className="flex items-center gap-1.5">
-                      <Award className="w-4 h-4 text-green-600" />
-                      {selectedMentorForProfile.sessions_completed_count} sessões realizadas
-                    </span>
-                  )}
-                  <span className="flex items-center gap-1.5">
-                    <Clock className="w-4 h-4" />
-                    {selectedMentorForProfile.min_advance_hours}h de antecedência
-                  </span>
-                  {selectedMentorForProfile.linkedin_url && (
-                    <a
-                      href={selectedMentorForProfile.linkedin_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 text-[#0A66C2] hover:underline"
-                    >
-                      <Linkedin className="w-4 h-4" />
-                      LinkedIn
-                    </a>
-                  )}
-                </div>
 
                 {/* Aviso de antecedência */}
                 <div className="flex items-start gap-2 p-3 mb-4 bg-muted/50 rounded-lg border border-border/50">
