@@ -29,6 +29,7 @@ import SavedContents from "./pages/SavedContents";
 import DevPlan from "./pages/DevPlan";
 import Nps from "./pages/Nps";
 import Interests from "./pages/Interests";
+import MinhasMentorias from "./pages/MinhasMentorias";
 import NotFound from "./pages/NotFound";
 import OnboardingTour from "./components/OnboardingTour";
 import GoogleCalendarCallbackHandler from "./components/GoogleCalendarCallbackHandler";

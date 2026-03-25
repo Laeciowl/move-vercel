@@ -256,10 +256,10 @@ const MenteeSessions = () => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate("/mentores")}
+            onClick={() => navigate("/minhas-mentorias")}
             className="text-primary hover:bg-primary/10 gap-1 text-xs"
           >
-            Ver mentores <ChevronRight className="w-3.5 h-3.5" />
+            Ver todas <ChevronRight className="w-3.5 h-3.5" />
           </Button>
         </div>
 
