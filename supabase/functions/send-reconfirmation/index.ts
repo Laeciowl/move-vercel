@@ -29,12 +29,12 @@ function generateReconfirmationHtml(
 ): string {
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #fffbf7;">
-      <h1 style="color: ${MOVE_COLORS.primary}; text-align: center;">⏰ Confirme presença: Mentoria em 3 horas</h1>
+      <h1 style="color: ${MOVE_COLORS.primary}; text-align: center;">⏰ Confirme presença: Mentoria em 6 horas</h1>
       <p style="color: ${MOVE_COLORS.text}; font-size: 16px; line-height: 1.6;">
         Olá, ${menteeName}!
       </p>
       <p style="color: ${MOVE_COLORS.text}; font-size: 16px; line-height: 1.6;">
-        Sua mentoria com <strong>${mentorName}</strong> é <strong>HOJE às ${date}</strong> (em 3 horas).
+        Sua mentoria com <strong>${mentorName}</strong> é <strong>HOJE às ${date}</strong> (em 6 horas).
       </p>
       ${objective ? `
       <div style="background-color: ${MOVE_COLORS.accent}; padding: 15px; border-radius: 12px; margin: 15px 0; border-left: 4px solid ${MOVE_COLORS.primary};">
@@ -58,7 +58,7 @@ function generateReconfirmationHtml(
       </div>
       <div style="background-color: #fef2f2; padding: 15px; border-radius: 12px; margin: 20px 0; border-left: 4px solid #dc2626;">
         <p style="color: #dc2626; font-size: 14px; margin: 0; font-weight: bold;">
-          ⚠️ Importante: Se não confirmar até ${deadline}, a sessão será cancelada automaticamente e o mentor será liberado.
+          ⚠️ Importante: Se não confirmar até ${deadline} (3 horas antes da mentoria), a sessão será cancelada automaticamente e o mentor será liberado.
         </p>
       </div>
       <p style="color: ${MOVE_COLORS.text}; font-size: 14px; line-height: 1.6; text-align: center;">
@@ -116,9 +116,9 @@ Deno.serve(async (req) => {
     const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     const now = new Date();
 
-    // Find sessions 2.5-3.5h from now that haven't received reconfirmation yet
-    const in2h30 = new Date(now.getTime() + 2.5 * 60 * 60 * 1000).toISOString();
-    const in3h30 = new Date(now.getTime() + 3.5 * 60 * 60 * 1000).toISOString();
+    // Find sessions 5.5-6.5h from now that haven't received reconfirmation yet
+    const in5h30 = new Date(now.getTime() + 5.5 * 60 * 60 * 1000).toISOString();
+    const in6h30 = new Date(now.getTime() + 6.5 * 60 * 60 * 1000).toISOString();
 
     const { data: sessions } = await adminClient
       .from("mentor_sessions")
@@ -126,8 +126,8 @@ Deno.serve(async (req) => {
       .eq("status", "scheduled")
       .eq("confirmed_by_mentor", true)
       .eq("reconfirmation_sent", false)
-      .gte("scheduled_at", in2h30)
-      .lte("scheduled_at", in3h30);
+      .gte("scheduled_at", in5h30)
+      .lte("scheduled_at", in6h30);
 
     let sentCount = 0;
 
@@ -140,8 +140,8 @@ Deno.serve(async (req) => {
           timeZone: 'America/Sao_Paulo'
         });
 
-        // Deadline is 2h before session
-        const deadline = new Date(scheduledAt.getTime() - 2 * 60 * 60 * 1000);
+        // Deadline is 3h before session
+        const deadline = new Date(scheduledAt.getTime() - 3 * 60 * 60 * 1000);
         const deadlineStr = deadline.toLocaleTimeString('pt-BR', {
           hour: '2-digit', minute: '2-digit',
           timeZone: 'America/Sao_Paulo'
@@ -169,7 +169,7 @@ Deno.serve(async (req) => {
 
         const ok = await sendEmail(
           menteeEmail,
-          "⏰ Confirme presença: Mentoria em 3 horas",
+          "⏰ Confirme presença: Mentoria em 6 horas",
           generateReconfirmationHtml(
             menteeName,
             mentorName,

@@ -86,9 +86,9 @@ Deno.serve(async (req) => {
     // Find sessions where:
     // - Reconfirmation was sent
     // - No reconfirmation response received (reconfirmation_confirmed IS NULL)
-    // - Session is 1.5-2.5h from now (deadline zone: 2h before session)
-    const in1h30 = new Date(now.getTime() + 1.5 * 60 * 60 * 1000).toISOString();
+    // - Session is 2.5-3.5h from now (deadline zone: 3h before session)
     const in2h30 = new Date(now.getTime() + 2.5 * 60 * 60 * 1000).toISOString();
+    const in3h30 = new Date(now.getTime() + 3.5 * 60 * 60 * 1000).toISOString();
 
     const { data: sessions } = await adminClient
       .from("mentor_sessions")
@@ -97,8 +97,8 @@ Deno.serve(async (req) => {
       .eq("confirmed_by_mentor", true)
       .eq("reconfirmation_sent", true)
       .is("reconfirmation_confirmed", null)
-      .gte("scheduled_at", in1h30)
-      .lte("scheduled_at", in2h30);
+      .gte("scheduled_at", in2h30)
+      .lte("scheduled_at", in3h30);
 
     let cancelledCount = 0;
 
@@ -129,7 +129,7 @@ Deno.serve(async (req) => {
           .from("mentor_sessions")
           .update({
             status: "cancelled",
-            mentor_notes: "Cancelada automaticamente: mentorado não confirmou presença",
+            mentor_notes: "Cancelada automaticamente: mentorado não confirmou presença (deadline 3h antes)",
           })
           .eq("id", session.id);
 
@@ -143,7 +143,7 @@ Deno.serve(async (req) => {
               mentee_user_id: session.user_id,
               status: "no_show_mentorado",
               mentee_avisou: false,
-              mentor_observations: "Cancelamento automático: não confirmou presença 2h antes",
+              mentor_observations: "Cancelamento automático: não confirmou presença 3h antes",
               reported_by: session.user_id, // system report
             });
         } catch (e) {
