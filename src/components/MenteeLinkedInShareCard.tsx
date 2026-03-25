@@ -148,6 +148,7 @@ const MenteeLinkedInShareCard = ({ compact = false }: MenteeLinkedInShareCardPro
                   border: "1px solid rgba(255,255,255,0.2)",
                   minHeight: "120px",
                   display: "flex",
+                  flexDirection: "column",
                   alignItems: "center",
                   justifyContent: "center",
                 }}>
