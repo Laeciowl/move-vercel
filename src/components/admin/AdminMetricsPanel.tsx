@@ -201,19 +201,31 @@ const AdminMetricsPanel = () => {
           .eq("status", "completed")
           .gte("completed_at", lastMonthStart)
           .lte("completed_at", lastMonthEnd),
-        supabase.from("profiles").select("id", { count: "exact", head: true }).eq("onboarding_quiz_passed", true),
-        supabase.from("profiles").select("id", { count: "exact", head: true }).eq("onboarding_quiz_passed", false),
+        supabase.from("profiles").select("user_id, onboarding_quiz_passed, first_mentorship_booked"),
+        supabase.from("mentor_sessions").select("user_id").eq("status", "completed"),
       ]);
 
       const totalUsers = profilesRes.count || 0;
       const totalMentors = mentorsRes.count || 0;
 
+      // Determine active vs pending mentees
+      const allProfiles = quizPassedRes.data || [];
+      const completedUserIds = new Set((quizNotPassedRes.data || []).map((s: any) => s.user_id));
+      
+      let activeCount = 0;
+      let pendingCount = 0;
+      allProfiles.forEach((p: any) => {
+        const isActive = p.onboarding_quiz_passed || p.first_mentorship_booked || completedUserIds.has(p.user_id);
+        if (isActive) activeCount++;
+        else pendingCount++;
+      });
+
       setCoreMetrics({
         totalUsers,
         totalMentors,
         totalMentees: totalUsers - totalMentors,
-        menteesQuizPassed: quizPassedRes.count || 0,
-        menteesQuizNotPassed: quizNotPassedRes.count || 0,
+        menteesQuizPassed: activeCount,
+        menteesQuizNotPassed: pendingCount,
         completedSessions: (completedRes.data as number) ?? 0,
         completedThisMonth: thisMonthRes.count ?? 0,
         completedLastMonth: lastMonthRes.count ?? 0,
@@ -623,7 +635,7 @@ const AdminMetricsPanel = () => {
               <div className="flex items-center gap-2 text-xs">
                 <span className="inline-flex items-center gap-1 text-emerald-600">
                   <CheckCircle className="w-3 h-3" />
-                  {coreMetrics.menteesQuizPassed} ativos (quiz aprovado)
+                  {coreMetrics.menteesQuizPassed} ativos (quiz aprovado ou com mentorias)
                 </span>
               </div>
               <div className="flex items-center gap-2 text-xs">
