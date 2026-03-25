@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Calendar, Clock, User, Loader2, GraduationCap, MessageSquare, Award, Linkedin, Info, Star, Tag, Briefcase } from "lucide-react";
+import MentorCardFeedbackPreview from "@/components/MentorCardFeedbackPreview";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMentorCheck } from "@/hooks/useMentorCheck";
@@ -549,6 +550,13 @@ const Mentors = () => {
                       Ver perfil completo →
                     </button>
                   </div>
+
+                  {/* Feedback preview */}
+                  <MentorCardFeedbackPreview
+                    mentorId={mentor.id}
+                    totalReviews={mentor.totalReviews}
+                    onViewAll={() => openReviewsDialog(mentor)}
+                  />
 
                   {/* Spacer pushes bottom content down */}
                   <div className="flex-1 min-h-2" />
