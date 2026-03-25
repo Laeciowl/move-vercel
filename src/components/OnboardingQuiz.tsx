@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { PlayCircle, CheckCircle2, XCircle, Loader2, Clock, Heart, AlertTriangle } from "lucide-react";
+import { PlayCircle, CheckCircle2, XCircle, Loader2, Clock, Heart, AlertTriangle, Rocket } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
