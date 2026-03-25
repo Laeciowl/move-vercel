@@ -28,7 +28,8 @@ type EmailType =
   | "registration_confirmation"
   | "volunteer_approved"
   | "volunteer_application_received"
-  | "new_user_admin_notification";
+  | "new_user_admin_notification"
+  | "mentee_reconfirmed";
 
 interface NotificationEmailRequest {
   to: string;
