@@ -43,6 +43,8 @@ interface CoreMetrics {
   totalUsers: number;
   totalMentors: number;
   totalMentees: number;
+  menteesQuizPassed: number;
+  menteesQuizNotPassed: number;
   completedSessions: number;
   completedThisMonth: number;
   completedLastMonth: number;
@@ -179,6 +181,7 @@ const AdminMetricsPanel = () => {
         profilesRes, mentorsRes, completedRes, livesRes, scheduledRes,
         activationRes, confirmationRes, completionRes, retentionRes,
         thisMonthRes, lastMonthRes,
+        quizPassedRes, quizNotPassedRes,
       ] = await Promise.all([
         supabase.from("profiles").select("id", { count: "exact", head: true }),
         supabase.from("mentors").select("id", { count: "exact", head: true }).eq("status", "approved"),
@@ -189,7 +192,6 @@ const AdminMetricsPanel = () => {
         supabase.rpc("get_confirmation_rate"),
         supabase.rpc("get_completion_rate"),
         supabase.rpc("get_retention_rate"),
-        // FIX: use status='completed' and completed_at
         supabase.from("mentor_sessions")
           .select("id", { count: "exact", head: true })
           .eq("status", "completed")
@@ -199,6 +201,8 @@ const AdminMetricsPanel = () => {
           .eq("status", "completed")
           .gte("completed_at", lastMonthStart)
           .lte("completed_at", lastMonthEnd),
+        supabase.from("profiles").select("id", { count: "exact", head: true }).eq("onboarding_quiz_passed", true),
+        supabase.from("profiles").select("id", { count: "exact", head: true }).eq("onboarding_quiz_passed", false),
       ]);
 
       const totalUsers = profilesRes.count || 0;
@@ -208,6 +212,8 @@ const AdminMetricsPanel = () => {
         totalUsers,
         totalMentors,
         totalMentees: totalUsers - totalMentors,
+        menteesQuizPassed: quizPassedRes.count || 0,
+        menteesQuizNotPassed: quizNotPassedRes.count || 0,
         completedSessions: (completedRes.data as number) ?? 0,
         completedThisMonth: thisMonthRes.count ?? 0,
         completedLastMonth: lastMonthRes.count ?? 0,
@@ -612,6 +618,21 @@ const AdminMetricsPanel = () => {
             <p className="text-sm text-muted-foreground mt-1">
               {coreMetrics.totalMentors} mentores · {coreMetrics.totalMentees} mentorados
             </p>
+            <div className="mt-2 pt-2 border-t border-border/30 space-y-1">
+              <p className="text-xs font-medium text-foreground">Mentorados por etapa:</p>
+              <div className="flex items-center gap-2 text-xs">
+                <span className="inline-flex items-center gap-1 text-emerald-600">
+                  <CheckCircle className="w-3 h-3" />
+                  {coreMetrics.menteesQuizPassed} ativos (quiz aprovado)
+                </span>
+              </div>
+              <div className="flex items-center gap-2 text-xs">
+                <span className="inline-flex items-center gap-1 text-amber-600">
+                  <Clock className="w-3 h-3" />
+                  {coreMetrics.menteesQuizNotPassed} pendentes (não fizeram/passaram no quiz)
+                </span>
+              </div>
+            </div>
             {alerts && Number(alerts.mentor_to_mentee_ratio) > 0 && (
               <p className="text-xs text-muted-foreground mt-1">
                 Proporção: 1 mentor para cada {alerts.mentor_to_mentee_ratio} usuários
