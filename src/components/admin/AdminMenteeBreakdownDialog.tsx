@@ -20,6 +20,7 @@ interface MenteeRow {
   first_mentorship_booked: boolean;
   first_session_date: string | null;
   total_sessions: number;
+  daysToFirst: number | null;
   status: "ativo" | "pendente";
 }
 
@@ -74,6 +75,13 @@ const AdminMenteeBreakdownDialog = ({ open, onOpenChange, activeCount, pendingCo
       const rows: MenteeRow[] = profiles.map((p: any) => {
         const sessionData = userSessionMap.get(p.user_id);
         const isActive = p.onboarding_quiz_passed || p.first_mentorship_booked || (sessionData?.hasAny ?? false);
+        const firstDate = sessionData?.firstDate ?? null;
+        let daysToFirst: number | null = null;
+        if (firstDate) {
+          const signupMs = new Date(p.created_at).getTime();
+          const sessionMs = new Date(firstDate).getTime();
+          daysToFirst = Math.max(0, Math.round((sessionMs - signupMs) / (1000 * 60 * 60 * 24)));
+        }
         return {
           user_id: p.user_id,
           name: p.name,
@@ -81,8 +89,9 @@ const AdminMenteeBreakdownDialog = ({ open, onOpenChange, activeCount, pendingCo
           created_at: p.created_at,
           onboarding_quiz_passed: p.onboarding_quiz_passed,
           first_mentorship_booked: p.first_mentorship_booked,
-          first_session_date: sessionData?.firstDate ?? null,
+          first_session_date: firstDate,
           total_sessions: sessionData?.completedCount ?? 0,
+          daysToFirst,
           status: isActive ? "ativo" : "pendente",
         };
       });
@@ -174,12 +183,15 @@ const AdminMenteeBreakdownDialog = ({ open, onOpenChange, activeCount, pendingCo
                         </Badge>
                       )}
                     </div>
-                    <div className="flex items-center gap-3 mt-0.5 text-[11px] text-muted-foreground">
+                    <div className="flex items-center gap-3 mt-0.5 text-[11px] text-muted-foreground flex-wrap">
                       <span>Entrou: {format(new Date(m.created_at), "dd/MM/yyyy", { locale: ptBR })}</span>
                       {m.first_session_date ? (
                         <span>1ª mentoria: {format(new Date(m.first_session_date), "dd/MM/yyyy", { locale: ptBR })}</span>
                       ) : (
                         <span className="italic">Sem mentoria realizada</span>
+                      )}
+                      {m.daysToFirst !== null && (
+                        <span className="font-medium text-primary">{m.daysToFirst}d até 1ª</span>
                       )}
                       {m.total_sessions > 0 && (
                         <span className="font-medium text-foreground">{m.total_sessions} sessões</span>
