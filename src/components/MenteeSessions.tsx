@@ -52,8 +52,8 @@ const MenteeSessions = () => {
     if (!user) return;
     const [sessionsRes, reviewsRes] = await Promise.all([
       supabase
-        .from("mentor_sessions_with_names")
-        .select("id, scheduled_at, status, confirmed_by_mentor, confirmed_at, mentor_name, mentor_id, duration")
+        .from("mentor_sessions")
+        .select("id, scheduled_at, status, confirmed_by_mentor, confirmed_at, mentor_id, duration, reconfirmation_sent, reconfirmation_confirmed, mentors:mentor_id(name)")
         .eq("user_id", user.id)
         .order("scheduled_at", { ascending: false })
         .limit(20),
