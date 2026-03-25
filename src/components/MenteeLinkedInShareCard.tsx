@@ -75,7 +75,7 @@ const MenteeLinkedInShareCard = ({ compact = false }: MenteeLinkedInShareCardPro
   const handleOpenLinkedIn = async () => {
     // Download first so user has the image
     await handleDownloadCard();
-    const url = "https://movesocial.lovable.app";
+    const url = "https://movecarreiras.org";
     setTimeout(() => {
       window.open(
         `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
