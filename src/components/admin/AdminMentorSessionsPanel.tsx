@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Calendar, Search, Filter, Loader2, User, Clock, CheckCircle, XCircle } from "lucide-react";
+import { Calendar, Search, Filter, Loader2, User, Clock, CheckCircle, XCircle, AlertTriangle, UserX, UserCheck } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format, isPast } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -24,8 +23,17 @@ interface SessionRow {
   mentor_notes: string | null;
 }
 
+interface AttendanceRecord {
+  session_id: string;
+  status: string;
+  mentee_avisou: boolean | null;
+  mentor_observations: string | null;
+  reported_at: string | null;
+}
+
 const AdminMentorSessionsPanel = () => {
   const [sessions, setSessions] = useState<SessionRow[]>([]);
+  const [attendanceMap, setAttendanceMap] = useState<Record<string, AttendanceRecord>>({});
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -36,30 +44,58 @@ const AdminMentorSessionsPanel = () => {
 
   const fetchSessions = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("mentor_sessions_with_names")
-      .select("*")
-      .order("scheduled_at", { ascending: false })
-      .limit(1000);
+    const [sessionsRes, attendanceRes] = await Promise.all([
+      supabase
+        .from("mentor_sessions_with_names")
+        .select("*")
+        .order("scheduled_at", { ascending: false })
+        .limit(1000),
+      supabase
+        .from("mentee_attendance")
+        .select("session_id, status, mentee_avisou, mentor_observations, reported_at")
+        .limit(1000),
+    ]);
 
-    if (!error && data) {
-      setSessions(data as unknown as SessionRow[]);
+    if (!sessionsRes.error && sessionsRes.data) {
+      setSessions(sessionsRes.data as unknown as SessionRow[]);
     }
+
+    if (!attendanceRes.error && attendanceRes.data) {
+      const map: Record<string, AttendanceRecord> = {};
+      for (const a of attendanceRes.data) {
+        map[a.session_id] = a as AttendanceRecord;
+      }
+      setAttendanceMap(map);
+    }
+
     setLoading(false);
   };
 
   const getSessionStatus = (session: SessionRow) => {
     if (session.status === "cancelled") return "cancelled";
     if (session.status === "completed") return "completed";
-    // scheduled sessions: check if future or past (awaiting confirmation)
     const endTime = new Date(session.scheduled_at);
     endTime.setMinutes(endTime.getMinutes() + (session.duration || 30));
     if (isPast(endTime)) return "past_awaiting";
     return "upcoming";
   };
 
+  // Derive a more detailed status combining session + attendance
+  const getDetailedStatus = (session: SessionRow) => {
+    const attendance = attendanceMap[session.id];
+    if (attendance) {
+      if (attendance.status === "no_show_mentorado") return "no_show_mentorado";
+      if (attendance.status === "no_show_mentor") return "no_show_mentor";
+      if (attendance.status === "reagendada") return "reagendada";
+      if (attendance.status === "realizada") return "realizada";
+    }
+    return getSessionStatus(session);
+  };
+
   const filteredSessions = sessions.filter((s) => {
-    const status = getSessionStatus(s);
+    const status = statusFilter === "no_show_mentorado" || statusFilter === "no_show_mentor"
+      ? getDetailedStatus(s)
+      : getSessionStatus(s);
     if (statusFilter !== "all" && status !== statusFilter) return false;
     if (search) {
       const q = search.toLowerCase();
@@ -70,6 +106,52 @@ const AdminMentorSessionsPanel = () => {
     }
     return true;
   });
+
+  const noShowMentorado = sessions.filter(s => getDetailedStatus(s) === "no_show_mentorado").length;
+  const noShowMentor = sessions.filter(s => getDetailedStatus(s) === "no_show_mentor").length;
+
+  const attendanceBadge = (session: SessionRow) => {
+    const attendance = attendanceMap[session.id];
+    if (!attendance) return null;
+
+    switch (attendance.status) {
+      case "no_show_mentorado":
+        return (
+          <Badge className="bg-red-600/10 text-red-700 border-red-600/20 text-xs font-semibold gap-1">
+            <UserX className="w-3 h-3" />
+            Mentorado faltou
+            {attendance.mentee_avisou === false && (
+              <span className="text-red-800 font-bold ml-1">• SEM AVISO</span>
+            )}
+            {attendance.mentee_avisou === true && (
+              <span className="text-amber-600 ml-1">• avisou</span>
+            )}
+          </Badge>
+        );
+      case "no_show_mentor":
+        return (
+          <Badge className="bg-orange-600/10 text-orange-700 border-orange-600/20 text-xs font-semibold gap-1">
+            <AlertTriangle className="w-3 h-3" />
+            Mentor faltou
+          </Badge>
+        );
+      case "reagendada":
+        return (
+          <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20 text-xs gap-1">
+            🔄 Reagendada
+          </Badge>
+        );
+      case "realizada":
+        return (
+          <Badge className="bg-green-500/10 text-green-600 border-green-500/20 text-xs gap-1">
+            <UserCheck className="w-3 h-3" />
+            Confirmada pelo mentor
+          </Badge>
+        );
+      default:
+        return null;
+    }
+  };
 
   const statusBadge = (status: string) => {
     switch (status) {
@@ -133,6 +215,40 @@ const AdminMentorSessionsPanel = () => {
         </div>
       </div>
 
+      {/* No-show alert summary */}
+      {(noShowMentorado > 0 || noShowMentor > 0) && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {noShowMentorado > 0 && (
+            <button
+              onClick={() => setStatusFilter("no_show_mentorado")}
+              className="flex items-center gap-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-3 text-left hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+            >
+              <div className="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center">
+                <UserX className="w-5 h-5 text-red-600" />
+              </div>
+              <div>
+                <div className="text-lg font-bold text-red-700 dark:text-red-400">{noShowMentorado}</div>
+                <div className="text-xs text-red-600 dark:text-red-400">Mentorados faltaram</div>
+              </div>
+            </button>
+          )}
+          {noShowMentor > 0 && (
+            <button
+              onClick={() => setStatusFilter("no_show_mentor")}
+              className="flex items-center gap-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-xl p-3 text-left hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors"
+            >
+              <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                <AlertTriangle className="w-5 h-5 text-orange-600" />
+              </div>
+              <div>
+                <div className="text-lg font-bold text-orange-700 dark:text-orange-400">{noShowMentor}</div>
+                <div className="text-xs text-orange-600 dark:text-orange-400">Mentores faltaram</div>
+              </div>
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
@@ -145,7 +261,7 @@ const AdminMentorSessionsPanel = () => {
           />
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-full sm:w-40 rounded-xl">
+          <SelectTrigger className="w-full sm:w-48 rounded-xl">
             <Filter className="w-4 h-4 mr-2" />
             <SelectValue />
           </SelectTrigger>
@@ -155,6 +271,8 @@ const AdminMentorSessionsPanel = () => {
             <SelectItem value="upcoming">Agendadas</SelectItem>
             <SelectItem value="past_awaiting">Aguardando check</SelectItem>
             <SelectItem value="cancelled">Canceladas</SelectItem>
+            <SelectItem value="no_show_mentorado">❌ Mentorado faltou</SelectItem>
+            <SelectItem value="no_show_mentor">⚠️ Mentor faltou</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -166,15 +284,37 @@ const AdminMentorSessionsPanel = () => {
         ) : (
           filteredSessions.map((session) => {
             const status = getSessionStatus(session);
+            const attendance = attendanceMap[session.id];
+            const detailedStatus = getDetailedStatus(session);
+            const isNoShow = detailedStatus === "no_show_mentorado" || detailedStatus === "no_show_mentor";
+
             return (
               <details
                 key={session.id}
-                className="bg-muted/20 rounded-xl border border-border/30 overflow-hidden group"
+                className={`rounded-xl border overflow-hidden group ${
+                  isNoShow
+                    ? detailedStatus === "no_show_mentorado"
+                      ? "bg-red-50/50 dark:bg-red-900/10 border-red-200 dark:border-red-800/50"
+                      : "bg-orange-50/50 dark:bg-orange-900/10 border-orange-200 dark:border-orange-800/50"
+                    : "bg-muted/20 border-border/30"
+                }`}
               >
                 <summary className="p-4 cursor-pointer list-none flex items-center justify-between flex-wrap gap-2">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <User className="w-4 h-4 text-primary" />
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                      isNoShow
+                        ? detailedStatus === "no_show_mentorado"
+                          ? "bg-red-500/10"
+                          : "bg-orange-500/10"
+                        : "bg-primary/10"
+                    }`}>
+                      {detailedStatus === "no_show_mentorado" ? (
+                        <UserX className="w-4 h-4 text-red-600" />
+                      ) : detailedStatus === "no_show_mentor" ? (
+                        <AlertTriangle className="w-4 h-4 text-orange-600" />
+                      ) : (
+                        <User className="w-4 h-4 text-primary" />
+                      )}
                     </div>
                     <div>
                       <p className="text-sm font-medium text-foreground">
@@ -186,16 +326,64 @@ const AdminMentorSessionsPanel = () => {
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    {session.confirmed_by_mentor ? (
-                      <Badge className="bg-green-500/10 text-green-600 border-green-500/20 text-xs">✅ Aceita</Badge>
-                    ) : (
-                      <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20 text-xs">⏳ Pendente</Badge>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {/* Show attendance badge prominently */}
+                    {attendanceBadge(session)}
+                    {/* Show confirmation status */}
+                    {!attendance && (
+                      session.confirmed_by_mentor ? (
+                        <Badge className="bg-green-500/10 text-green-600 border-green-500/20 text-xs">✅ Aceita</Badge>
+                      ) : (
+                        <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20 text-xs">⏳ Pendente</Badge>
+                      )
                     )}
                     {statusBadge(status)}
                   </div>
                 </summary>
                 <div className="px-4 pb-4 space-y-2 border-t border-border/20 pt-3">
+                  {/* Attendance details - prominent section */}
+                  {attendance && (
+                    <div className={`rounded-lg p-3 space-y-1.5 ${
+                      attendance.status === "no_show_mentorado"
+                        ? "bg-red-100/80 dark:bg-red-900/30 border border-red-200 dark:border-red-800"
+                        : attendance.status === "no_show_mentor"
+                        ? "bg-orange-100/80 dark:bg-orange-900/30 border border-orange-200 dark:border-orange-800"
+                        : "bg-green-100/80 dark:bg-green-900/30 border border-green-200 dark:border-green-800"
+                    }`}>
+                      <p className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                        📋 Relatório de comparecimento
+                      </p>
+                      <p className="text-sm text-foreground">
+                        <strong>Status:</strong>{" "}
+                        {attendance.status === "no_show_mentorado" && "❌ Mentorado não apareceu"}
+                        {attendance.status === "no_show_mentor" && "⚠️ Mentor não compareceu"}
+                        {attendance.status === "realizada" && "✅ Sessão realizada"}
+                        {attendance.status === "reagendada" && "🔄 Sessão reagendada"}
+                      </p>
+                      {attendance.status === "no_show_mentorado" && (
+                        <p className="text-sm text-foreground">
+                          <strong>Avisou com antecedência?</strong>{" "}
+                          {attendance.mentee_avisou === true
+                            ? "🟡 Sim, avisou"
+                            : attendance.mentee_avisou === false
+                            ? "🔴 Não, faltou sem avisar (punição aplicada)"
+                            : "Não informado"
+                          }
+                        </p>
+                      )}
+                      {attendance.mentor_observations && (
+                        <p className="text-sm text-foreground">
+                          <strong>Observações do mentor:</strong> "{attendance.mentor_observations}"
+                        </p>
+                      )}
+                      {attendance.reported_at && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Reportado em {format(new Date(attendance.reported_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
                   {session.mentee_objective && (
                     <p className="text-sm text-muted-foreground">
                       🎯 <strong>Objetivo:</strong> {session.mentee_objective}
@@ -216,9 +404,11 @@ const AdminMentorSessionsPanel = () => {
                       📋 <strong>Notas do mentor:</strong> {session.mentor_notes}
                     </p>
                   )}
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <span>Confirmado: {session.confirmed_by_mentor ? "✅ Sim" : "⏳ Pendente"}</span>
-                  </div>
+                  {!attendance && (
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <span>Confirmado: {session.confirmed_by_mentor ? "✅ Sim" : "⏳ Pendente"}</span>
+                    </div>
+                  )}
                 </div>
               </details>
             );
