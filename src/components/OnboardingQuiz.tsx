@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import logoMove from "@/assets/logo-move.png";
+import MenteeLinkedInShareCard from "@/components/MenteeLinkedInShareCard";
 
 const toEmbedUrl = (url: string): string => {
   if (!url) return "";
@@ -374,6 +375,9 @@ const OnboardingQuiz = ({ onPassed }: { onPassed: () => void }) => {
                       <li>• Use a plataforma com <strong>responsabilidade e gratidão</strong></li>
                     </ul>
                   </div>
+
+                  {/* LinkedIn share card */}
+                  <MenteeLinkedInShareCard />
 
                   {/* Confirm checkbox */}
                   <div className="flex items-start gap-3 text-left pt-2">
