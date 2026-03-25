@@ -34,11 +34,10 @@ const ratingEmojis = [
   { emoji: "😍", label: "Excelente", value: 5 },
 ];
 
-const attendanceOptions = [
-  { value: "sim", label: "Sim, aconteceu normalmente" },
-  { value: "eu_nao_apareci", label: "Não, EU não apareci" },
-  { value: "mentor_nao_apareceu", label: "Não, o MENTOR não apareceu" },
-  { value: "cancelamos_reagendar", label: "Não, cancelamos e vamos reagendar" },
+const naoAconteceuOptions = [
+  { value: "eu_nao_apareci", label: "Eu não apareci" },
+  { value: "mentor_nao_apareceu", label: "O mentor não apareceu" },
+  { value: "cancelamos_reagendar", label: "Cancelamos e vamos reagendar" },
 ];
 
 const SessionReviewModal = ({
@@ -51,39 +50,30 @@ const SessionReviewModal = ({
   onReviewSubmitted,
   initialAttendance,
 }: SessionReviewModalProps) => {
+  const [step, setStep] = useState<"pergunta" | "avaliar" | "nao_aconteceu">(initialAttendance ? "nao_aconteceu" : "pergunta");
   const [rating, setRating] = useState<number | null>(null);
   const [comment, setComment] = useState("");
   const [reviewPublico, setReviewPublico] = useState(true);
-  const [mentoriaAconteceu, setMentoriaAconteceu] = useState<string | null>(initialAttendance || null);
-  const [motivoNaoAconteceu, setMotivoNaoAconteceu] = useState("");
+  const [motivoNaoAconteceu, setMotivoNaoAconteceu] = useState<string | null>(null);
+  const [detalhesMotivo, setDetalhesMotivo] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const showMotivoField = mentoriaAconteceu === "mentor_nao_apareceu";
-  const mentoriaRealizada = mentoriaAconteceu === "sim";
-  
-  // Rating is required only if mentoria happened
-  const isValid = mentoriaAconteceu !== null && (mentoriaRealizada ? rating !== null : true);
+  const isReviewValid = rating !== null;
+  const isNaoAconteceuValid = motivoNaoAconteceu !== null;
 
-  const handleSubmit = async () => {
-    if (!isValid) {
-      toast.error("Por favor, preencha todos os campos obrigatórios");
-      return;
-    }
-
+  const handleSubmitReview = async () => {
+    if (!isReviewValid) return;
     setSubmitting(true);
-
-    // Use rating 1 for sessions that didn't happen (DB requires 1-5, won't count in public averages)
-    const finalRating = mentoriaRealizada ? rating! : 1;
 
     const { error } = await supabase.from("session_reviews").insert({
       session_id: sessionId,
       mentor_id: mentorId,
       user_id: userId,
-      rating: finalRating,
+      rating: rating!,
       comment: comment.trim() || null,
       review_publico: comment.trim() ? reviewPublico : false,
-      mentoria_aconteceu: mentoriaAconteceu,
-      motivo_nao_aconteceu: showMotivoField && motivoNaoAconteceu.trim() ? motivoNaoAconteceu.trim() : null,
+      mentoria_aconteceu: "sim",
+      motivo_nao_aconteceu: null,
     } as any);
 
     if (error) {
@@ -93,10 +83,39 @@ const SessionReviewModal = ({
         toast.error("Erro ao enviar avaliação: " + error.message);
       }
     } else {
+      toast.success("Obrigado pela sua avaliação! 💜");
+      onOpenChange(false);
+      resetForm();
+      onReviewSubmitted?.();
+    }
+    setSubmitting(false);
+  };
+
+  const handleSubmitNaoAconteceu = async () => {
+    if (!isNaoAconteceuValid) return;
+    setSubmitting(true);
+
+    // Update session to cancelled with the reason
+    const mentorNotes = motivoNaoAconteceu === "eu_nao_apareci"
+      ? "Não realizada: mentorado não apareceu"
+      : motivoNaoAconteceu === "mentor_nao_apareceu"
+      ? "Não realizada: mentor não apareceu"
+      : "Cancelada: vão reagendar";
+
+    const { error } = await supabase
+      .from("mentor_sessions")
+      .update({
+        status: "cancelled",
+        mentor_notes: mentorNotes + (detalhesMotivo.trim() ? ` — ${detalhesMotivo.trim()}` : ""),
+      })
+      .eq("id", sessionId);
+
+    if (error) {
+      toast.error("Erro ao registrar: " + error.message);
+    } else {
       // If mentor didn't show up, alert admins
-      if (mentoriaAconteceu === "mentor_nao_apareceu") {
+      if (motivoNaoAconteceu === "mentor_nao_apareceu") {
         try {
-          // Create admin notification via edge function
           await supabase.functions.invoke("send-notification-email", {
             body: {
               type: "admin_alert_mentor_noshow",
@@ -105,7 +124,7 @@ const SessionReviewModal = ({
                 mentorId,
                 sessionId,
                 userId,
-                motivo: motivoNaoAconteceu.trim() || "Não informado",
+                motivo: detalhesMotivo.trim() || "Não informado",
               },
             },
           });
@@ -114,21 +133,21 @@ const SessionReviewModal = ({
         }
       }
 
-      toast.success("Obrigado pela sua avaliação! 💜");
+      toast.success("Registrado com sucesso! Obrigado por nos informar.");
       onOpenChange(false);
       resetForm();
       onReviewSubmitted?.();
     }
-
     setSubmitting(false);
   };
 
   const resetForm = () => {
+    setStep("pergunta");
     setRating(null);
     setComment("");
     setReviewPublico(true);
-    setMentoriaAconteceu(null);
-    setMotivoNaoAconteceu("");
+    setMotivoNaoAconteceu(null);
+    setDetalhesMotivo("");
   };
 
   return (
@@ -137,96 +156,79 @@ const SessionReviewModal = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <MessageSquare className="w-5 h-5 text-primary" />
-            Como foi sua mentoria com {mentorName}?
+            {step === "pergunta" && `Mentoria com ${mentorName}`}
+            {step === "avaliar" && `Como foi sua mentoria com ${mentorName}?`}
+            {step === "nao_aconteceu" && "O que aconteceu?"}
           </DialogTitle>
           <DialogDescription>
-            Sua avaliação ajuda a melhorar o programa de mentorias
+            {step === "pergunta" && "Nos conte se essa mentoria aconteceu"}
+            {step === "avaliar" && "Sua avaliação ajuda a melhorar o programa de mentorias"}
+            {step === "nao_aconteceu" && "Nos ajude a entender o que houve"}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-5 py-4">
-          {/* 1. Mentoria Aconteceu? (Obrigatório) */}
-          <div className="space-y-3 bg-muted/30 rounded-xl p-4">
-            <div>
-              <p className="text-sm font-medium text-foreground">
-                📋 A mentoria aconteceu? <span className="text-destructive">*</span>
+          {/* Step 1: Aconteceu ou não? */}
+          {step === "pergunta" && (
+            <div className="space-y-4">
+              <p className="text-sm font-medium text-foreground text-center">
+                Essa mentoria aconteceu?
               </p>
-            </div>
-            <RadioGroup
-              value={mentoriaAconteceu || ""}
-              onValueChange={(val) => setMentoriaAconteceu(val)}
-              className="space-y-2"
-            >
-              {attendanceOptions.map((option) => (
-                <div key={option.value} className="flex items-center gap-2.5">
-                  <RadioGroupItem value={option.value} id={`attendance-${option.value}`} />
-                  <Label
-                    htmlFor={`attendance-${option.value}`}
-                    className={`text-sm cursor-pointer ${
-                      option.value === "mentor_nao_apareceu" ? "text-destructive font-medium" : ""
-                    }`}
-                  >
-                    {option.label}
-                  </Label>
-                </div>
-              ))}
-            </RadioGroup>
-
-            {/* Motivo field when mentor didn't show */}
-            {showMotivoField && (
-              <div className="mt-3 bg-destructive/5 border border-destructive/20 rounded-lg p-3 space-y-2">
-                <div className="flex items-start gap-2">
-                  <AlertTriangle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
-                  <p className="text-xs text-destructive">
-                    Sentimos muito! Nossa equipe será notificada e entrará em contato com o mentor.
-                  </p>
-                </div>
-                <Textarea
-                  value={motivoNaoAconteceu}
-                  onChange={(e) => setMotivoNaoAconteceu(e.target.value.slice(0, 300))}
-                  placeholder="Descreva o que aconteceu (opcional)..."
-                  rows={2}
-                  className="resize-none text-sm"
-                />
-              </div>
-            )}
-          </div>
-
-          {/* 2. Rating (Obrigatório se mentoria aconteceu) */}
-          {mentoriaRealizada && (
-            <div className="space-y-3 bg-muted/30 rounded-xl p-4">
-              <div>
-                <p className="text-sm font-medium text-foreground">
-                  ⭐ Como foi a mentoria? <span className="text-destructive">*</span>{" "}
-                  <span className="text-muted-foreground font-normal">(privado)</span>
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  ⓘ Esta nota é privada e usada apenas para garantir a qualidade das mentorias.
-                </p>
-              </div>
-              <div className="flex items-center justify-center gap-2 sm:gap-3">
-                {ratingEmojis.map((item) => (
-                  <button
-                    key={item.value}
-                    onClick={() => setRating(item.value)}
-                    className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${
-                      rating === item.value
-                        ? "bg-primary/10 ring-2 ring-primary/50 scale-110"
-                        : "hover:bg-muted/50 hover:scale-105"
-                    }`}
-                    title={item.label}
-                  >
-                    <span className="text-2xl sm:text-3xl">{item.emoji}</span>
-                    <span className="text-[10px] text-muted-foreground">{item.label}</span>
-                  </button>
-                ))}
+              <div className="grid grid-cols-2 gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setStep("avaliar")}
+                  className="h-20 flex-col gap-2 text-base hover:bg-green-50 hover:border-green-300 hover:text-green-700 transition-all"
+                >
+                  <span className="text-2xl">✅</span>
+                  Sim, aconteceu
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setStep("nao_aconteceu")}
+                  className="h-20 flex-col gap-2 text-base hover:bg-destructive/5 hover:border-destructive/30 hover:text-destructive transition-all"
+                >
+                  <span className="text-2xl">❌</span>
+                  Não aconteceu
+                </Button>
               </div>
             </div>
           )}
 
-          {/* 3. Feedback Público (Opcional) - only if mentoria happened */}
-          {mentoriaRealizada && (
+          {/* Step 2a: Avaliar (mentoria aconteceu) */}
+          {step === "avaliar" && (
             <>
+              {/* Rating */}
+              <div className="space-y-3 bg-muted/30 rounded-xl p-4">
+                <div>
+                  <p className="text-sm font-medium text-foreground">
+                    ⭐ Como foi a mentoria? <span className="text-destructive">*</span>{" "}
+                    <span className="text-muted-foreground font-normal">(privado)</span>
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    ⓘ Esta nota é privada e usada apenas para garantir a qualidade das mentorias.
+                  </p>
+                </div>
+                <div className="flex items-center justify-center gap-2 sm:gap-3">
+                  {ratingEmojis.map((item) => (
+                    <button
+                      key={item.value}
+                      onClick={() => setRating(item.value)}
+                      className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${
+                        rating === item.value
+                          ? "bg-primary/10 ring-2 ring-primary/50 scale-110"
+                          : "hover:bg-muted/50 hover:scale-105"
+                      }`}
+                      title={item.label}
+                    >
+                      <span className="text-2xl sm:text-3xl">{item.emoji}</span>
+                      <span className="text-[10px] text-muted-foreground">{item.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Public feedback */}
               <div className="space-y-3">
                 <p className="text-sm font-medium text-foreground">
                   💬 Deixe um feedback público <span className="text-muted-foreground font-normal">(opcional)</span>
@@ -241,7 +243,6 @@ const SessionReviewModal = ({
                 <p className="text-xs text-muted-foreground text-right">{comment.length}/500</p>
               </div>
 
-              {/* Public checkbox */}
               {comment.trim() && (
                 <div className="bg-muted/30 rounded-xl p-4 space-y-2">
                   <div className="flex items-start gap-3">
@@ -255,38 +256,112 @@ const SessionReviewModal = ({
                       <p className="text-sm font-medium text-foreground">Tornar feedback público</p>
                       <p className="text-xs text-muted-foreground mt-0.5">
                         Seu nome e foto aparecerão no perfil do mentor junto com seu comentário.
-                        Isso ajuda outros mentorados a conhecerem a experiência!
                       </p>
                     </label>
                   </div>
                 </div>
               )}
+
+              {/* Buttons */}
+              <div className="flex gap-3">
+                <Button variant="outline" onClick={() => setStep("pergunta")} className="flex-1">
+                  Voltar
+                </Button>
+                <Button
+                  onClick={handleSubmitReview}
+                  disabled={!isReviewValid || submitting}
+                  className="flex-1 bg-gradient-hero text-primary-foreground"
+                >
+                  {submitting ? (
+                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Enviando...</>
+                  ) : (
+                    <><Send className="w-4 h-4 mr-2" />Enviar Avaliação</>
+                  )}
+                </Button>
+              </div>
             </>
           )}
 
-          {/* Submit */}
-          <div className="flex gap-3">
-            <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleSubmit}
-              disabled={!isValid || submitting}
-              className="flex-1 bg-gradient-hero text-primary-foreground"
-            >
-              {submitting ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Enviando...
-                </>
-              ) : (
-                <>
-                  <Send className="w-4 h-4 mr-2" />
-                  Enviar Avaliação
-                </>
+          {/* Step 2b: Não aconteceu */}
+          {step === "nao_aconteceu" && (
+            <>
+              <div className="space-y-3 bg-muted/30 rounded-xl p-4">
+                <p className="text-sm font-medium text-foreground">
+                  O que houve? <span className="text-destructive">*</span>
+                </p>
+                <RadioGroup
+                  value={motivoNaoAconteceu || ""}
+                  onValueChange={(val) => setMotivoNaoAconteceu(val)}
+                  className="space-y-2"
+                >
+                  {naoAconteceuOptions.map((option) => (
+                    <div key={option.value} className="flex items-center gap-2.5">
+                      <RadioGroupItem value={option.value} id={`motivo-${option.value}`} />
+                      <Label
+                        htmlFor={`motivo-${option.value}`}
+                        className={`text-sm cursor-pointer ${
+                          option.value === "mentor_nao_apareceu" ? "text-destructive font-medium" : ""
+                        }`}
+                      >
+                        {option.label}
+                      </Label>
+                    </div>
+                  ))}
+                </RadioGroup>
+              </div>
+
+              {/* Alert for mentor no-show */}
+              {motivoNaoAconteceu === "mentor_nao_apareceu" && (
+                <div className="bg-destructive/5 border border-destructive/20 rounded-lg p-3 space-y-2">
+                  <div className="flex items-start gap-2">
+                    <AlertTriangle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
+                    <p className="text-xs text-destructive">
+                      Sentimos muito! Nossa equipe será notificada e entrará em contato com o mentor.
+                    </p>
+                  </div>
+                  <Textarea
+                    value={detalhesMotivo}
+                    onChange={(e) => setDetalhesMotivo(e.target.value.slice(0, 300))}
+                    placeholder="Descreva o que aconteceu (opcional)..."
+                    rows={2}
+                    className="resize-none text-sm"
+                  />
+                </div>
               )}
-            </Button>
-          </div>
+
+              {/* Optional details for other reasons */}
+              {motivoNaoAconteceu && motivoNaoAconteceu !== "mentor_nao_apareceu" && (
+                <div className="space-y-2">
+                  <Textarea
+                    value={detalhesMotivo}
+                    onChange={(e) => setDetalhesMotivo(e.target.value.slice(0, 300))}
+                    placeholder="Algum detalhe adicional? (opcional)"
+                    rows={2}
+                    className="resize-none text-sm"
+                  />
+                </div>
+              )}
+
+              {/* Buttons */}
+              <div className="flex gap-3">
+                <Button variant="outline" onClick={() => setStep("pergunta")} className="flex-1">
+                  Voltar
+                </Button>
+                <Button
+                  onClick={handleSubmitNaoAconteceu}
+                  disabled={!isNaoAconteceuValid || submitting}
+                  className="flex-1"
+                  variant="destructive"
+                >
+                  {submitting ? (
+                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Registrando...</>
+                  ) : (
+                    <><Send className="w-4 h-4 mr-2" />Registrar</>
+                  )}
+                </Button>
+              </div>
+            </>
+          )}
         </div>
       </DialogContent>
     </Dialog>
