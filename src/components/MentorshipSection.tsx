@@ -11,6 +11,7 @@ import SessionManagement from "./SessionManagement";
 import SessionReviewModal from "./SessionReviewModal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 
 // Sessions created before this date follow old auto-complete logic
@@ -29,6 +30,7 @@ interface MentorSession {
   completed_at?: string;
   meeting_link?: string | null;
   hasReview?: boolean;
+  reviewComment?: string | null;
   mentor?: {
     name: string;
     area: string;
@@ -100,7 +102,7 @@ const MentorshipSection = () => {
         .in("id", mentorIds),
       supabase
         .from("session_reviews")
-        .select("session_id")
+        .select("session_id, comment")
         .in("session_id", sessionIds)
     ]);
 
@@ -108,14 +110,15 @@ const MentorshipSection = () => {
       (mentorsResult.data || []).map(m => [m.id, m])
     );
 
-    const reviewedSessionIds = new Set(
-      (reviewsResult.data || []).map(r => r.session_id)
+    const reviewsMap = new Map(
+      (reviewsResult.data || []).map(r => [r.session_id, r])
     );
 
     const data = sessionsData.map(session => ({
       ...session,
       mentor: mentorsMap.get(session.mentor_id) || null,
-      hasReview: reviewedSessionIds.has(session.id)
+      hasReview: reviewsMap.has(session.id),
+      reviewComment: reviewsMap.get(session.id)?.comment || null,
     }));
     setSessions(data as MentorSession[]);
     setLoading(false);
@@ -150,7 +153,6 @@ const MentorshipSection = () => {
     const past = isSessionPast(session.scheduled_at, session.duration || 30);
     if (!past) return false;
     
-    // Old sessions auto-complete; new sessions need manual confirmation
     return !requiresManualConfirmation(session.created_at);
   };
 
@@ -167,8 +169,6 @@ const MentorshipSection = () => {
     return completed && !s.hasReview && s.status !== "cancelled";
   });
 
-  // Check if mentee has pending confirmations (blocks new bookings)
-  // Reviews do NOT block new bookings per platform policy
   const hasPendingConfirmations = pendingCompletionSessions.length > 0;
   const hasUnreviewedSessions = unreviewedCompletedSessions.length > 0;
   const isBookingBlocked = hasPendingConfirmations;
@@ -207,23 +207,6 @@ const MentorshipSection = () => {
       console.error("Error sending review notification:", err);
     }
 
-    // Create in-app notification
-    try {
-      await supabase.functions.invoke("send-notification-email", {
-        body: {
-          to: user?.email,
-          name: profile?.name || "Mentorado",
-          type: "session_review_request",
-          skipPreferenceCheck: true,
-          data: {
-            mentorName: session.mentor?.name || "Mentor",
-          },
-        },
-      });
-    } catch (err) {
-      // Silent fail for notification
-    }
-
     // Sync to Google Calendar for both parties
     try {
       const { data: { session: authSession } } = await supabase.auth.getSession();
@@ -251,7 +234,6 @@ const MentorshipSection = () => {
     // Auto-complete trail mentoria steps
     try {
       if (user) {
-        // Get mentor tags
         const { data: mentorTags } = await supabase
           .from("mentor_tags")
           .select("tags(slug)")
@@ -259,7 +241,6 @@ const MentorshipSection = () => {
 
         const tagSlugs = (mentorTags || []).map((mt: any) => mt.tags?.slug).filter(Boolean);
 
-        // Get active trail progress for this user
         const { data: activeTrails } = await supabase
           .from("progresso_trilha")
           .select("trilha_id")
@@ -269,7 +250,6 @@ const MentorshipSection = () => {
         if (activeTrails && activeTrails.length > 0) {
           const trilhaIds = activeTrails.map(t => t.trilha_id);
 
-          // Find mentoria steps in active trails
           const { data: mentoriaSteps } = await supabase
             .from("passos_trilha")
             .select("id, trilha_id, tags_mentor_requeridas, ordem")
@@ -277,7 +257,6 @@ const MentorshipSection = () => {
             .eq("tipo", "mentoria");
 
           for (const step of mentoriaSteps || []) {
-            // Check if already completed
             const { data: existing } = await supabase
               .from("progresso_passo")
               .select("id")
@@ -288,7 +267,6 @@ const MentorshipSection = () => {
 
             if (existing) continue;
 
-            // Check tag match
             const requiredTags = step.tags_mentor_requeridas || [];
             const hasMatch = requiredTags.length === 0 || requiredTags.some((tag: string) =>
               tagSlugs.some((s: string) => s.toLowerCase().includes(tag.toLowerCase()) || tag.toLowerCase().includes(s.toLowerCase()))
@@ -303,7 +281,6 @@ const MentorshipSection = () => {
                 completado_automaticamente: true,
               }, { onConflict: "mentorado_id,passo_id" });
 
-              // Recalculate trail progress
               const { data: allSteps } = await supabase
                 .from("passos_trilha")
                 .select("id")
@@ -328,7 +305,6 @@ const MentorshipSection = () => {
                 .eq("mentorado_id", user.id)
                 .eq("trilha_id", step.trilha_id);
 
-              // Find trail name for toast
               const { data: trailInfo } = await supabase
                 .from("trilhas")
                 .select("titulo")
@@ -359,11 +335,14 @@ const MentorshipSection = () => {
   const pastSessions = sessions.filter(s => {
     if (s.status === "cancelled" || s.status === "completed") return true;
     if (s.status === "scheduled" && isSessionPast(s.scheduled_at, s.duration || 30)) {
-      // Only show in history if it's an old session (auto-complete) or already handled
       return !requiresManualConfirmation(s.created_at);
     }
     return false;
   });
+
+  const allFinished = [...pastSessions].sort(
+    (a, b) => new Date(b.scheduled_at).getTime() - new Date(a.scheduled_at).getTime()
+  );
 
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString("pt-BR", {
@@ -373,6 +352,100 @@ const MentorshipSection = () => {
       hour: "2-digit",
       minute: "2-digit",
     });
+  };
+
+  const formatShortDate = (date: string) => {
+    return new Date(date).toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  // Session Card for Past Sessions
+  const PastSessionCard = ({ session }: { session: MentorSession }) => {
+    const isCompleted = isEffectivelyCompleted(session);
+    const isCancelled = session.status === "cancelled";
+    const canReview = isCompleted && !isCancelled && !session.hasReview;
+    const isReviewed = session.hasReview;
+
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 5 }}
+        animate={{ opacity: 1, y: 0 }}
+        className={`rounded-xl p-4 transition-all ${
+          canReview
+            ? "bg-[#FFF9F5] border-2 border-primary/60 shadow-sm"
+            : "bg-card border border-border/50"
+        }`}
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center shrink-0 overflow-hidden">
+            {session.mentor?.photo_url ? (
+              <img src={session.mentor.photo_url} alt={session.mentor?.name} className="w-full h-full object-cover" />
+            ) : (
+              <User className="w-5 h-5 text-muted-foreground" />
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-foreground truncate">
+              {session.mentor?.name || "Mentor"}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {formatShortDate(session.scheduled_at)}
+              {session.duration && ` • ${session.duration} min`}
+            </p>
+          </div>
+          <div className="flex items-center gap-1.5 shrink-0">
+            {canReview && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-destructive/10 text-destructive border border-destructive/20 uppercase animate-pulse">
+                Não avaliada
+              </span>
+            )}
+            {isReviewed && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium bg-green-500/10 text-green-600 border border-green-500/20">
+                <CheckCircle className="w-3 h-3" /> Avaliada
+              </span>
+            )}
+            {isCancelled && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium bg-destructive/10 text-destructive border border-destructive/20">
+                <XCircle className="w-3 h-3" /> Cancelada
+              </span>
+            )}
+            {!canReview && !isReviewed && !isCancelled && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium bg-green-100 text-green-800">
+                <CheckCircle className="w-3 h-3" /> Realizada
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Review preview */}
+        {isReviewed && session.reviewComment && (
+          <p className="text-xs text-muted-foreground mt-2 italic line-clamp-1 pl-[52px]">
+            "{session.reviewComment}"
+          </p>
+        )}
+
+        {/* CTA for unreviewed */}
+        {canReview && (
+          <div className="mt-3 flex items-center justify-between pl-[52px]">
+            <span className="text-xs font-medium text-primary flex items-center gap-1">
+              <Star className="w-3.5 h-3.5" /> Pendente de avaliação
+            </span>
+            <Button
+              size="sm"
+              onClick={() => openReviewModal(session)}
+              className="h-7 text-xs gap-1 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg"
+            >
+              <Star className="w-3 h-3" /> Avaliar Mentoria
+            </Button>
+          </div>
+        )}
+      </motion.div>
+    );
   };
 
   return (
@@ -428,21 +501,21 @@ const MentorshipSection = () => {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 rounded-2xl p-4"
+          className="bg-[#FFF9F5] border border-primary/30 rounded-2xl p-4"
         >
           <div className="flex items-start gap-3">
-            <Star className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-            <div>
-              <h4 className="font-semibold text-foreground text-sm">Avalie suas mentorias</h4>
+            <Star className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <h4 className="font-semibold text-foreground text-sm">
+                ⭐ Você tem {unreviewedCompletedSessions.length} {unreviewedCompletedSessions.length === 1 ? "mentoria" : "mentorias"} para avaliar!
+              </h4>
               <p className="text-xs text-muted-foreground mt-1">
-                Você precisa avaliar suas mentorias concluídas antes de agendar uma nova sessão. Seu feedback é essencial!
+                Sua avaliação é essencial para garantir a qualidade das mentorias.
               </p>
             </div>
           </div>
         </motion.div>
       )}
-
-      {/* CTA to become a mentor - removed per design decision */}
 
       {loading ? (
         <div className="flex items-center justify-center py-8">
@@ -527,173 +600,163 @@ const MentorshipSection = () => {
             </div>
           )}
 
-          {/* Upcoming Sessions */}
-          {upcomingSessions.length > 0 && (
-            <div className="bg-card rounded-2xl shadow-card p-4 md:p-5">
-              <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2 text-sm">
-                <Calendar className="w-4 h-4 text-primary" />
-                Próximas mentorias
-              </h4>
-              <div className="space-y-3">
-                {upcomingSessions.map((session) => (
-                  <div
-                    key={session.id}
-                    className="flex flex-col gap-3 p-3 md:p-4 bg-accent/50 rounded-xl"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-muted flex items-center justify-center shrink-0 overflow-hidden">
-                        {session.mentor?.photo_url ? (
-                          <img src={session.mentor.photo_url} alt={session.mentor.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <User className="w-5 h-5 text-muted-foreground" />
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-foreground text-sm truncate">
-                          {session.mentor?.name || "Mentor"}
-                        </p>
-                        <p className="text-xs text-muted-foreground truncate">
-                          {session.mentor?.area}
-                        </p>
-                        <p className="text-xs text-primary flex items-center gap-1 mt-0.5">
-                          <Clock className="w-3 h-3" />
-                          {formatDate(session.scheduled_at)}
-                        </p>
-                        {session.duration && (
-                          <Badge variant="secondary" className="text-xs mt-1 bg-primary/10 text-primary border border-primary/20 font-semibold">
-                            <Timer className="w-3 h-3 mr-1" />
-                            {session.duration} min
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="flex flex-col items-end gap-1">
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium flex items-center gap-1 ${statusLabels[session.status]?.color || "bg-gray-100"}`}>
-                          {statusLabels[session.status]?.icon}
-                          {session.confirmed_by_mentor ? "Confirmada" : statusLabels[session.status]?.label || session.status}
-                        </span>
-                      </div>
-                    </div>
-                    
-                    {/* Meeting Link */}
-                    {session.meeting_link && (() => {
-                      const raw = session.meeting_link;
-                      const meetMatch = raw.match(/https?:\/\/meet\.google\.com\/[a-z\-]+/i);
-                      const urlMatch = raw.match(/https?:\/\/\S+/i);
-                      let href = meetMatch ? meetMatch[0] : urlMatch ? urlMatch[0] : raw.trim();
-                      if (href && !href.startsWith("http")) href = `https://${href}`;
-                      return href ? (
-                        <a
-                          href={href}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 px-3 py-2 bg-primary/10 border border-primary/20 rounded-lg text-sm text-primary hover:bg-primary/20 transition-colors"
-                        >
-                          <Video className="w-4 h-4" />
-                          <span className="font-medium">Entrar na sessão</span>
-                        </a>
-                      ) : null;
-                    })()}
-
-                    <div className="flex justify-end">
-                      <SessionManagement
-                        sessionId={session.id}
-                        scheduledAt={session.scheduled_at}
-                        mentorName={session.mentor?.name || "Mentor"}
-                        mentorId={session.mentor_id}
-                        menteeName={profile?.name}
-                        menteeEmail={user?.email}
-                        mentorEmail={session.mentor?.email}
-                        userRole="mentee"
-                        confirmedByMentor={session.confirmed_by_mentor || false}
-                        onUpdate={fetchSessions}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Past Sessions / History */}
+          {/* Tabbed Sessions */}
           <div className="bg-card rounded-2xl shadow-card p-4 md:p-5">
-            <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2 text-sm">
-              <Clock className="w-4 h-4 text-primary" />
-              Histórico de mentorias
-            </h4>
+            <Tabs defaultValue={unreviewedCompletedSessions.length > 0 ? "passadas" : "proximas"}>
+              <TabsList className="w-full grid grid-cols-3 mb-4">
+                <TabsTrigger value="proximas" className="text-xs sm:text-sm gap-1">
+                  Próximas
+                  {upcomingSessions.length > 0 && (
+                    <span className="ml-1 bg-primary/10 text-primary text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                      {upcomingSessions.length}
+                    </span>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="passadas" className="text-xs sm:text-sm gap-1">
+                  Passadas
+                  {unreviewedCompletedSessions.length > 0 && (
+                    <span className="ml-1 bg-destructive/10 text-destructive text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                      {unreviewedCompletedSessions.length}
+                    </span>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="todas" className="text-xs sm:text-sm">
+                  Todas
+                </TabsTrigger>
+              </TabsList>
 
-            {pastSessions.length > 0 ? (
-              <div className="space-y-2 max-h-64 overflow-y-auto">
-                {pastSessions.map((session) => {
-                  const isCompleted = isEffectivelyCompleted(session);
-                  const isCancelled = session.status === "cancelled";
-                  
-                  const displayStatus = isCancelled 
-                    ? statusLabels.cancelled 
-                    : isCompleted 
-                      ? statusLabels.completed 
-                      : statusLabels[session.status] || statusLabels.completed;
+              {/* Próximas */}
+              <TabsContent value="proximas">
+                {upcomingSessions.length > 0 ? (
+                  <div className="space-y-3">
+                    {upcomingSessions.map((session) => (
+                      <div
+                        key={session.id}
+                        className="flex flex-col gap-3 p-3 md:p-4 bg-accent/50 rounded-xl"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-muted flex items-center justify-center shrink-0 overflow-hidden">
+                            {session.mentor?.photo_url ? (
+                              <img src={session.mentor.photo_url} alt={session.mentor.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <User className="w-5 h-5 text-muted-foreground" />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-foreground text-sm truncate">
+                              {session.mentor?.name || "Mentor"}
+                            </p>
+                            <p className="text-xs text-muted-foreground truncate">
+                              {session.mentor?.area}
+                            </p>
+                            <p className="text-xs text-primary flex items-center gap-1 mt-0.5">
+                              <Clock className="w-3 h-3" />
+                              {formatDate(session.scheduled_at)}
+                            </p>
+                            {session.duration && (
+                              <Badge variant="secondary" className="text-xs mt-1 bg-primary/10 text-primary border border-primary/20 font-semibold">
+                                <Timer className="w-3 h-3 mr-1" />
+                                {session.duration} min
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="flex flex-col items-end gap-1">
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium flex items-center gap-1 ${statusLabels[session.status]?.color || "bg-gray-100"}`}>
+                              {statusLabels[session.status]?.icon}
+                              {session.confirmed_by_mentor ? "Confirmada" : statusLabels[session.status]?.label || session.status}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        {/* Meeting Link */}
+                        {session.meeting_link && (() => {
+                          const raw = session.meeting_link;
+                          const meetMatch = raw.match(/https?:\/\/meet\.google\.com\/[a-z\-]+/i);
+                          const urlMatch = raw.match(/https?:\/\/\S+/i);
+                          let href = meetMatch ? meetMatch[0] : urlMatch ? urlMatch[0] : raw.trim();
+                          if (href && !href.startsWith("http")) href = `https://${href}`;
+                          return href ? (
+                            <a
+                              href={href}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2 px-3 py-2 bg-primary/10 border border-primary/20 rounded-lg text-sm text-primary hover:bg-primary/20 transition-colors"
+                            >
+                              <Video className="w-4 h-4" />
+                              <span className="font-medium">Entrar na sessão</span>
+                            </a>
+                          ) : null;
+                        })()}
 
-                  const canReview = isCompleted && !isCancelled && !session.hasReview;
-
-                  return (
-                    <div
-                      key={session.id}
-                      className="flex items-center justify-between py-2.5 px-3 border-b border-border/50 last:border-0 bg-accent/30 rounded-lg"
+                        <div className="flex justify-end">
+                          <SessionManagement
+                            sessionId={session.id}
+                            scheduledAt={session.scheduled_at}
+                            mentorName={session.mentor?.name || "Mentor"}
+                            mentorId={session.mentor_id}
+                            menteeName={profile?.name}
+                            menteeEmail={user?.email}
+                            mentorEmail={session.mentor?.email}
+                            userRole="mentee"
+                            confirmedByMentor={session.confirmed_by_mentor || false}
+                            onUpdate={fetchSessions}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <Calendar className="w-10 h-10 text-muted-foreground mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground mb-1">Nenhuma mentoria agendada</p>
+                    <p className="text-xs text-muted-foreground mb-4">
+                      Encontre um mentor e agende uma conversa gratuita!
+                    </p>
+                    <Button
+                      onClick={() => navigate("/mentores")}
+                      className="bg-gradient-hero text-primary-foreground rounded-xl shadow-button"
+                      size="sm"
                     >
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">
-                          {session.mentor?.name || "Mentor"}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {new Date(session.scheduled_at).toLocaleDateString("pt-BR")}
-                          {session.duration && ` • ${session.duration} min`}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium flex items-center gap-1 whitespace-nowrap ${displayStatus.color}`}>
-                          {displayStatus.icon}
-                          {displayStatus.label}
-                        </span>
-                        {canReview && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => openReviewModal(session)}
-                            className="text-[10px] h-6 gap-1 border-yellow-400/50 text-yellow-600 hover:bg-yellow-50 px-2"
-                          >
-                            <Star className="w-3 h-3" />
-                            Avaliar
-                          </Button>
-                        )}
-                        {session.hasReview && (
-                          <Badge variant="secondary" className="text-[10px] bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 px-1.5">
-                            <CheckCircle className="w-3 h-3 mr-0.5" />
-                            Avaliada
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="text-center py-6">
-                <Users className="w-10 h-10 text-muted-foreground mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground mb-1">
-                  Bate um papo com quem já passou por isso
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Agende uma conversa gratuita com um mentor e tire suas dúvidas sobre carreira
-                </p>
-                <Button
-                  onClick={() => navigate("/mentores")}
-                  className="mt-4 bg-gradient-hero text-primary-foreground rounded-xl shadow-button"
-                  size="sm"
-                >
-                  Conhecer mentores
-                </Button>
-              </div>
-            )}
+                      Conhecer mentores
+                    </Button>
+                  </div>
+                )}
+              </TabsContent>
+
+              {/* Passadas */}
+              <TabsContent value="passadas">
+                {allFinished.filter(s => s.status !== "cancelled").length > 0 ? (
+                  <div className="space-y-2">
+                    {allFinished
+                      .filter(s => s.status !== "cancelled")
+                      .map((session) => (
+                        <PastSessionCard key={session.id} session={session} />
+                      ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <Clock className="w-10 h-10 text-muted-foreground mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">Nenhuma mentoria realizada ainda</p>
+                  </div>
+                )}
+              </TabsContent>
+
+              {/* Todas */}
+              <TabsContent value="todas">
+                {sessions.length > 0 ? (
+                  <div className="space-y-2 max-h-96 overflow-y-auto">
+                    {sessions.map((session) => (
+                      <PastSessionCard key={session.id} session={session} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <Users className="w-10 h-10 text-muted-foreground mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">Nenhuma mentoria encontrada</p>
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
           </div>
         </>
       )}
