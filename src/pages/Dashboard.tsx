@@ -195,10 +195,7 @@ const Dashboard = () => {
     );
   }
 
-  // Show quiz gate if needed
-  if (needsQuiz) {
-    return <OnboardingQuiz onPassed={() => setNeedsQuiz(false)} />;
-  }
+  // Quiz gate is now handled by AppLayout
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
