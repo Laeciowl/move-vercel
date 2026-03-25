@@ -29,6 +29,7 @@ import SavedContents from "./pages/SavedContents";
 import DevPlan from "./pages/DevPlan";
 import Nps from "./pages/Nps";
 import Interests from "./pages/Interests";
+import MinhasMentorias from "./pages/MinhasMentorias";
 import NotFound from "./pages/NotFound";
 import OnboardingTour from "./components/OnboardingTour";
 import GoogleCalendarCallbackHandler from "./components/GoogleCalendarCallbackHandler";
@@ -95,6 +96,7 @@ const App = () => (
             <Route path="/plano" element={<DevPlan />} />
             <Route path="/avaliar" element={<Nps />} />
             <Route path="/interesses" element={<Interests />} />
+            <Route path="/minhas-mentorias" element={<MinhasMentorias />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
