@@ -618,6 +618,21 @@ const AdminMetricsPanel = () => {
             <p className="text-sm text-muted-foreground mt-1">
               {coreMetrics.totalMentors} mentores · {coreMetrics.totalMentees} mentorados
             </p>
+            <div className="mt-2 pt-2 border-t border-border/30 space-y-1">
+              <p className="text-xs font-medium text-foreground">Mentorados por etapa:</p>
+              <div className="flex items-center gap-2 text-xs">
+                <span className="inline-flex items-center gap-1 text-emerald-600">
+                  <CheckCircle className="w-3 h-3" />
+                  {coreMetrics.menteesQuizPassed} ativos (quiz aprovado)
+                </span>
+              </div>
+              <div className="flex items-center gap-2 text-xs">
+                <span className="inline-flex items-center gap-1 text-amber-600">
+                  <Clock className="w-3 h-3" />
+                  {coreMetrics.menteesQuizNotPassed} pendentes (não fizeram/passaram no quiz)
+                </span>
+              </div>
+            </div>
             {alerts && Number(alerts.mentor_to_mentee_ratio) > 0 && (
               <p className="text-xs text-muted-foreground mt-1">
                 Proporção: 1 mentor para cada {alerts.mentor_to_mentee_ratio} usuários
