@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.auto-cancel-unconfirmed]
 verify_jwt = false
+
+[functions.send-onboarding-nudge]
+verify_jwt = false
