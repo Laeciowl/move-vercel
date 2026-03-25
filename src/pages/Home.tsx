@@ -16,6 +16,7 @@ import MenteeSessions from "@/components/MenteeSessions";
 import ReferralSection from "@/components/ReferralSection";
 import PendingReviewsBanner, { usePendingReviewsCount } from "@/components/PendingReviewsBanner";
 import ProfileCompletionBanner from "@/components/ProfileCompletionBanner";
+import MenteeLinkedInShareCard from "@/components/MenteeLinkedInShareCard";
 import { usePendingMentorCheck } from "@/hooks/usePendingMentorCheck";
 
 const Home = () => {
@@ -134,6 +135,13 @@ const Home = () => {
           <h2 className="text-lg font-semibold text-foreground mb-4">Menu de navegação</h2>
           <NavigationGrid isVolunteer={isVolunteer} isMentor={isMentor} pendingReviewsCount={isMentorado ? pendingReviewsCount : 0} />
         </motion.div>
+
+        {/* Share card */}
+        {isMentorado && (
+          <motion.div variants={{ initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 } }}>
+            <MenteeLinkedInShareCard />
+          </motion.div>
+        )}
 
         {/* Referral section */}
         {isMentorado && (
