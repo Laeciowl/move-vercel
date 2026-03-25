@@ -19,7 +19,6 @@ import VolunteerPanel from "@/components/VolunteerPanel";
 import BugReportButton from "@/components/BugReportButton";
 import NpsModal from "@/components/NpsModal";
 import OnboardingTour from "@/components/OnboardingTour";
-import OnboardingQuiz from "@/components/OnboardingQuiz";
 import NavigationGrid from "@/components/NavigationGrid";
 
 import PlatformGuide from "@/components/PlatformGuide";
@@ -71,7 +70,7 @@ const Dashboard = () => {
   const [showProfileEdit, setShowProfileEdit] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showInterestsOnboarding, setShowInterestsOnboarding] = useState(false);
-  const [needsQuiz, setNeedsQuiz] = useState(false);
+  const [needsQuiz, setNeedsQuiz] = useState(false); // kept for legacy, quiz gate is now in AppLayout
   const [updating, setUpdating] = useState(false);
   const [updateData, setUpdateData] = useState({
     professionalStatus: "",
@@ -196,10 +195,7 @@ const Dashboard = () => {
     );
   }
 
-  // Show quiz gate if needed
-  if (needsQuiz) {
-    return <OnboardingQuiz onPassed={() => setNeedsQuiz(false)} />;
-  }
+  // Quiz gate is now handled by AppLayout
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">

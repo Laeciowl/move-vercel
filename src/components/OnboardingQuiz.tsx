@@ -7,6 +7,16 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import logoMove from "@/assets/logo-move.png";
 
+const toEmbedUrl = (url: string): string => {
+  if (!url) return "";
+  if (url.includes("youtube.com/embed/")) return url;
+  const shortMatch = url.match(/youtu\.be\/([^?&]+)/);
+  if (shortMatch) return `https://www.youtube.com/embed/${shortMatch[1]}`;
+  const watchMatch = url.match(/[?&]v=([^?&]+)/);
+  if (watchMatch) return `https://www.youtube.com/embed/${watchMatch[1]}`;
+  return url;
+};
+
 interface QuizQuestion {
   id: string;
   question: string;
@@ -201,7 +211,7 @@ const OnboardingQuiz = ({ onPassed }: { onPassed: () => void }) => {
               {videoUrl ? (
                 <div className="aspect-video rounded-xl overflow-hidden border border-border/30">
                   <iframe
-                    src={videoUrl}
+                    src={toEmbedUrl(videoUrl)}
                     title="Onboarding Movê"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen

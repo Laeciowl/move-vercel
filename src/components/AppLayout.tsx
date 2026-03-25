@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -12,8 +12,10 @@ import { useMentorCheck } from "@/hooks/useMentorCheck";
 import NotificationBell from "@/components/NotificationBell";
 import BugReportButton from "@/components/BugReportButton";
 import NpsModal from "@/components/NpsModal";
+import OnboardingQuiz from "@/components/OnboardingQuiz";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Loader2 } from "lucide-react";
 import logoMove from "@/assets/logo-move.png";
 
 interface AppLayoutProps {
@@ -23,13 +25,28 @@ interface AppLayoutProps {
 const AppLayout = ({ children }: AppLayoutProps) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, profile, signOut, loading: authLoading } = useAuth();
+  const { user, profile, signOut, loading: authLoading, refreshProfile } = useAuth();
   const { isAdmin, loading: adminLoading } = useAdminCheck();
   const { isVolunteer, loading: volunteerLoading } = useVolunteerCheck();
   const { isMentor, loading: mentorLoading } = useMentorCheck();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [needsQuiz, setNeedsQuiz] = useState<boolean | null>(null);
 
   const rolesLoading = adminLoading || volunteerLoading || mentorLoading;
+
+  // Check if mentee needs onboarding quiz
+  useEffect(() => {
+    if (rolesLoading || !profile) {
+      setNeedsQuiz(null);
+      return;
+    }
+    const quizPassed = (profile as any).onboarding_quiz_passed;
+    if (!quizPassed && !isAdmin && !isVolunteer && !isMentor && !profile.first_mentorship_booked) {
+      setNeedsQuiz(true);
+    } else {
+      setNeedsQuiz(false);
+    }
+  }, [profile, rolesLoading, isAdmin, isVolunteer, isMentor]);
 
   const handleLogout = async () => {
     await signOut();
@@ -84,6 +101,29 @@ const AppLayout = ({ children }: AppLayoutProps) => {
 
   const navItems = getNavItems();
   const isActive = (path: string) => location.pathname === path;
+
+  // Show quiz gate for mentees who haven't passed yet
+  if (needsQuiz === null && rolesLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-16 h-16 rounded-full bg-gradient-hero flex items-center justify-center shadow-button">
+            <Loader2 className="w-8 h-8 animate-spin text-primary-foreground" />
+          </div>
+          <p className="text-muted-foreground font-medium">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (needsQuiz) {
+    return (
+      <OnboardingQuiz onPassed={() => {
+        setNeedsQuiz(false);
+        refreshProfile();
+      }} />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
