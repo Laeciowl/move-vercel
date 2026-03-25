@@ -705,7 +705,10 @@ const Mentors = () => {
                       Indisponível no momento
                     </span>
                   )}
-                  {selectedMentorForProfile.tags.length > 0 ? (
+                  <p className="text-primary font-medium mt-1">
+                    {selectedMentorForProfile.area}
+                  </p>
+                  {selectedMentorForProfile.tags.length > 0 && (
                     <div className="flex flex-wrap gap-1.5 mt-2 justify-center">
                       {selectedMentorForProfile.tags.map((tag) => (
                         <span
@@ -716,10 +719,6 @@ const Mentors = () => {
                         </span>
                       ))}
                     </div>
-                  ) : (
-                    <p className="text-primary font-medium">
-                      {selectedMentorForProfile.area}
-                    </p>
                   )}
                 </div>
 
