@@ -43,6 +43,8 @@ interface CoreMetrics {
   totalUsers: number;
   totalMentors: number;
   totalMentees: number;
+  menteesQuizPassed: number;
+  menteesQuizNotPassed: number;
   completedSessions: number;
   completedThisMonth: number;
   completedLastMonth: number;
