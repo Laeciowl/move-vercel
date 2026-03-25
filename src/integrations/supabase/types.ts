@@ -246,6 +246,57 @@ export type Database = {
         }
         Relationships: []
       }
+      mentee_attendance: {
+        Row: {
+          id: string
+          mentee_avisou: boolean | null
+          mentee_user_id: string
+          mentor_id: string
+          mentor_observations: string | null
+          reported_at: string | null
+          reported_by: string
+          session_id: string
+          status: Database["public"]["Enums"]["attendance_status"]
+        }
+        Insert: {
+          id?: string
+          mentee_avisou?: boolean | null
+          mentee_user_id: string
+          mentor_id: string
+          mentor_observations?: string | null
+          reported_at?: string | null
+          reported_by: string
+          session_id: string
+          status: Database["public"]["Enums"]["attendance_status"]
+        }
+        Update: {
+          id?: string
+          mentee_avisou?: boolean | null
+          mentee_user_id?: string
+          mentor_id?: string
+          mentor_observations?: string | null
+          reported_at?: string | null
+          reported_by?: string
+          session_id?: string
+          status?: Database["public"]["Enums"]["attendance_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mentee_attendance_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: true
+            referencedRelation: "mentor_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mentee_attendance_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: true
+            referencedRelation: "mentor_sessions_with_names"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mentee_interests: {
         Row: {
           created_at: string
@@ -274,6 +325,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      mentee_penalties: {
+        Row: {
+          block_reason: string | null
+          blocked_until: string | null
+          created_at: string | null
+          id: string
+          status: Database["public"]["Enums"]["penalty_status"] | null
+          total_completed: number | null
+          total_no_shows: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          block_reason?: string | null
+          blocked_until?: string | null
+          created_at?: string | null
+          id?: string
+          status?: Database["public"]["Enums"]["penalty_status"] | null
+          total_completed?: number | null
+          total_no_shows?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          block_reason?: string | null
+          blocked_until?: string | null
+          created_at?: string | null
+          id?: string
+          status?: Database["public"]["Enums"]["penalty_status"] | null
+          total_completed?: number | null
+          total_no_shows?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       mentor_blocked_periods: {
         Row: {
@@ -421,6 +508,10 @@ export type Database = {
           mentor_id: string
           mentor_notes: string | null
           notes: string | null
+          reconfirmation_confirmed: boolean | null
+          reconfirmation_confirmed_at: string | null
+          reconfirmation_sent: boolean | null
+          reconfirmation_sent_at: string | null
           reminder_1h_sent: boolean
           reminder_24h_sent: boolean
           scheduled_at: string
@@ -442,6 +533,10 @@ export type Database = {
           mentor_id: string
           mentor_notes?: string | null
           notes?: string | null
+          reconfirmation_confirmed?: boolean | null
+          reconfirmation_confirmed_at?: string | null
+          reconfirmation_sent?: boolean | null
+          reconfirmation_sent_at?: string | null
           reminder_1h_sent?: boolean
           reminder_24h_sent?: boolean
           scheduled_at: string
@@ -463,6 +558,10 @@ export type Database = {
           mentor_id?: string
           mentor_notes?: string | null
           notes?: string | null
+          reconfirmation_confirmed?: boolean | null
+          reconfirmation_confirmed_at?: string | null
+          reconfirmation_sent?: boolean | null
+          reconfirmation_sent_at?: string | null
           reminder_1h_sent?: boolean
           reminder_24h_sent?: boolean
           scheduled_at?: string
@@ -1417,6 +1516,16 @@ export type Database = {
       get_confirmation_rate: { Args: never; Returns: Json }
       get_future_scheduled_sessions: { Args: never; Returns: number }
       get_lives_impacted: { Args: never; Returns: number }
+      get_mentee_attendance_stats: {
+        Args: { mentee_id: string }
+        Returns: {
+          attendance_rate: number
+          blocked_until: string
+          penalty_status: string
+          total_completed: number
+          total_no_shows: number
+        }[]
+      }
       get_mentee_contact_profiles: {
         Args: { session_user_ids: string[] }
         Returns: {
@@ -1563,9 +1672,22 @@ export type Database = {
         | "special"
       achievement_user_type: "mentor" | "mentorado" | "ambos"
       app_role: "admin" | "moderator" | "user" | "voluntario"
+      attendance_status:
+        | "realizada"
+        | "no_show_mentorado"
+        | "no_show_mentor"
+        | "cancelada_mentorado"
+        | "cancelada_mentor"
+        | "reagendada"
       community_category: "vagas" | "networking" | "conteudo" | "outros"
       income_range: "sem_renda" | "ate_1500" | "1500_3000" | "acima_3000"
       mentor_status: "pending" | "approved" | "rejected"
+      penalty_status:
+        | "ativo"
+        | "aviso_1"
+        | "bloqueado_7d"
+        | "bloqueado_30d"
+        | "banido"
       plan_goal_type:
         | "primeiro_emprego"
         | "transicao"
@@ -1729,9 +1851,24 @@ export const Constants = {
       ],
       achievement_user_type: ["mentor", "mentorado", "ambos"],
       app_role: ["admin", "moderator", "user", "voluntario"],
+      attendance_status: [
+        "realizada",
+        "no_show_mentorado",
+        "no_show_mentor",
+        "cancelada_mentorado",
+        "cancelada_mentor",
+        "reagendada",
+      ],
       community_category: ["vagas", "networking", "conteudo", "outros"],
       income_range: ["sem_renda", "ate_1500", "1500_3000", "acima_3000"],
       mentor_status: ["pending", "approved", "rejected"],
+      penalty_status: [
+        "ativo",
+        "aviso_1",
+        "bloqueado_7d",
+        "bloqueado_30d",
+        "banido",
+      ],
       plan_goal_type: [
         "primeiro_emprego",
         "transicao",
