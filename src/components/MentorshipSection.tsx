@@ -328,7 +328,54 @@ const MentorshipSection = () => {
     openReviewModal(session);
   };
 
-  // Upcoming: scheduled and not yet started
+  // Handle reconfirmation
+  const handleReconfirmPresence = async (sessionId: string) => {
+    setConfirmingId(sessionId);
+    const { error } = await supabase
+      .from("mentor_sessions")
+      .update({
+        reconfirmation_confirmed: true,
+        reconfirmation_confirmed_at: new Date().toISOString(),
+      })
+      .eq("id", sessionId);
+
+    if (error) {
+      toast.error("Erro ao confirmar presença");
+    } else {
+      toast.success("Presença confirmada! ✅");
+      try {
+        await supabase.functions.invoke("send-notification-email", {
+          body: { type: "mentee_reconfirmed", data: { sessionId } },
+        });
+      } catch (e) {
+        console.error("Error notifying mentor:", e);
+      }
+      fetchSessions();
+    }
+    setConfirmingId(null);
+  };
+
+  // Handle reconfirmation cancel
+  const handleCancelFromReconfirmation = async (sessionId: string) => {
+    setConfirmingId(sessionId);
+    const { error } = await supabase
+      .from("mentor_sessions")
+      .update({
+        status: "cancelled",
+        mentor_notes: "Cancelada pelo mentorado na reconfirmação",
+      })
+      .eq("id", sessionId);
+
+    if (error) {
+      toast.error("Erro ao cancelar sessão");
+    } else {
+      toast.success("Sessão cancelada");
+      fetchSessions();
+    }
+    setConfirmingId(null);
+  };
+
+    // Upcoming: scheduled and not yet started
   const upcomingSessions = sessions.filter(
     (s) => s.status === "scheduled" && !isSessionPast(s.scheduled_at, s.duration || 30)
   );
