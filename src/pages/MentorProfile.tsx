@@ -54,6 +54,7 @@ const MentorProfile = () => {
 
   const [formData, setFormData] = useState({
     name: "",
+    area: "",
     description: "",
     education: "",
     linkedinUrl: "",
@@ -99,6 +100,7 @@ const MentorProfile = () => {
 
     setFormData({
       name: mentor.name,
+      area: mentor.area || "",
       description: mentor.description || "",
       education: mentor.education || "",
       linkedinUrl: (mentor as any).linkedin_url || "",
@@ -174,8 +176,8 @@ const MentorProfile = () => {
   };
 
   const handleSave = async () => {
-    if (!mentorData || !formData.name.trim() || !formData.description.trim()) {
-      toast.error("Preencha nome e descrição");
+    if (!mentorData || !formData.name.trim() || !formData.description.trim() || !formData.area.trim()) {
+      toast.error("Preencha nome, cargo/empresa e descrição");
       return;
     }
     if (formData.linkedinUrl && !formData.linkedinUrl.includes("linkedin.com")) {
@@ -194,6 +196,7 @@ const MentorProfile = () => {
       .from("mentors")
       .update({
         name: formData.name.trim(),
+        area: formData.area.trim(),
         description: formData.description.trim(),
         education: formData.education.trim() || null,
         linkedin_url: formData.linkedinUrl.trim() || null,
@@ -268,6 +271,13 @@ const MentorProfile = () => {
             <div className="space-y-2">
               <Label htmlFor="name">Nome completo *</Label>
               <Input id="name" value={formData.name} onChange={e => setFormData(p => ({ ...p, name: e.target.value }))} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="area" className="flex items-center gap-1.5">
+                <Briefcase className="w-3.5 h-3.5 text-muted-foreground" /> Cargo | Empresa *
+              </Label>
+              <Input id="area" value={formData.area} onChange={e => setFormData(p => ({ ...p, area: e.target.value }))} placeholder="Ex: Product Manager | Itaú Unibanco" />
+              <p className="text-xs text-muted-foreground">Aparece em destaque no seu card público</p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="education" className="flex items-center gap-1.5">
