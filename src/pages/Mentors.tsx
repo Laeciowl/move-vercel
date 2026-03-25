@@ -16,11 +16,10 @@ import {
 } from "@/components/ui/dialog";
 import BookingCalendar from "@/components/BookingCalendar";
 import MentorRatingDisplay from "@/components/MentorRatingDisplay";
-import MentorReviewsList from "@/components/MentorReviewsList";
+import MentorPublicFeedbacks from "@/components/MentorPublicFeedbacks";
 import MentorShareButton from "@/components/MentorShareButton";
 import MentorTagFilter from "@/components/MentorTagFilter";
 import MentorMatchBadge from "@/components/MentorMatchBadge";
-import MentorFeaturedAchievements, { type FeaturedAchievement } from "@/components/MentorFeaturedAchievements";
 import { Button } from "@/components/ui/button";
 import type { TagItem } from "@/components/TagSelector";
 
@@ -96,7 +95,6 @@ const Mentors = () => {
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
   const [selectedMentorForProfile, setSelectedMentorForProfile] = useState<Mentor | null>(null);
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
-  const [mentorFeaturedMap, setMentorFeaturedMap] = useState<Record<string, FeaturedAchievement[]>>({});
 
   const userInterestTagIds = useMemo(() => userInterests.map(t => t.id), [userInterests]);
 
@@ -215,48 +213,6 @@ const Mentors = () => {
       // Mentors are already sorted by match_count in the RPC function
       setMentors(formattedMentors);
 
-      // Fetch featured achievements for all mentors
-      const allMentorIds = formattedMentors.map(m => m.id);
-      if (allMentorIds.length > 0) {
-        const { data: featuredData } = await supabase.rpc("get_mentor_featured_achievements", {
-          mentor_ids: allMentorIds,
-        });
-        let featuredMap: Record<string, FeaturedAchievement[]> = {};
-        if (featuredData) {
-          (featuredData as any[]).forEach((row: any) => {
-            if (!featuredMap[row.mentor_id]) featuredMap[row.mentor_id] = [];
-            featuredMap[row.mentor_id].push({
-              achievement_id: row.achievement_id,
-              icon: row.icon,
-              achievement_name: row.achievement_name,
-              description: row.description,
-              display_order: row.display_order,
-            });
-          });
-          setMentorFeaturedMap(featuredMap);
-        }
-
-        // Fallback: for mentors without featured achievements, use unlocked ones
-        const { data: achData } = await supabase.rpc("get_mentor_unlocked_achievements", {
-          mentor_ids: allMentorIds.filter(id => !featuredMap[id] || featuredMap[id].length === 0),
-        });
-        if (achData) {
-          const fallbackMap: Record<string, FeaturedAchievement[]> = {};
-          (achData as any[]).forEach((row: any) => {
-            if (!fallbackMap[row.mentor_id]) fallbackMap[row.mentor_id] = [];
-            if (fallbackMap[row.mentor_id].length < 4) {
-              fallbackMap[row.mentor_id].push({
-                achievement_id: row.mentor_id + row.icon,
-                icon: row.icon,
-                achievement_name: row.achievement_name,
-                description: "",
-                display_order: fallbackMap[row.mentor_id].length + 1,
-              });
-            }
-          });
-          setMentorFeaturedMap(prev => ({ ...prev, ...fallbackMap }));
-        }
-      }
 
       setLoading(false);
     };
@@ -714,9 +670,9 @@ const Mentors = () => {
             </DialogHeader>
 
             {selectedMentorForReviews && (
-              <MentorReviewsList
-                reviews={selectedMentorForReviews.reviews}
-                maxVisible={10}
+              <MentorPublicFeedbacks
+                mentorId={selectedMentorForReviews.id}
+                totalCount={selectedMentorForReviews.totalReviews}
               />
             )}
           </DialogContent>
@@ -869,10 +825,6 @@ const Mentors = () => {
                   </div>
                 )}
 
-                {/* Featured Achievements - inside profile dialog */}
-                {mentorFeaturedMap[selectedMentorForProfile.id]?.length > 0 && (
-                  <MentorFeaturedAchievements achievements={mentorFeaturedMap[selectedMentorForProfile.id]} />
-                )}
 
                 <div className="mb-4">
                   <MentorRatingDisplay
