@@ -23,13 +23,28 @@ interface AppLayoutProps {
 const AppLayout = ({ children }: AppLayoutProps) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, profile, signOut, loading: authLoading } = useAuth();
+  const { user, profile, signOut, loading: authLoading, refreshProfile } = useAuth();
   const { isAdmin, loading: adminLoading } = useAdminCheck();
   const { isVolunteer, loading: volunteerLoading } = useVolunteerCheck();
   const { isMentor, loading: mentorLoading } = useMentorCheck();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [needsQuiz, setNeedsQuiz] = useState<boolean | null>(null);
 
   const rolesLoading = adminLoading || volunteerLoading || mentorLoading;
+
+  // Check if mentee needs onboarding quiz
+  useEffect(() => {
+    if (rolesLoading || !profile) {
+      setNeedsQuiz(null);
+      return;
+    }
+    const quizPassed = (profile as any).onboarding_quiz_passed;
+    if (!quizPassed && !isAdmin && !isVolunteer && !isMentor && !profile.first_mentorship_booked) {
+      setNeedsQuiz(true);
+    } else {
+      setNeedsQuiz(false);
+    }
+  }, [profile, rolesLoading, isAdmin, isVolunteer, isMentor]);
 
   const handleLogout = async () => {
     await signOut();
