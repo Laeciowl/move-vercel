@@ -41,7 +41,7 @@ const Contents = () => {
             <ArrowLeft className="w-4 h-4" />
             Voltar ao Dashboard
           </button>
-          {isVolunteer && (
+          {(isVolunteer || isMentor) && (
             <Button
               onClick={() => setShowSubmitModal(true)}
               size="sm"
