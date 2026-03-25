@@ -1029,6 +1029,8 @@ export type Database = {
           created_at: string
           id: string
           mentor_id: string
+          mentoria_aconteceu: string | null
+          motivo_nao_aconteceu: string | null
           rating: number
           review_publico: boolean | null
           session_id: string
@@ -1039,6 +1041,8 @@ export type Database = {
           created_at?: string
           id?: string
           mentor_id: string
+          mentoria_aconteceu?: string | null
+          motivo_nao_aconteceu?: string | null
           rating: number
           review_publico?: boolean | null
           session_id: string
@@ -1049,6 +1053,8 @@ export type Database = {
           created_at?: string
           id?: string
           mentor_id?: string
+          mentoria_aconteceu?: string | null
+          motivo_nao_aconteceu?: string | null
           rating?: number
           review_publico?: boolean | null
           session_id?: string
