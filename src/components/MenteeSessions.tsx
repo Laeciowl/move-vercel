@@ -19,6 +19,8 @@ interface Session {
   mentor_name: string | null;
   mentor_id: string | null;
   duration: number | null;
+  reconfirmation_sent: boolean | null;
+  reconfirmation_confirmed: boolean | null;
 }
 
 interface ReviewedSession {
