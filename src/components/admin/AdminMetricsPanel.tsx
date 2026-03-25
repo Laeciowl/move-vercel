@@ -731,10 +731,10 @@ const AdminMetricsPanel = () => {
                 <div className="flex items-center justify-between py-2 border-b border-border/30 last:border-0">
                   <span className="text-sm text-muted-foreground">{metric.label}</span>
                   <div className="flex items-center gap-3">
-                    <span className={`text-sm font-semibold ${getStatusColor(metric.value, metric.benchmarkGood, metric.benchmarkAlert)}`}>
+                    <span className={`text-sm font-semibold ${getStatusColor(metric.value, metric.benchmarkGood, metric.benchmarkAlert, metric.type === "time_to_first")}`}>
                       {metric.value}{metric.suffix}
                     </span>
-                    {getStatusIcon(metric.value, metric.benchmarkGood, metric.benchmarkAlert)}
+                    {getStatusIcon(metric.value, metric.benchmarkGood, metric.benchmarkAlert, metric.type === "time_to_first")}
                     <Button
                       variant="ghost"
                       size="sm"
