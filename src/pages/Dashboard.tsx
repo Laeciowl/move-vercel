@@ -19,7 +19,6 @@ import VolunteerPanel from "@/components/VolunteerPanel";
 import BugReportButton from "@/components/BugReportButton";
 import NpsModal from "@/components/NpsModal";
 import OnboardingTour from "@/components/OnboardingTour";
-import OnboardingQuiz from "@/components/OnboardingQuiz";
 import NavigationGrid from "@/components/NavigationGrid";
 
 import PlatformGuide from "@/components/PlatformGuide";
@@ -70,8 +69,7 @@ const Dashboard = () => {
   const [showUpdateForm, setShowUpdateForm] = useState(false);
   const [showProfileEdit, setShowProfileEdit] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const [showInterestsOnboarding, setShowInterestsOnboarding] = useState(false);
-  const [needsQuiz, setNeedsQuiz] = useState(false);
+  const [needsQuiz, setNeedsQuiz] = useState(false); // kept for legacy, quiz gate is now in AppLayout
   const [updating, setUpdating] = useState(false);
   const [updateData, setUpdateData] = useState({
     professionalStatus: "",
