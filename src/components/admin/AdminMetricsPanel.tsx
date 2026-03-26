@@ -255,9 +255,25 @@ const AdminMetricsPanel = () => {
         }
       });
       
+      // Get mentor user_ids to exclude from active/pending counts
+      const mentorUserIdsForCard = new Set<string>();
+      if (totalMentors > 0) {
+        const { data: mentorList } = await supabase.from("mentors").select("id").eq("status", "approved");
+        if (mentorList && mentorList.length > 0) {
+          const mIds = mentorList.map((m: any) => m.id);
+          for (let i = 0; i < mIds.length; i += 50) {
+            const chunk = mIds.slice(i, i + 50);
+            const { data } = await supabase.rpc("get_mentor_user_ids", { mentor_ids: chunk });
+            if (data) data.forEach((d: any) => mentorUserIdsForCard.add(d.user_id));
+          }
+        }
+      }
+
       let activeCount = 0;
       let pendingCount = 0;
       allProfiles.forEach((p: any) => {
+        // Skip mentors from active/pending classification
+        if (mentorUserIdsForCard.has(p.user_id)) return;
         const isActive = p.onboarding_quiz_passed || p.first_mentorship_booked || completedUserIds.has(p.user_id);
         if (isActive) activeCount++;
         else pendingCount++;
