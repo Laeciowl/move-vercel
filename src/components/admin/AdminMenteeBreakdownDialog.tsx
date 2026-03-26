@@ -65,6 +65,43 @@ const AdminMenteeBreakdownDialog = ({ open, onOpenChange, activeCount, pendingCo
       const userEmailMap = new Map(emailChunks.map((e) => [e.user_id, e.email?.toLowerCase()]));
 
 
+      const rows: MenteeRow[] = profiles.map((p: any) => {
+        const sessionData = userSessionMap.get(p.user_id);
+        const userEmail = userEmailMap.get(p.user_id);
+        const isMentor = userEmail ? mentorEmails.has(userEmail) : false;
+
+        // Determine status
+        let status: "ativo" | "pendente" | "mentor";
+        if (isMentor) {
+          status = "mentor";
+        } else if (p.onboarding_quiz_passed || p.first_mentorship_booked || (sessionData?.hasAny ?? false)) {
+          status = "ativo";
+        } else {
+          status = "pendente";
+        }
+
+        const firstDate = sessionData?.firstDate ?? null;
+        let daysToFirst: number | null = null;
+        if (firstDate) {
+          const signupMs = new Date(p.created_at).getTime();
+          const sessionMs = new Date(firstDate).getTime();
+          daysToFirst = Math.max(0, Math.round((sessionMs - signupMs) / (1000 * 60 * 60 * 24)));
+        }
+        return {
+          user_id: p.user_id,
+          name: p.name,
+          photo_url: p.photo_url,
+          created_at: p.created_at,
+          onboarding_quiz_passed: p.onboarding_quiz_passed,
+          first_mentorship_booked: p.first_mentorship_booked,
+          first_session_date: firstDate,
+          total_sessions: sessionData?.completedCount ?? 0,
+          daysToFirst,
+          status,
+          is_mentor: isMentor,
+        };
+      });
+
       rows.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
       setMentees(rows);
       setLoaded(true);
