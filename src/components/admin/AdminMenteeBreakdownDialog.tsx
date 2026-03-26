@@ -40,7 +40,6 @@ const AdminMenteeBreakdownDialog = ({ open, onOpenChange, activeCount, pendingCo
   const [search, setSearch] = useState("");
 
   const fetchMentees = useCallback(async () => {
-    if (loaded) return;
     setLoading(true);
     try {
       const [profilesRes, sessionsRes, mentorsRes] = await Promise.all([
@@ -130,7 +129,7 @@ const AdminMenteeBreakdownDialog = ({ open, onOpenChange, activeCount, pendingCo
     } finally {
       setLoading(false);
     }
-  }, [loaded]);
+  }, []);
 
   useEffect(() => {
     if (open) fetchMentees();
