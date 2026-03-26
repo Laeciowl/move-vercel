@@ -160,9 +160,10 @@ const AdminMenteeBreakdownDialog = ({ open, onOpenChange, activeCount, pendingCo
           <div className="flex items-center gap-3">
             <Tabs value={filter} onValueChange={(v) => setFilter(v as any)} className="flex-shrink-0">
               <TabsList className="h-8">
-                <TabsTrigger value="all" className="text-xs px-3 h-7">Todos ({mentees.length})</TabsTrigger>
-                <TabsTrigger value="ativo" className="text-xs px-3 h-7">Ativos ({mentees.filter(m => m.status === "ativo").length})</TabsTrigger>
-                <TabsTrigger value="pendente" className="text-xs px-3 h-7">Pendentes ({mentees.filter(m => m.status === "pendente").length})</TabsTrigger>
+                <TabsTrigger value="all" className="text-xs px-2 h-7">Todos ({mentees.length})</TabsTrigger>
+                <TabsTrigger value="ativo" className="text-xs px-2 h-7">Ativos ({mentees.filter(m => m.status === "ativo").length})</TabsTrigger>
+                <TabsTrigger value="mentor" className="text-xs px-2 h-7">Mentores ({mentees.filter(m => m.status === "mentor").length})</TabsTrigger>
+                <TabsTrigger value="pendente" className="text-xs px-2 h-7">Pendentes ({mentees.filter(m => m.status === "pendente").length})</TabsTrigger>
               </TabsList>
             </Tabs>
             <div className="relative flex-1">
@@ -200,7 +201,11 @@ const AdminMenteeBreakdownDialog = ({ open, onOpenChange, activeCount, pendingCo
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium text-foreground truncate">{m.name}</span>
-                      {m.status === "ativo" ? (
+                      {m.status === "mentor" ? (
+                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-blue-300 text-blue-600 flex-shrink-0">
+                          <CheckCircle className="w-2.5 h-2.5 mr-0.5" /> Mentor
+                        </Badge>
+                      ) : m.status === "ativo" ? (
                         <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-emerald-300 text-emerald-600 flex-shrink-0">
                           <CheckCircle className="w-2.5 h-2.5 mr-0.5" /> Ativo
                         </Badge>
@@ -228,9 +233,10 @@ const AdminMenteeBreakdownDialog = ({ open, onOpenChange, activeCount, pendingCo
 
                   {/* Status indicators */}
                   <div className="flex flex-col items-end gap-0.5 text-[10px] text-muted-foreground flex-shrink-0">
+                    {m.is_mentor && <span className="text-blue-600">✓ Mentor</span>}
                     {m.onboarding_quiz_passed && <span className="text-emerald-600">✓ Quiz</span>}
                     {m.first_mentorship_booked && <span className="text-emerald-600">✓ Agendou</span>}
-                    {!m.onboarding_quiz_passed && !m.first_mentorship_booked && m.total_sessions === 0 && (
+                    {!m.is_mentor && !m.onboarding_quiz_passed && !m.first_mentorship_booked && m.total_sessions === 0 && (
                       <span className="text-amber-500">Sem atividade</span>
                     )}
                   </div>
