@@ -64,8 +64,28 @@ const AdminMenteeBreakdownDialog = ({ open, onOpenChange, activeCount, pendingCo
       }
       const userEmailMap = new Map(emailChunks.map((e) => [e.user_id, e.email?.toLowerCase()]));
 
+      // Build per-user session stats
+      const userSessionMap = new Map<string, { firstDate: string | null; completedCount: number; hasAny: boolean }>();
+      sessions.forEach((s: any) => {
+        const existing = userSessionMap.get(s.user_id);
+        const isCompleted = s.status === "completed" && s.completed_at;
+        if (!existing) {
+          userSessionMap.set(s.user_id, {
+            firstDate: isCompleted ? s.completed_at : null,
+            completedCount: isCompleted ? 1 : 0,
+            hasAny: true,
+          });
+        } else {
+          existing.hasAny = true;
+          if (isCompleted) {
+            existing.completedCount++;
+            if (!existing.firstDate || s.completed_at < existing.firstDate) {
+              existing.firstDate = s.completed_at;
+            }
+          }
+        }
+      });
 
-      const rows: MenteeRow[] = profiles.map((p: any) => {
         const sessionData = userSessionMap.get(p.user_id);
         const userEmail = userEmailMap.get(p.user_id);
         const isMentor = userEmail ? mentorEmails.has(userEmail) : false;
