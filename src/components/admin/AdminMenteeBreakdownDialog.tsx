@@ -21,7 +21,8 @@ interface MenteeRow {
   first_session_date: string | null;
   total_sessions: number;
   daysToFirst: number | null;
-  status: "ativo" | "pendente";
+  status: "ativo" | "pendente" | "mentor";
+  is_mentor: boolean;
 }
 
 interface Props {
@@ -35,66 +36,34 @@ const AdminMenteeBreakdownDialog = ({ open, onOpenChange, activeCount, pendingCo
   const [mentees, setMentees] = useState<MenteeRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [loaded, setLoaded] = useState(false);
-  const [filter, setFilter] = useState<"all" | "ativo" | "pendente">("all");
+  const [filter, setFilter] = useState<"all" | "ativo" | "pendente" | "mentor">("all");
   const [search, setSearch] = useState("");
 
   const fetchMentees = useCallback(async () => {
     if (loaded) return;
     setLoading(true);
     try {
-      const [profilesRes, sessionsRes] = await Promise.all([
+      const [profilesRes, sessionsRes, mentorsRes] = await Promise.all([
         supabase.from("profiles").select("user_id, name, photo_url, created_at, onboarding_quiz_passed, first_mentorship_booked"),
         supabase.from("mentor_sessions").select("user_id, completed_at, status"),
+        supabase.from("mentors").select("email"),
       ]);
 
       const profiles = profilesRes.data || [];
       const sessions = sessionsRes.data || [];
+      const mentorEmails = new Set((mentorsRes.data || []).map((m: any) => m.email?.toLowerCase()));
 
-      // Build per-user session stats
-      const userSessionMap = new Map<string, { firstDate: string | null; completedCount: number; hasAny: boolean }>();
-      sessions.forEach((s: any) => {
-        const existing = userSessionMap.get(s.user_id);
-        const isCompleted = s.status === "completed" && s.completed_at;
-        if (!existing) {
-          userSessionMap.set(s.user_id, {
-            firstDate: isCompleted ? s.completed_at : null,
-            completedCount: isCompleted ? 1 : 0,
-            hasAny: true,
-          });
-        } else {
-          existing.hasAny = true;
-          if (isCompleted) {
-            existing.completedCount++;
-            if (!existing.firstDate || s.completed_at < existing.firstDate) {
-              existing.firstDate = s.completed_at;
-            }
-          }
-        }
-      });
+      // Fetch emails for all profile user_ids to cross-reference with mentors
+      const userIds = profiles.map((p: any) => p.user_id);
+      const emailChunks: { user_id: string; email: string }[] = [];
+      // Fetch in chunks of 50
+      for (let i = 0; i < userIds.length; i += 50) {
+        const chunk = userIds.slice(i, i + 50);
+        const { data } = await supabase.rpc("get_mentee_emails", { session_user_ids: chunk });
+        if (data) emailChunks.push(...data);
+      }
+      const userEmailMap = new Map(emailChunks.map((e) => [e.user_id, e.email?.toLowerCase()]));
 
-      const rows: MenteeRow[] = profiles.map((p: any) => {
-        const sessionData = userSessionMap.get(p.user_id);
-        const isActive = p.onboarding_quiz_passed || p.first_mentorship_booked || (sessionData?.hasAny ?? false);
-        const firstDate = sessionData?.firstDate ?? null;
-        let daysToFirst: number | null = null;
-        if (firstDate) {
-          const signupMs = new Date(p.created_at).getTime();
-          const sessionMs = new Date(firstDate).getTime();
-          daysToFirst = Math.max(0, Math.round((sessionMs - signupMs) / (1000 * 60 * 60 * 24)));
-        }
-        return {
-          user_id: p.user_id,
-          name: p.name,
-          photo_url: p.photo_url,
-          created_at: p.created_at,
-          onboarding_quiz_passed: p.onboarding_quiz_passed,
-          first_mentorship_booked: p.first_mentorship_booked,
-          first_session_date: firstDate,
-          total_sessions: sessionData?.completedCount ?? 0,
-          daysToFirst,
-          status: isActive ? "ativo" : "pendente",
-        };
-      });
 
       rows.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
       setMentees(rows);
