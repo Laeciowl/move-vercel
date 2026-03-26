@@ -46,23 +46,23 @@ const AdminMenteeBreakdownDialog = ({ open, onOpenChange, activeCount, pendingCo
       const [profilesRes, sessionsRes, mentorsRes] = await Promise.all([
         supabase.from("profiles").select("user_id, name, photo_url, created_at, onboarding_quiz_passed, first_mentorship_booked"),
         supabase.from("mentor_sessions").select("user_id, completed_at, status"),
-        supabase.from("mentors").select("email"),
+        supabase.from("mentors").select("id, status"),
       ]);
 
       const profiles = profilesRes.data || [];
       const sessions = sessionsRes.data || [];
-      const mentorEmails = new Set((mentorsRes.data || []).map((m: any) => m.email?.toLowerCase()));
+      const approvedMentors = (mentorsRes.data || []).filter((m: any) => m.status === "approved");
 
-      // Fetch emails for all profile user_ids to cross-reference with mentors
-      const userIds = profiles.map((p: any) => p.user_id);
-      const emailChunks: { user_id: string; email: string }[] = [];
-      // Fetch in chunks of 50
-      for (let i = 0; i < userIds.length; i += 50) {
-        const chunk = userIds.slice(i, i + 50);
-        const { data } = await supabase.rpc("get_mentee_emails", { session_user_ids: chunk });
-        if (data) emailChunks.push(...data);
+      // Get user_ids for all approved mentors via RPC
+      const mentorIds = approvedMentors.map((m: any) => m.id);
+      const mentorUserIds = new Set<string>();
+      if (mentorIds.length > 0) {
+        for (let i = 0; i < mentorIds.length; i += 50) {
+          const chunk = mentorIds.slice(i, i + 50);
+          const { data } = await supabase.rpc("get_mentor_user_ids", { mentor_ids: chunk });
+          if (data) data.forEach((d: any) => mentorUserIds.add(d.user_id));
+        }
       }
-      const userEmailMap = new Map(emailChunks.map((e) => [e.user_id, e.email?.toLowerCase()]));
 
       // Build per-user session stats
       const userSessionMap = new Map<string, { firstDate: string | null; completedCount: number; hasAny: boolean }>();
