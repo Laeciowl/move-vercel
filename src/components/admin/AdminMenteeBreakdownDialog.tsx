@@ -21,7 +21,8 @@ interface MenteeRow {
   first_session_date: string | null;
   total_sessions: number;
   daysToFirst: number | null;
-  status: "ativo" | "pendente";
+  status: "ativo" | "pendente" | "mentor";
+  is_mentor: boolean;
 }
 
 interface Props {
@@ -35,20 +36,33 @@ const AdminMenteeBreakdownDialog = ({ open, onOpenChange, activeCount, pendingCo
   const [mentees, setMentees] = useState<MenteeRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [loaded, setLoaded] = useState(false);
-  const [filter, setFilter] = useState<"all" | "ativo" | "pendente">("all");
+  const [filter, setFilter] = useState<"all" | "ativo" | "pendente" | "mentor">("all");
   const [search, setSearch] = useState("");
 
   const fetchMentees = useCallback(async () => {
     if (loaded) return;
     setLoading(true);
     try {
-      const [profilesRes, sessionsRes] = await Promise.all([
+      const [profilesRes, sessionsRes, mentorsRes] = await Promise.all([
         supabase.from("profiles").select("user_id, name, photo_url, created_at, onboarding_quiz_passed, first_mentorship_booked"),
         supabase.from("mentor_sessions").select("user_id, completed_at, status"),
+        supabase.from("mentors").select("email"),
       ]);
 
       const profiles = profilesRes.data || [];
       const sessions = sessionsRes.data || [];
+      const mentorEmails = new Set((mentorsRes.data || []).map((m: any) => m.email?.toLowerCase()));
+
+      // Fetch emails for all profile user_ids to cross-reference with mentors
+      const userIds = profiles.map((p: any) => p.user_id);
+      const emailChunks: { user_id: string; email: string }[] = [];
+      // Fetch in chunks of 50
+      for (let i = 0; i < userIds.length; i += 50) {
+        const chunk = userIds.slice(i, i + 50);
+        const { data } = await supabase.rpc("get_mentee_emails", { session_user_ids: chunk });
+        if (data) emailChunks.push(...data);
+      }
+      const userEmailMap = new Map(emailChunks.map((e) => [e.user_id, e.email?.toLowerCase()]));
 
       // Build per-user session stats
       const userSessionMap = new Map<string, { firstDate: string | null; completedCount: number; hasAny: boolean }>();
@@ -74,7 +88,19 @@ const AdminMenteeBreakdownDialog = ({ open, onOpenChange, activeCount, pendingCo
 
       const rows: MenteeRow[] = profiles.map((p: any) => {
         const sessionData = userSessionMap.get(p.user_id);
-        const isActive = p.onboarding_quiz_passed || p.first_mentorship_booked || (sessionData?.hasAny ?? false);
+        const userEmail = userEmailMap.get(p.user_id);
+        const isMentor = userEmail ? mentorEmails.has(userEmail) : false;
+
+        // Determine status
+        let status: "ativo" | "pendente" | "mentor";
+        if (isMentor) {
+          status = "mentor";
+        } else if (p.onboarding_quiz_passed || p.first_mentorship_booked || (sessionData?.hasAny ?? false)) {
+          status = "ativo";
+        } else {
+          status = "pendente";
+        }
+
         const firstDate = sessionData?.firstDate ?? null;
         let daysToFirst: number | null = null;
         if (firstDate) {
@@ -92,7 +118,8 @@ const AdminMenteeBreakdownDialog = ({ open, onOpenChange, activeCount, pendingCo
           first_session_date: firstDate,
           total_sessions: sessionData?.completedCount ?? 0,
           daysToFirst,
-          status: isActive ? "ativo" : "pendente",
+          status,
+          is_mentor: isMentor,
         };
       });
 
@@ -122,9 +149,9 @@ const AdminMenteeBreakdownDialog = ({ open, onOpenChange, activeCount, pendingCo
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
         <DialogHeader>
-          <DialogTitle>👥 Mentorados por Etapa</DialogTitle>
+          <DialogTitle>👥 Usuários por Etapa</DialogTitle>
           <DialogDescription>
-            {activeCount} ativos · {pendingCount} pendentes · {activeCount + pendingCount} total
+            {mentees.filter(m => m.status === "ativo").length} ativos · {mentees.filter(m => m.status === "mentor").length} mentores · {mentees.filter(m => m.status === "pendente").length} pendentes · {mentees.length} total
           </DialogDescription>
         </DialogHeader>
 
@@ -133,9 +160,10 @@ const AdminMenteeBreakdownDialog = ({ open, onOpenChange, activeCount, pendingCo
           <div className="flex items-center gap-3">
             <Tabs value={filter} onValueChange={(v) => setFilter(v as any)} className="flex-shrink-0">
               <TabsList className="h-8">
-                <TabsTrigger value="all" className="text-xs px-3 h-7">Todos ({mentees.length})</TabsTrigger>
-                <TabsTrigger value="ativo" className="text-xs px-3 h-7">Ativos ({mentees.filter(m => m.status === "ativo").length})</TabsTrigger>
-                <TabsTrigger value="pendente" className="text-xs px-3 h-7">Pendentes ({mentees.filter(m => m.status === "pendente").length})</TabsTrigger>
+                <TabsTrigger value="all" className="text-xs px-2 h-7">Todos ({mentees.length})</TabsTrigger>
+                <TabsTrigger value="ativo" className="text-xs px-2 h-7">Ativos ({mentees.filter(m => m.status === "ativo").length})</TabsTrigger>
+                <TabsTrigger value="mentor" className="text-xs px-2 h-7">Mentores ({mentees.filter(m => m.status === "mentor").length})</TabsTrigger>
+                <TabsTrigger value="pendente" className="text-xs px-2 h-7">Pendentes ({mentees.filter(m => m.status === "pendente").length})</TabsTrigger>
               </TabsList>
             </Tabs>
             <div className="relative flex-1">
@@ -173,7 +201,11 @@ const AdminMenteeBreakdownDialog = ({ open, onOpenChange, activeCount, pendingCo
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium text-foreground truncate">{m.name}</span>
-                      {m.status === "ativo" ? (
+                      {m.status === "mentor" ? (
+                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-blue-300 text-blue-600 flex-shrink-0">
+                          <CheckCircle className="w-2.5 h-2.5 mr-0.5" /> Mentor
+                        </Badge>
+                      ) : m.status === "ativo" ? (
                         <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-emerald-300 text-emerald-600 flex-shrink-0">
                           <CheckCircle className="w-2.5 h-2.5 mr-0.5" /> Ativo
                         </Badge>
@@ -201,9 +233,10 @@ const AdminMenteeBreakdownDialog = ({ open, onOpenChange, activeCount, pendingCo
 
                   {/* Status indicators */}
                   <div className="flex flex-col items-end gap-0.5 text-[10px] text-muted-foreground flex-shrink-0">
+                    {m.is_mentor && <span className="text-blue-600">✓ Mentor</span>}
                     {m.onboarding_quiz_passed && <span className="text-emerald-600">✓ Quiz</span>}
                     {m.first_mentorship_booked && <span className="text-emerald-600">✓ Agendou</span>}
-                    {!m.onboarding_quiz_passed && !m.first_mentorship_booked && m.total_sessions === 0 && (
+                    {!m.is_mentor && !m.onboarding_quiz_passed && !m.first_mentorship_booked && m.total_sessions === 0 && (
                       <span className="text-amber-500">Sem atividade</span>
                     )}
                   </div>
