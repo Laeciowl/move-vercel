@@ -86,6 +86,7 @@ const AdminMenteeBreakdownDialog = ({ open, onOpenChange, activeCount, pendingCo
         }
       });
 
+      const rows: MenteeRow[] = profiles.map((p: any) => {
         const sessionData = userSessionMap.get(p.user_id);
         const userEmail = userEmailMap.get(p.user_id);
         const isMentor = userEmail ? mentorEmails.has(userEmail) : false;
