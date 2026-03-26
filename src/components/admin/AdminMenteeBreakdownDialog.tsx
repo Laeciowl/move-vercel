@@ -149,9 +149,9 @@ const AdminMenteeBreakdownDialog = ({ open, onOpenChange, activeCount, pendingCo
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
         <DialogHeader>
-          <DialogTitle>👥 Mentorados por Etapa</DialogTitle>
+          <DialogTitle>👥 Usuários por Etapa</DialogTitle>
           <DialogDescription>
-            {activeCount} ativos · {pendingCount} pendentes · {activeCount + pendingCount} total
+            {mentees.filter(m => m.status === "ativo").length} ativos · {mentees.filter(m => m.status === "mentor").length} mentores · {mentees.filter(m => m.status === "pendente").length} pendentes · {mentees.length} total
           </DialogDescription>
         </DialogHeader>
 
