@@ -113,6 +113,43 @@ const SessionReviewModal = ({
     if (error) {
       toast.error("Erro ao registrar: " + error.message);
     } else {
+      // Record attendance for no-show cases (triggers penalty system)
+      if (motivoNaoAconteceu === "eu_nao_apareci" || motivoNaoAconteceu === "mentor_nao_apareceu") {
+        const attendanceStatus = motivoNaoAconteceu === "eu_nao_apareci" 
+          ? "no_show_mentorado" 
+          : "no_show_mentor";
+        try {
+          await supabase.from("mentee_attendance").insert({
+            session_id: sessionId,
+            mentor_id: mentorId,
+            mentee_user_id: userId,
+            status: attendanceStatus,
+            mentee_avisou: false,
+            mentor_observations: mentorNotes + (detalhesMotivo.trim() ? ` — ${detalhesMotivo.trim()}` : ""),
+            reported_by: userId,
+          } as any);
+        } catch (err) {
+          console.error("Error recording attendance:", err);
+        }
+      }
+
+      // Record attendance for cancelled/rescheduled
+      if (motivoNaoAconteceu === "cancelamos_reagendar") {
+        try {
+          await supabase.from("mentee_attendance").insert({
+            session_id: sessionId,
+            mentor_id: mentorId,
+            mentee_user_id: userId,
+            status: "reagendada",
+            mentee_avisou: true,
+            mentor_observations: "Cancelada pelo mentorado para reagendar",
+            reported_by: userId,
+          } as any);
+        } catch (err) {
+          console.error("Error recording attendance:", err);
+        }
+      }
+
       // If mentor didn't show up, alert admins
       if (motivoNaoAconteceu === "mentor_nao_apareceu") {
         try {

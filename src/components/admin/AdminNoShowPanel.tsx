@@ -177,10 +177,12 @@ const AdminNoShowPanel = () => {
     );
   }
 
-  const critical = penalties.filter(p => p.total_no_shows >= 3);
-  const warning = penalties.filter(p => p.total_no_shows === 2);
+  // Filter out users with 0 no-shows and active status (forgiven/clean records)
+  const relevantPenalties = penalties.filter(p => p.total_no_shows > 0 || p.status !== "ativo");
+  const critical = relevantPenalties.filter(p => p.total_no_shows >= 3);
+  const warning = relevantPenalties.filter(p => p.total_no_shows === 2);
 
-  const filteredPenalties = penalties.filter(p =>
+  const filteredPenalties = relevantPenalties.filter(p =>
     !search || (p.profile_name?.toLowerCase().includes(search.toLowerCase()))
   );
 
