@@ -57,49 +57,15 @@ const AdminNoShowPanel = () => {
       .select("*")
       .order("total_no_shows", { ascending: false });
 
-    // Fetch attendance stats
-    const { data: attendanceData } = await supabase
-      .from("mentee_attendance")
-      .select("status")
-      .limit(1000);
-
-    // Fetch profile names AND photos for penalty users
-    if (penaltiesData && penaltiesData.length > 0) {
-      const userIds = penaltiesData.map(p => p.user_id);
-      const { data: profiles, error: profilesError } = await supabase
-        .from("profiles")
-        .select("user_id, name, photo_url")
-        .in("user_id", userIds);
-
-      if (profilesError) {
-        console.error("Error fetching profiles for penalties:", profilesError);
-      }
-
-      const profileMap = new Map(
-        (profiles || []).map(pr => [pr.user_id, pr])
-      );
-
-      const enriched = penaltiesData.map(p => {
-        const prof = profileMap.get(p.user_id);
-        return {
-          ...p,
-          profile_name: prof?.name || "Usuário desconhecido",
-          profile_photo: prof?.photo_url || null,
-        };
-      });
-
-      setPenalties(enriched);
-    } else {
-      setPenalties([]);
-    }
-
-    // Calculate stats
-    const totalSessions = (attendanceData || []).length;
-    const noShows = (attendanceData || []).filter(a => a.status === "no_show_mentorado").length;
+    // Calculate stats from penalties data (same source as the list)
+    const allPenalties = penaltiesData || [];
+    const totalNoShows = allPenalties.reduce((sum, p) => sum + (p.total_no_shows || 0), 0);
+    const totalCompleted = allPenalties.reduce((sum, p) => sum + (p.total_completed || 0), 0);
+    const totalSessions = totalNoShows + totalCompleted;
     setStats({
       total: totalSessions,
-      noShows,
-      rate: totalSessions > 0 ? Math.round(((totalSessions - noShows) / totalSessions) * 100 * 10) / 10 : 100,
+      noShows: totalNoShows,
+      rate: totalSessions > 0 ? Math.round(((totalCompleted) / totalSessions) * 100 * 10) / 10 : 100,
     });
 
     setLoading(false);
