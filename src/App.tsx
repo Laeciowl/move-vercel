@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import Maintenance from "@/pages/Maintenance";
 import { useState, useEffect } from "react";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
@@ -38,13 +39,25 @@ import { supabase } from "./integrations/supabase/client";
 
 const queryClient = new QueryClient();
 
+const MAINTENANCE_MODE = import.meta.env.VITE_MAINTENANCE_MODE === "true";
+
 const GlobalOnboarding = () => {
   const { user, profile, refreshProfile } = useAuth();
   const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
-    if (profile && !profile.onboarding_completed && profile.onboarding_quiz_passed && user) {
-      supabase.from("user_roles").select("role").eq("user_id", user.id).eq("role", "voluntario").maybeSingle()
+    if (
+      profile &&
+      !profile.onboarding_completed &&
+      profile.onboarding_quiz_passed &&
+      user
+    ) {
+      supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "voluntario")
+        .maybeSingle()
         .then(({ data }) => {
           if (!data) setShowOnboarding(true);
         });
@@ -56,10 +69,12 @@ const GlobalOnboarding = () => {
   if (!showOnboarding) return null;
 
   return (
-    <OnboardingTour onComplete={() => {
-      setShowOnboarding(false);
-      refreshProfile();
-    }} />
+    <OnboardingTour
+      onComplete={() => {
+        setShowOnboarding(false);
+        refreshProfile();
+      }}
+    />
   );
 };
 
@@ -70,37 +85,48 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <GoogleCalendarCallbackHandler />
-          <GlobalOnboarding />
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/cadastro" element={<Signup />} />
-            <Route path="/dashboard" element={<Home />} />
-            <Route path="/inicio" element={<Home />} />
-            <Route path="/voluntario" element={<Volunteer />} />
-            <Route path="/onboarding-voluntario" element={<VolunteerOnboarding />} />
-            <Route path="/mentores" element={<Mentors />} />
-            <Route path="/mentor/agenda" element={<MentorAgenda />} />
-            <Route path="/mentor/perfil" element={<MentorProfile />} />
-            <Route path="/admin" element={<Admin />} />
-            <Route path="/termos" element={<Terms />} />
-            <Route path="/para-mentorados" element={<ForMentees />} />
-            <Route path="/para-mentores" element={<ForMentors />} />
-            <Route path="/conquistas" element={<Achievements />} />
-            <Route path="/conteudos" element={<Contents />} />
-            <Route path="/conteudos/salvos" element={<SavedContents />} />
-            <Route path="/trilhas" element={<Trails />} />
-            <Route path="/trilhas/:id" element={<TrailDetail />} />
-            <Route path="/ajuda" element={<Help />} />
-            <Route path="/comunidades" element={<Communities />} />
-            <Route path="/plano" element={<DevPlan />} />
-            <Route path="/avaliar" element={<Nps />} />
-            <Route path="/interesses" element={<Interests />} />
-            <Route path="/minhas-mentorias" element={<MinhasMentorias />} />
-            <Route path="/reconfirmar" element={<Reconfirmar />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          {MAINTENANCE_MODE ? (
+            <Routes>
+              <Route path="*" element={<Maintenance />} />
+            </Routes>
+          ) : (
+            <>
+              <GoogleCalendarCallbackHandler />
+              <GlobalOnboarding />
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/cadastro" element={<Signup />} />
+                <Route path="/dashboard" element={<Home />} />
+                <Route path="/inicio" element={<Home />} />
+                <Route path="/voluntario" element={<Volunteer />} />
+                <Route
+                  path="/onboarding-voluntario"
+                  element={<VolunteerOnboarding />}
+                />
+                <Route path="/mentores" element={<Mentors />} />
+                <Route path="/mentor/agenda" element={<MentorAgenda />} />
+                <Route path="/mentor/perfil" element={<MentorProfile />} />
+                <Route path="/admin" element={<Admin />} />
+                <Route path="/termos" element={<Terms />} />
+                <Route path="/para-mentorados" element={<ForMentees />} />
+                <Route path="/para-mentores" element={<ForMentors />} />
+                <Route path="/conquistas" element={<Achievements />} />
+                <Route path="/conteudos" element={<Contents />} />
+                <Route path="/conteudos/salvos" element={<SavedContents />} />
+                <Route path="/trilhas" element={<Trails />} />
+                <Route path="/trilhas/:id" element={<TrailDetail />} />
+                <Route path="/ajuda" element={<Help />} />
+                <Route path="/comunidades" element={<Communities />} />
+                <Route path="/plano" element={<DevPlan />} />
+                <Route path="/avaliar" element={<Nps />} />
+                <Route path="/interesses" element={<Interests />} />
+                <Route path="/minhas-mentorias" element={<MinhasMentorias />} />
+                <Route path="/reconfirmar" element={<Reconfirmar />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </>
+          )}
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>
