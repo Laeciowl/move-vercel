@@ -21,16 +21,21 @@ const passwordSchema = z
   .regex(/[0-9]/, "Senha deve conter pelo menos um número")
   .regex(/[^A-Za-z0-9]/, "Senha deve conter pelo menos um caractere especial (!@#$%^&*)");
 
-type AuthView = "login" | "forgot-password" | "reset-password";
+type AuthView = "login" | "forgot-password" | "reset-password" | "link-expired";
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
   const shouldShowSignup = searchParams.get("cadastro") === "true";
   const isPasswordReset = searchParams.get("type") === "recovery";
-  
-  const [view, setView] = useState<AuthView>(
-    isPasswordReset ? "reset-password" : "login"
-  );
+
+  const getInitialView = (): AuthView => {
+    if (!isPasswordReset) return "login";
+    const hash = window.location.hash;
+    if (hash.includes("error=")) return "link-expired";
+    return "reset-password";
+  };
+
+  const [view, setView] = useState<AuthView>(getInitialView);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -59,6 +64,16 @@ const Auth = () => {
       navigate("/inicio");
     }
   }, [user, authLoading, navigate, view]);
+
+  // Listen for Supabase PASSWORD_RECOVERY event to switch to reset view
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") {
+        setView("reset-password");
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -170,6 +185,8 @@ const Auth = () => {
         return "Recuperar senha";
       case "reset-password":
         return "Definir nova senha";
+      case "link-expired":
+        return "Link expirado";
     }
   };
 
@@ -319,6 +336,31 @@ const Auth = () => {
                 Voltar ao login
               </button>
             </form>
+          )}
+
+          {view === "link-expired" && (
+            <div className="space-y-4 text-center">
+              <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <KeyRound className="w-8 h-8 text-destructive" />
+              </div>
+              <p className="text-sm text-muted-foreground">
+                O link de recuperação de senha expirou ou já foi utilizado. Solicite um novo link para continuar.
+              </p>
+              <button
+                type="button"
+                onClick={() => setView("forgot-password")}
+                className="w-full bg-gradient-hero text-primary-foreground py-3 rounded-xl font-bold shadow-button hover:opacity-90 transition-opacity"
+              >
+                Solicitar novo link
+              </button>
+              <button
+                type="button"
+                onClick={() => setView("login")}
+                className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Voltar ao login
+              </button>
+            </div>
           )}
 
           {view === "reset-password" && (
