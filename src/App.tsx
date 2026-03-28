@@ -39,7 +39,8 @@ import { supabase } from "./integrations/supabase/client";
 
 const queryClient = new QueryClient();
 
-const MAINTENANCE_MODE = import.meta.env.VITE_MAINTENANCE_MODE === "true";
+// const MAINTENANCE_MODE = import.meta.env.VITE_MAINTENANCE_MODE === "true";
+const MAINTENANCE_MODE = false;
 
 const GlobalOnboarding = () => {
   const { user, profile, refreshProfile } = useAuth();
