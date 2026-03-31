@@ -1,4 +1,4 @@
-project_id = "yvrbnaqzvbfgarilcqaf"
+project_id = "yzvhflzngbajubserdgl"
 
 [functions.send-mentorship-reminder]
 verify_jwt = false

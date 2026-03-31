@@ -163,7 +163,7 @@ Deno.serve(async (req) => {
         if (!menteeEmail) continue;
 
         // Build confirmation/cancellation URLs
-        const baseUrl = "https://movesocial.lovable.app";
+        const baseUrl = "https://movecarreiras.org";
         const confirmUrl = `${baseUrl}/reconfirmar?session=${session.id}&action=confirm`;
         const cancelUrl = `${baseUrl}/reconfirmar?session=${session.id}&action=cancel`;
 
