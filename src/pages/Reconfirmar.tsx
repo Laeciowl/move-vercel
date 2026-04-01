@@ -6,107 +6,94 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import AppLayout from "@/components/AppLayout";
 
+type PageStatus = "loading" | "confirming" | "confirmed" | "cancelled" | "error" | "already_done";
+
+interface SessionInfo {
+  mentorName: string;
+  date: string;
+}
+
 const Reconfirmar = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const sessionId = searchParams.get("session");
   const action = searchParams.get("action"); // "confirm" or "cancel"
-  const [status, setStatus] = useState<"loading" | "confirming" | "confirmed" | "cancelled" | "error" | "already_done">("loading");
-  const [sessionInfo, setSessionInfo] = useState<{ mentorName: string; date: string } | null>(null);
+  const [status, setStatus] = useState<PageStatus>("loading");
+  const [sessionInfo, setSessionInfo] = useState<SessionInfo | null>(null);
 
   useEffect(() => {
     if (!sessionId) {
       setStatus("error");
       return;
     }
-    checkSession();
+    init();
   }, [sessionId]);
 
-  const checkSession = async () => {
-    const { data: session, error } = await supabase
-      .from("mentor_sessions")
-      .select("id, scheduled_at, status, reconfirmation_confirmed, mentors:mentor_id(name)")
-      .eq("id", sessionId!)
-      .maybeSingle();
-
-    if (error || !session) {
-      setStatus("error");
-      return;
-    }
-
-    const mentorData = session.mentors as any;
-    setSessionInfo({
-      mentorName: mentorData?.name || "Mentor",
-      date: new Date(session.scheduled_at).toLocaleDateString("pt-BR", {
-        weekday: "long", day: "2-digit", month: "long",
-        hour: "2-digit", minute: "2-digit",
-      }),
+  const invoke = async (act: "check" | "confirm" | "cancel") => {
+    const { data, error } = await supabase.functions.invoke("handle-reconfirmation", {
+      body: { sessionId, action: act },
     });
+    if (error) throw error;
+    return data as {
+      result?: "confirmed" | "cancelled" | "already_done";
+      status?: string;
+      reconfirmation_confirmed?: boolean | null;
+      sessionInfo?: SessionInfo;
+      error?: string;
+    };
+  };
 
-    if (session.status !== "scheduled") {
-      setStatus("already_done");
-      return;
-    }
+  const init = async () => {
+    try {
+      const data = await invoke("check");
 
-    if (session.reconfirmation_confirmed !== null) {
-      setStatus("already_done");
-      return;
-    }
+      if (data.sessionInfo) setSessionInfo(data.sessionInfo);
 
-    // Auto-execute if action is specified
-    if (action === "confirm") {
-      setStatus("confirming");
-      await handleConfirm();
-    } else if (action === "cancel") {
-      setStatus("confirming");
-      await handleCancel();
-    } else {
-      setStatus("confirming");
+      if (data.status !== "scheduled" || data.reconfirmation_confirmed !== null) {
+        setStatus("already_done");
+        return;
+      }
+
+      // Auto-execute if action is specified in the URL
+      if (action === "confirm") {
+        await handleConfirm();
+      } else if (action === "cancel") {
+        await handleCancel();
+      } else {
+        setStatus("confirming");
+      }
+    } catch {
+      setStatus("error");
     }
   };
 
   const handleConfirm = async () => {
-    const { error } = await supabase
-      .from("mentor_sessions")
-      .update({
-        reconfirmation_confirmed: true,
-        reconfirmation_confirmed_at: new Date().toISOString(),
-      })
-      .eq("id", sessionId!);
-
-    if (error) {
-      setStatus("error");
-    } else {
-      setStatus("confirmed");
-      // Send notification to mentor
-      try {
-        await supabase.functions.invoke("send-notification-email", {
-          body: {
-            type: "mentee_reconfirmed",
-            data: { sessionId },
-          },
-        });
-      } catch (e) {
-        console.error("Error notifying mentor:", e);
+    setStatus("loading");
+    try {
+      const data = await invoke("confirm");
+      if (data.sessionInfo) setSessionInfo(data.sessionInfo);
+      if (data.result === "already_done") {
+        setStatus("already_done");
+      } else {
+        setStatus("confirmed");
       }
+    } catch {
+      setStatus("error");
     }
   };
 
   const handleCancel = async () => {
-    const { error } = await supabase
-      .from("mentor_sessions")
-      .update({
-        reconfirmation_confirmed: false,
-        reconfirmation_confirmed_at: new Date().toISOString(),
-        status: "cancelled",
-        mentor_notes: "Cancelada pelo mentorado via reconfirmação",
-      })
-      .eq("id", sessionId!);
-
-    if (error) {
+    setStatus("loading");
+    try {
+      const data = await invoke("cancel");
+      if (data.sessionInfo) setSessionInfo(data.sessionInfo);
+      if (data.result === "already_done") {
+        setStatus("already_done");
+      } else {
+        setStatus("cancelled");
+      }
+    } catch {
       setStatus("error");
-    } else {
-      setStatus("cancelled");
     }
   };
 
@@ -167,7 +154,7 @@ const Reconfirmar = () => {
             </>
           )}
 
-          {status === "confirming" && !action && (
+          {status === "confirming" && (
             <>
               <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
                 <AlertTriangle className="w-8 h-8 text-primary" />

@@ -1,5 +1,11 @@
 project_id = "yzvhflzngbajubserdgl"
 
+[functions.send-notification-email]
+verify_jwt = false
+
+[functions.send-review-reminders]
+verify_jwt = false
+
 [functions.send-mentorship-reminder]
 verify_jwt = false
 
@@ -10,6 +16,9 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.send-session-reminders]
+verify_jwt = false
+
+[functions.handle-reconfirmation]
 verify_jwt = false
 
 [functions.send-reconfirmation]
