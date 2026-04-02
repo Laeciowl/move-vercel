@@ -197,10 +197,12 @@ const MenteeSessions = () => {
     const reviewed = isReviewed(session.id);
     const needsReview = canReview(session);
     const reviewData = reviewedSessions.get(session.id);
-    const needsReconfirmation = session.status === "scheduled" 
-      && session.reconfirmation_sent === true 
-      && session.reconfirmation_confirmed === null
-      && !isSessionPast(session.scheduled_at, session.duration || 30);
+    const minutesUntil = (new Date(session.scheduled_at).getTime() - Date.now()) / 60_000;
+    const needsReconfirmation = session.status === "scheduled"
+      && session.confirmed_by_mentor === true
+      && minutesUntil <= 360  // within 6 hours
+      && minutesUntil > 0     // session hasn't started yet
+      && session.reconfirmation_confirmed === null;
     const isReconfirmed = session.reconfirmation_confirmed === true;
 
     return (
