@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ClipboardCheck, User, Loader2, CheckCircle, XCircle, RefreshCw, AlertTriangle, Calendar } from "lucide-react";
+import { ClipboardCheck, User, Loader2, CheckCircle, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -17,11 +17,19 @@ interface MentorSession {
   confirmed_by_mentor: boolean;
   user_id: string;
   mentor_notes: string | null;
+  duration?: number | null;
   mentee_profile?: {
     name: string;
     phone: string | null;
     photo_url?: string | null;
   };
+}
+
+/** Após o horário de término (início + duração), a sessão exige check-in manual do mentor — inclusive se o mentorado reconfirmou presença. */
+function isSessionEnded(scheduledAt: string, durationMinutes?: number | null): boolean {
+  const end = new Date(scheduledAt);
+  end.setMinutes(end.getMinutes() + (durationMinutes ?? 30));
+  return end.getTime() < Date.now();
 }
 
 interface MentorAttendanceReportProps {
@@ -30,26 +38,45 @@ interface MentorAttendanceReportProps {
   onUpdate: () => void;
 }
 
+/** UI values → DB: no_show_mentorado + mentee_avisou quando aplicável */
 const attendanceOptions = [
-  { value: "realizada", label: "Sim, aconteceu normalmente", icon: "✅" },
-  { value: "no_show_mentorado", label: "Não, mentorado NÃO APARECEU", icon: "❌" },
-  { value: "no_show_mentor", label: "Não, eu (mentor) não pude comparecer", icon: "😓" },
-  { value: "reagendada", label: "Reagendamos para outra data", icon: "🔄" },
+  { value: "realizada", label: "Sim, a mentoria aconteceu normalmente", icon: "✅" },
+  {
+    value: "no_show_mentor",
+    label: "Não — eu (mentor) não compareci / não entrei na sessão",
+    icon: "😓",
+  },
+  {
+    value: "no_show_mentorado_sem_aviso",
+    label: "Não — o mentorado não compareceu (conta como falta)",
+    icon: "❌",
+  },
+  {
+    value: "no_show_mentorado_com_aviso",
+    label: "Não — o mentorado avisou com antecedência que não poderia comparecer — sem penalidade",
+    icon: "📩",
+  },
+  {
+    value: "reagendada",
+    label: "Não ocorreu nesta data — combinamos remarcar para outro dia",
+    icon: "🔄",
+  },
 ];
+
+type AttendanceChoice = (typeof attendanceOptions)[number]["value"];
 
 const MentorAttendanceReport = ({ sessions, mentorId, onUpdate }: MentorAttendanceReportProps) => {
   const [reportingId, setReportingId] = useState<string | null>(null);
-  const [status, setStatus] = useState<string | null>(null);
-  const [menteeAvisou, setMenteeAvisou] = useState<boolean | null>(null);
+  const [status, setStatus] = useState<AttendanceChoice | "">("");
   const [observations, setObservations] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [reportedSessions, setReportedSessions] = useState<Set<string>>(new Set());
 
-  // Past completed/scheduled sessions that need attendance reporting
   const pastSessions = sessions.filter(
-    s => (s.status === "completed" || (s.status === "scheduled" && s.confirmed_by_mentor)) &&
-    new Date(s.scheduled_at) < new Date() &&
-    !reportedSessions.has(s.id)
+    (s) =>
+      (s.status === "completed" || (s.status === "scheduled" && s.confirmed_by_mentor)) &&
+      isSessionEnded(s.scheduled_at, s.duration) &&
+      !reportedSessions.has(s.id)
   );
 
   useEffect(() => {
@@ -58,8 +85,8 @@ const MentorAttendanceReport = ({ sessions, mentorId, onUpdate }: MentorAttendan
 
   const fetchReportedSessions = async () => {
     const sessionIds = sessions
-      .filter(s => new Date(s.scheduled_at) < new Date())
-      .map(s => s.id);
+      .filter((s) => isSessionEnded(s.scheduled_at, s.duration))
+      .map((s) => s.id);
     
     if (sessionIds.length === 0) return;
 
@@ -85,15 +112,26 @@ const MentorAttendanceReport = ({ sessions, mentorId, onUpdate }: MentorAttendan
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    // Insert attendance record
+    const dbStatus =
+      status === "no_show_mentorado_sem_aviso" || status === "no_show_mentorado_com_aviso"
+        ? "no_show_mentorado"
+        : status;
+
     const { error: attendanceError } = await supabase
       .from("mentee_attendance")
       .insert({
         session_id: sessionId,
         mentor_id: mentorId,
         mentee_user_id: session.user_id,
-        status: status as any,
-        mentee_avisou: status === "no_show_mentorado" ? (menteeAvisou ?? false) : false,
+        status: dbStatus as any,
+        mentee_avisou:
+          status === "no_show_mentorado_sem_aviso"
+            ? false
+            : status === "no_show_mentorado_com_aviso"
+              ? true
+              : status === "reagendada"
+                ? true
+                : false,
         mentor_observations: observations.trim() || null,
         reported_by: user.id,
       });
@@ -108,29 +146,54 @@ const MentorAttendanceReport = ({ sessions, mentorId, onUpdate }: MentorAttendan
       return;
     }
 
-    // Update session status based on attendance
     if (status === "realizada" && session.status !== "completed") {
       await supabase
         .from("mentor_sessions")
         .update({ status: "completed", completed_at: new Date().toISOString() })
         .eq("id", sessionId);
-    } else if (status === "no_show_mentorado" || status === "no_show_mentor") {
+    } else if (status === "no_show_mentor") {
       await supabase
         .from("mentor_sessions")
         .update({
           status: "cancelled",
-          mentor_notes: status === "no_show_mentorado"
-            ? "Não realizada: mentorado não apareceu" + (observations.trim() ? ` — ${observations.trim()}` : "")
-            : "Não realizada: mentor não pôde comparecer" + (observations.trim() ? ` — ${observations.trim()}` : ""),
+          mentor_notes:
+            "Não realizada: mentor não compareceu" + (observations.trim() ? ` — ${observations.trim()}` : ""),
+        })
+        .eq("id", sessionId);
+    } else if (status === "no_show_mentorado_sem_aviso") {
+      await supabase
+        .from("mentor_sessions")
+        .update({
+          status: "cancelled",
+          mentor_notes:
+            "Não realizada: mentorado não compareceu" +
+            (observations.trim() ? ` — ${observations.trim()}` : ""),
+        })
+        .eq("id", sessionId);
+    } else if (status === "no_show_mentorado_com_aviso") {
+      await supabase
+        .from("mentor_sessions")
+        .update({
+          status: "cancelled",
+          mentor_notes:
+            "Não realizada: mentorado não apareceu (avisou com antecedência — sem penalidade)" +
+            (observations.trim() ? ` — ${observations.trim()}` : ""),
+        })
+        .eq("id", sessionId);
+    } else if (status === "reagendada") {
+      await supabase
+        .from("mentor_sessions")
+        .update({
+          status: "cancelled",
+          mentor_notes:
+            "Não realizada nesta data: combinado reagendar" + (observations.trim() ? ` — ${observations.trim()}` : ""),
         })
         .eq("id", sessionId);
     }
 
     toast.success("Comparecimento registrado com sucesso! ✅");
     setReportingId(null);
-    setStatus(null);
-    setMenteeAvisou(null);
-    setObservations("");
+    setStatus("");
     setReportedSessions(prev => new Set([...prev, sessionId]));
     onUpdate();
     setSubmitting(false);
@@ -142,8 +205,14 @@ const MentorAttendanceReport = ({ sessions, mentorId, onUpdate }: MentorAttendan
     <div className="space-y-4">
       <h4 className="text-sm font-medium text-foreground flex items-center gap-2">
         <ClipboardCheck className="w-4 h-4 text-primary" />
-        Reportar comparecimento ({unreportedPastSessions.length})
+        Confirmar comparecimento ({unreportedPastSessions.length})
       </h4>
+
+      <p className="text-xs text-muted-foreground leading-relaxed bg-muted/40 border border-border/60 rounded-lg px-3 py-2.5">
+        Quem não reconfirma presença perde o horário (sessão cancelada automaticamente). As mentorias que aparecem aqui já passaram por essa etapa.
+        Mesmo assim, <strong className="text-foreground font-medium">após o horário agendado</strong> é obrigatório registrar manualmente se a sessão ocorreu
+        — esse é o check do mentor.
+      </p>
 
       <div className="space-y-3">
         {unreportedPastSessions.map((session) => (
@@ -153,7 +222,7 @@ const MentorAttendanceReport = ({ sessions, mentorId, onUpdate }: MentorAttendan
             animate={{ opacity: 1, y: 0 }}
             className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-xl p-4 space-y-3"
           >
-            <div className="flex items-center gap-3">
+            <div className="flex items-start gap-3">
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center overflow-hidden border-2 border-primary/30 shrink-0">
                 {session.mentee_profile?.photo_url ? (
                   <img src={session.mentee_profile.photo_url} alt="" className="w-full h-full object-cover" />
@@ -161,12 +230,13 @@ const MentorAttendanceReport = ({ sessions, mentorId, onUpdate }: MentorAttendan
                   <User className="w-5 h-5 text-primary/60" />
                 )}
               </div>
-              <div>
+              <div className="min-w-0 flex-1 space-y-1">
                 <span className="font-medium text-foreground block text-sm">
                   {session.mentee_profile?.name || "Mentorado"}
                 </span>
-                <span className="text-xs text-muted-foreground">
+                <span className="text-xs text-muted-foreground block">
                   📅 {format(new Date(session.scheduled_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                  {session.duration != null && session.duration > 0 ? ` · ${session.duration} min` : ""}
                 </span>
               </div>
             </div>
@@ -194,14 +264,14 @@ const MentorAttendanceReport = ({ sessions, mentorId, onUpdate }: MentorAttendan
                       Esta mentoria aconteceu?
                     </p>
                     <RadioGroup
-                      value={status || ""}
-                      onValueChange={setStatus}
+                      value={status}
+                      onValueChange={(v) => setStatus(v as AttendanceChoice)}
                       className="space-y-2"
                     >
                       {attendanceOptions.map((option) => (
-                        <div key={option.value} className="flex items-center gap-2.5">
-                          <RadioGroupItem value={option.value} id={`att-${session.id}-${option.value}`} />
-                          <Label htmlFor={`att-${session.id}-${option.value}`} className="text-sm cursor-pointer">
+                        <div key={option.value} className="flex items-start gap-2.5">
+                          <RadioGroupItem value={option.value} id={`att-${session.id}-${option.value}`} className="mt-1" />
+                          <Label htmlFor={`att-${session.id}-${option.value}`} className="text-sm cursor-pointer leading-snug">
                             {option.icon} {option.label}
                           </Label>
                         </div>
@@ -209,46 +279,19 @@ const MentorAttendanceReport = ({ sessions, mentorId, onUpdate }: MentorAttendan
                     </RadioGroup>
                   </div>
 
-                  {/* Sub-question for no-show */}
-                  {status === "no_show_mentorado" && (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="bg-destructive/5 border border-destructive/20 rounded-lg p-3 space-y-3"
-                    >
-                      <div className="flex items-start gap-2">
-                        <AlertTriangle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
-                        <p className="text-sm font-medium text-foreground">
-                          O mentorado avisou com antecedência?
-                        </p>
-                      </div>
-                      <div className="flex gap-3">
-                        <Button
-                          size="sm"
-                          variant={menteeAvisou === true ? "default" : "outline"}
-                          onClick={() => setMenteeAvisou(true)}
-                          className="flex-1"
-                        >
-                          Sim, avisou
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant={menteeAvisou === false ? "destructive" : "outline"}
-                          onClick={() => setMenteeAvisou(false)}
-                          className="flex-1"
-                        >
-                          Não, simplesmente não apareceu
-                        </Button>
-                      </div>
-                      {menteeAvisou === false && (
-                        <p className="text-xs text-destructive">
-                          ⚠️ O mentorado receberá uma penalidade por falta sem aviso.
-                        </p>
-                      )}
-                    </motion.div>
+                  {status === "no_show_mentorado_sem_aviso" && (
+                    <p className="text-xs text-destructive flex items-start gap-2 bg-destructive/5 border border-destructive/20 rounded-lg p-3">
+                      <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                      Registra falta do mentorado e pode aplicar penalidade. Use a opção com aviso prévio só se ele avisou <em>antes</em> da sessão que não poderia comparecer.
+                    </p>
                   )}
 
-                  {/* Observations */}
+                  {status === "no_show_mentorado_com_aviso" && (
+                    <p className="text-xs text-muted-foreground bg-muted/50 rounded-lg p-3">
+                      O mentorado não recebe penalidade por no-show quando houve aviso prévio.
+                    </p>
+                  )}
+
                   {status && (
                     <Textarea
                       value={observations}
@@ -266,8 +309,7 @@ const MentorAttendanceReport = ({ sessions, mentorId, onUpdate }: MentorAttendan
                       size="sm"
                       onClick={() => {
                         setReportingId(null);
-                        setStatus(null);
-                        setMenteeAvisou(null);
+                        setStatus("");
                         setObservations("");
                       }}
                       className="flex-1"
@@ -277,11 +319,7 @@ const MentorAttendanceReport = ({ sessions, mentorId, onUpdate }: MentorAttendan
                     <Button
                       size="sm"
                       onClick={() => handleSubmit(session.id)}
-                      disabled={
-                        !status ||
-                        submitting ||
-                        (status === "no_show_mentorado" && menteeAvisou === null)
-                      }
+                      disabled={!status || submitting}
                       className="flex-1 bg-primary text-primary-foreground"
                     >
                       {submitting ? (

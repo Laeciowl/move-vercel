@@ -51,21 +51,56 @@ const AdminNoShowPanel = () => {
   const fetchData = async () => {
     setLoading(true);
 
-    // Fetch penalties
-    const { data: penaltiesData } = await supabase
+    const { data: penaltiesData, error: penaltiesError } = await supabase
       .from("mentee_penalties")
       .select("*")
       .order("total_no_shows", { ascending: false });
 
-    // Calculate stats from penalties data (same source as the list)
+    if (penaltiesError) {
+      toast.error("Erro ao carregar penalidades: " + penaltiesError.message);
+      setLoading(false);
+      return;
+    }
+
     const allPenalties = penaltiesData || [];
-    const totalNoShows = allPenalties.reduce((sum, p) => sum + (p.total_no_shows || 0), 0);
-    const totalCompleted = allPenalties.reduce((sum, p) => sum + (p.total_completed || 0), 0);
+    const userIds = [...new Set(allPenalties.map((p) => p.user_id))];
+
+    const profileByUserId = new Map<string, { name: string; photo_url: string | null }>();
+    if (userIds.length > 0) {
+      const { data: profilesData } = await supabase
+        .from("profiles")
+        .select("user_id, name, photo_url")
+        .in("user_id", userIds);
+      profilesData?.forEach((row) => {
+        profileByUserId.set(row.user_id, { name: row.name, photo_url: row.photo_url });
+      });
+    }
+
+    const enriched: PenaltyRecord[] = allPenalties.map((p) => {
+      const prof = profileByUserId.get(p.user_id);
+      return {
+        id: p.id,
+        user_id: p.user_id,
+        total_no_shows: p.total_no_shows ?? 0,
+        total_completed: p.total_completed ?? 0,
+        status: p.status ?? "ativo",
+        blocked_until: p.blocked_until,
+        block_reason: p.block_reason,
+        updated_at: p.updated_at ?? "",
+        profile_name: prof?.name ?? "Mentorado (perfil indisponível)",
+        profile_photo: prof?.photo_url ?? null,
+      };
+    });
+
+    setPenalties(enriched);
+
+    const totalNoShows = enriched.reduce((sum, p) => sum + p.total_no_shows, 0);
+    const totalCompleted = enriched.reduce((sum, p) => sum + p.total_completed, 0);
     const totalSessions = totalNoShows + totalCompleted;
     setStats({
       total: totalSessions,
       noShows: totalNoShows,
-      rate: totalSessions > 0 ? Math.round(((totalCompleted) / totalSessions) * 100 * 10) / 10 : 100,
+      rate: totalSessions > 0 ? Math.round((totalCompleted / totalSessions) * 100 * 10) / 10 : 100,
     });
 
     setLoading(false);

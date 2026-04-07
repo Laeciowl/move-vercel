@@ -29,6 +29,19 @@ import {
 // ─── Constants ───────────────────────────────────────────
 const LAUNCH_DATE = new Date(2026, 0, 1); // January 1, 2026 in local time
 
+/**
+ * Alerta "sem solicitações": mentores sem linha nova em mentor_sessions (pedido) nesta janela;
+ * o mentor precisa estar há pelo menos esse tempo na plataforma.
+ * Mentores com agenda desativada (temporarily_unavailable = true) são excluídos ao montar o alerta e a lista de detalhes.
+ */
+const MENTOR_NO_REQUEST_WINDOW_DAYS = 30;
+
+function mentorNoRequestWindowStart(): Date {
+  const d = new Date();
+  d.setDate(d.getDate() - MENTOR_NO_REQUEST_WINDOW_DAYS);
+  return d;
+}
+
 type GrowthPeriod = "launch" | "this_month" | "last_month" | "last_3_months" | "custom";
 
 const PERIOD_OPTIONS: { value: GrowthPeriod; label: string }[] = [
@@ -347,13 +360,18 @@ const AdminMetricsPanel = () => {
 
   const fetchAlerts = useCallback(async () => {
     try {
-      const fourteenDaysAgo = new Date();
-      fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
+      const noReqWindowStart = mentorNoRequestWindowStart();
 
       const [alertsRes, allMentorsRes, recentSessionsRes, pendingSessionsRes] = await Promise.all([
         supabase.rpc("get_admin_alerts"),
-        supabase.from("mentors").select("id, created_at, temporarily_unavailable").eq("status", "approved"),
-        supabase.from("mentor_sessions").select("mentor_id").gte("created_at", fourteenDaysAgo.toISOString()),
+        supabase
+          .from("mentors")
+          .select("id, created_at, temporarily_unavailable")
+          .eq("status", "approved"),
+        supabase
+          .from("mentor_sessions")
+          .select("mentor_id")
+          .gte("created_at", noReqWindowStart.toISOString()),
         supabase.from("mentor_sessions")
           .select("mentor_id")
           .eq("status", "scheduled")
@@ -362,19 +380,20 @@ const AdminMetricsPanel = () => {
       ]);
 
       const alertData = alertsRes.data as any;
-      // Only consider mentors created more than 14 days ago AND available
-      const mentorsOldEnough = (allMentorsRes.data || []).filter((m: any) => {
+      // Aprovado + agenda ativa (exclui apenas indisponíveis explícitos; null/false contam como ativos) + cadastro há ≥ janela
+      const mentorsEligible = (allMentorsRes.data || []).filter((m: any) => {
+        if (m.temporarily_unavailable === true) return false;
         const created = new Date(m.created_at);
-        return created.getTime() <= fourteenDaysAgo.getTime() && !m.temporarily_unavailable;
+        return created.getTime() <= noReqWindowStart.getTime();
       });
-      const mentorIds = new Set(mentorsOldEnough.map((m: any) => m.id));
-      const mentorsWithSessions = new Set(recentSessionsRes.data?.map((s: any) => s.mentor_id) || []);
+      const mentorIds = new Set(mentorsEligible.map((m: any) => m.id));
+      const mentorsWithRecentSession = new Set(recentSessionsRes.data?.map((s: any) => s.mentor_id) || []);
       const mentorsWithPending = new Set(pendingSessionsRes.data?.map((s: any) => s.mentor_id) || []);
 
-      // Mentors without any requests in 14+ days (excluding recently joined AND unavailable)
+      // Sem nenhuma solicitação (mentor_sessions criada) nos últimos MENTOR_NO_REQUEST_WINDOW_DAYS
       let noRequestsCount = 0;
       mentorIds.forEach((id) => {
-        if (!mentorsWithSessions.has(id)) noRequestsCount++;
+        if (!mentorsWithRecentSession.has(id)) noRequestsCount++;
       });
 
       // Mentors with pending sessions not confirmed
@@ -387,6 +406,7 @@ const AdminMetricsPanel = () => {
         avg_mentorships_per_mentee: alertData?.avg_mentorships_per_mentee ?? 0,
         mentor_to_mentee_ratio: alertData?.mentor_to_mentee_ratio ?? 0,
       });
+      setNoRequestDetails(null);
     } catch (err) {
       console.error("Error fetching alerts:", err);
     }
@@ -449,19 +469,26 @@ const AdminMetricsPanel = () => {
   const fetchNoRequestDetails = useCallback(async () => {
     setLoadingNoReq(true);
     try {
-      const fourteenDaysAgo = new Date();
-      fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
+      const windowStart = mentorNoRequestWindowStart();
 
       const [mentorsRes, sessionsRes] = await Promise.all([
-        supabase.from("mentors").select("id, name, area, created_at").eq("status", "approved"),
-        supabase.from("mentor_sessions").select("mentor_id").gte("created_at", fourteenDaysAgo.toISOString()),
+        supabase
+          .from("mentors")
+          .select("id, name, area, created_at, temporarily_unavailable")
+          .eq("status", "approved"),
+        supabase.from("mentor_sessions").select("mentor_id").gte("created_at", windowStart.toISOString()),
       ]);
 
-      const mentorsWithSessions = new Set((sessionsRes.data || []).map((s: any) => s.mentor_id));
+      const mentorsWithRecentSessions = new Set((sessionsRes.data || []).map((s: any) => s.mentor_id));
       const now = Date.now();
 
       const details: MentorAlertDetail[] = (mentorsRes.data || [])
-        .filter((m: any) => !mentorsWithSessions.has(m.id) && new Date(m.created_at).getTime() <= fourteenDaysAgo.getTime())
+        .filter(
+          (m: any) =>
+            m.temporarily_unavailable !== true &&
+            !mentorsWithRecentSessions.has(m.id) &&
+            new Date(m.created_at).getTime() <= windowStart.getTime()
+        )
         .map((m: any) => ({
           id: m.id,
           name: m.name,
@@ -919,14 +946,17 @@ const AdminMetricsPanel = () => {
                   <div className="flex items-start justify-between">
                     <div className="flex items-start gap-2">
                       <Inbox className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
-                      <span><strong>{alerts!.noRequestsCount}</strong> mentores sem solicitações (30+ dias sem receber pedidos)</span>
+                      <span>
+                        <strong>{alerts!.noRequestsCount}</strong> mentores sem novas solicitações nos últimos{" "}
+                        {MENTOR_NO_REQUEST_WINDOW_DAYS} dias
+                      </span>
                     </div>
                     <Button
                       variant="ghost"
                       size="sm"
                       className="h-6 px-2 text-xs shrink-0"
                       onClick={() => {
-                        if (!noRequestDetails) fetchNoRequestDetails();
+                        void fetchNoRequestDetails();
                         setShowNoReqDialog(true);
                       }}
                     >
@@ -1003,10 +1033,11 @@ const AdminMetricsPanel = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Inbox className="w-5 h-5" />
-              Mentores sem solicitações (30+ dias)
+              Mentores sem solicitações ({MENTOR_NO_REQUEST_WINDOW_DAYS} dias)
             </DialogTitle>
             <DialogDescription>
-              Mentores aprovados que não receberam nenhum pedido de mentoria nos últimos 30 dias.
+              Mentores aprovados, com agenda ativa (não indisponíveis), há pelo menos {MENTOR_NO_REQUEST_WINDOW_DAYS} dias na
+              plataforma e sem nenhum novo agendamento registrado nesse período (criação de sessão).
             </DialogDescription>
           </DialogHeader>
           {loadingNoReq ? (

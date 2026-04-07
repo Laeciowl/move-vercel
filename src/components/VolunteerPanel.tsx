@@ -13,6 +13,7 @@ import { useMentorTags } from "@/hooks/useTags";
 import { isPast, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import SessionManagement from "./SessionManagement";
+import MentorAttendanceReport from "./MentorAttendanceReport";
 
 interface MentorSession {
   id: string;
@@ -147,11 +148,22 @@ const VolunteerPanel = () => {
 
   const scheduledSessions = sessions.filter((s) => s.status === "scheduled");
   const pastUnconfirmed = scheduledSessions.filter((s) => isSessionPast(s.scheduled_at, s.duration || 30));
+  /** Passou do horário mas o mentor nunca confirmou o agendamento — fluxo legado; comparecimento detalhado fica no componente abaixo. */
+  const pastScheduledWithoutBookingConfirmation = pastUnconfirmed.filter((s) => !s.confirmed_by_mentor);
   const upcomingSessions = scheduledSessions.filter((s) => !isSessionPast(s.scheduled_at, s.duration || 30));
   const pendingRequests = upcomingSessions.filter((s) => !s.confirmed_by_mentor);
   const confirmedUpcoming = upcomingSessions.filter((s) => s.confirmed_by_mentor);
 
-  const hasAnyActivity = pendingRequests.length > 0 || pastUnconfirmed.length > 0 || confirmedUpcoming.length > 0;
+  const mayNeedAttendanceReport = sessions.some(
+    (s) =>
+      isSessionPast(s.scheduled_at, s.duration || 30) &&
+      (s.status === "completed" || (s.status === "scheduled" && s.confirmed_by_mentor))
+  );
+  const hasAnyActivity =
+    pendingRequests.length > 0 ||
+    pastUnconfirmed.length > 0 ||
+    confirmedUpcoming.length > 0 ||
+    mayNeedAttendanceReport;
 
   return (
     <motion.div
@@ -172,14 +184,16 @@ const VolunteerPanel = () => {
         />
       )}
 
-      {/* NÍVEL 2: Sessões Passadas aguardando confirmação de realização */}
-      {pastUnconfirmed.length > 0 && (
+      <MentorAttendanceReport sessions={sessions} mentorId={mentorData.id} onUpdate={fetchData} />
+
+      {/* Sessões passadas ainda sem confirmação do agendamento pelo mentor */}
+      {pastScheduledWithoutBookingConfirmation.length > 0 && (
         <div className="space-y-3">
           <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
             <CheckCircle className="w-4 h-4 text-amber-500" />
-            Confirme se aconteceram ({pastUnconfirmed.length})
+            Agendamentos passados sem sua confirmação ({pastScheduledWithoutBookingConfirmation.length})
           </h4>
-          {pastUnconfirmed.map((session) => (
+          {pastScheduledWithoutBookingConfirmation.map((session) => (
             <div
               key={session.id}
               className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 rounded-xl p-4 space-y-3"
