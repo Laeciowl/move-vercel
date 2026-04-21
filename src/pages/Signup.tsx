@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, ArrowRight, Eye, EyeOff, Loader2, CheckCircle, Upload, X, Plus } from "lucide-react";
@@ -117,6 +117,11 @@ const Signup = () => {
   const [showDisclaimerModal, setShowDisclaimerModal] = useState(false);
   const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
 
+  const menteeAgeOverProgramLimit = useMemo(() => {
+    const n = parseInt(menteeData.age, 10);
+    return menteeData.age.trim() !== "" && !Number.isNaN(n) && n > 30;
+  }, [menteeData.age]);
+
   useEffect(() => {
     // Don't redirect if we're in the middle of a mentor signup flow
     if (!authLoading && user && !submitted && userType !== "mentor") {
@@ -199,9 +204,15 @@ const Signup = () => {
       return false;
     }
 
-    const userAge = parseInt(menteeData.age);
-    if (isNaN(userAge) || userAge < 18 || userAge > 100) {
-      toast.error("Idade deve estar entre 18 e 100 anos");
+    const userAge = parseInt(menteeData.age, 10);
+    if (Number.isNaN(userAge) || userAge < 18) {
+      toast.error("Você precisa ter pelo menos 18 anos para se cadastrar.");
+      return false;
+    }
+    if (userAge > 30) {
+      toast.error(
+        "O Movê foi desenvolvido para jovens de 18 a 30 anos. Infelizmente não é possível concluir a inscrição com essa idade.",
+      );
       return false;
     }
 
@@ -759,9 +770,17 @@ const Signup = () => {
                     className="w-full px-4 py-3 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
                     placeholder="Ex: 25"
                     min={18}
-                    max={100}
                     required
                   />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    O projeto atende jovens de <strong className="text-foreground">18 a 30 anos</strong>.
+                  </p>
+                  {menteeAgeOverProgramLimit ? (
+                    <p className="text-sm text-destructive mt-2 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2">
+                      O Movê foi desenvolvido para jovens entre 18 e 30 anos. Infelizmente, com essa idade não é
+                      possível se inscrever como mentorado.
+                    </p>
+                  ) : null}
                 </div>
 
                 <div>
@@ -798,7 +817,7 @@ const Signup = () => {
 
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || menteeAgeOverProgramLimit}
                   className="w-full bg-gradient-hero text-primary-foreground py-3 rounded-xl font-bold shadow-button hover:opacity-90 transition-opacity disabled:opacity-70 flex items-center justify-center gap-2"
                 >
                   {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : null}

@@ -26,21 +26,42 @@ const DeleteAccountModal = ({ isOpen, onClose, userName, onDeleted }: DeleteAcco
     setDeleting(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke("delete-user-account");
-
-      if (error) {
-        throw error;
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        toast.error("Sessão expirada. Faça login novamente e tente outra vez.");
+        return;
       }
 
-      if (data.error) {
+      const { data, error } = await supabase.functions.invoke("delete-user-account", {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+
+      if (error) {
+        let msg = error.message || "Tente novamente";
+        const ctx = (error as { context?: Response }).context;
+        if (ctx && typeof ctx.json === "function") {
+          try {
+            const body = await ctx.json();
+            if (typeof body?.error === "string") msg = body.error;
+          } catch {
+            /* ignore */
+          }
+        }
+        throw new Error(msg);
+      }
+
+      if (data?.error) {
         throw new Error(data.error);
       }
 
       toast.success("Sua conta foi deletada. Sentiremos sua falta! 💙");
       onDeleted();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error deleting account:", err);
-      toast.error("Erro ao deletar conta: " + (err.message || "Tente novamente"));
+      const msg = err instanceof Error ? err.message : "Tente novamente";
+      toast.error("Erro ao deletar conta: " + msg);
     } finally {
       setDeleting(false);
     }

@@ -29,3 +29,7 @@ verify_jwt = false
 
 [functions.send-onboarding-nudge]
 verify_jwt = false
+
+# Validates JWT inside the function with the service role client
+[functions.delete-user-account]
+verify_jwt = false
