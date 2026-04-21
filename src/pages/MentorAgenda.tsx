@@ -262,6 +262,15 @@ const MentorAgenda = () => {
       return;
     }
 
+    try {
+      const { error: rpcErr } = await supabase.rpc("sync_trail_mentoria_for_completed_session", {
+        p_session_id: sessionId,
+      });
+      if (rpcErr) console.error("sync_trail_mentoria_for_completed_session:", rpcErr);
+    } catch (e) {
+      console.error(e);
+    }
+
     toast.success("Sessão confirmada como realizada! 🎉");
     fetchData();
   };

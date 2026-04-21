@@ -236,6 +236,15 @@ const VolunteerPanel = () => {
                     .eq("id", session.id);
                   if (!error) {
                     (await import("sonner")).toast.success("Sessão confirmada como realizada!");
+                    try {
+                      const { error: rpcErr } = await supabase.rpc(
+                        "sync_trail_mentoria_for_completed_session",
+                        { p_session_id: session.id },
+                      );
+                      if (rpcErr) console.error("sync_trail_mentoria_for_completed_session:", rpcErr);
+                    } catch (e) {
+                      console.error(e);
+                    }
                     fetchData();
                   }
                 }}

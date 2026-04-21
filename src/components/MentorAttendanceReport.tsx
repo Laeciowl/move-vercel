@@ -147,10 +147,20 @@ const MentorAttendanceReport = ({ sessions, mentorId, onUpdate }: MentorAttendan
     }
 
     if (status === "realizada" && session.status !== "completed") {
-      await supabase
+      const { error: completeErr } = await supabase
         .from("mentor_sessions")
         .update({ status: "completed", completed_at: new Date().toISOString() })
         .eq("id", sessionId);
+      if (!completeErr) {
+        try {
+          const { error: rpcErr } = await supabase.rpc("sync_trail_mentoria_for_completed_session", {
+            p_session_id: sessionId,
+          });
+          if (rpcErr) console.error("sync_trail_mentoria_for_completed_session:", rpcErr);
+        } catch (e) {
+          console.error(e);
+        }
+      }
     } else if (status === "no_show_mentor") {
       await supabase
         .from("mentor_sessions")

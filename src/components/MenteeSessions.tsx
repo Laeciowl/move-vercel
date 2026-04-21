@@ -9,6 +9,7 @@ import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import SessionReviewModal from "./SessionReviewModal";
 import { toast } from "sonner";
+import { syncTrailProgressAfterMentorshipCompleted } from "@/lib/syncTrailProgressAfterMentorshipCompleted";
 
 interface Session {
   id: string;
@@ -102,6 +103,17 @@ const MenteeSessions = () => {
         .eq("id", sessionId);
       if (!error) {
         toast.success("Sessão confirmada como realizada!");
+        const session = sessions.find((s) => s.id === sessionId);
+        if (session?.mentor_id && user?.id) {
+          try {
+            const trailTitles = await syncTrailProgressAfterMentorshipCompleted(user.id, session.mentor_id);
+            for (const titulo of trailTitles) {
+              toast.success(`✅ Passo da trilha '${titulo}' completado automaticamente!`);
+            }
+          } catch (trailErr) {
+            console.error("Trail sync after session:", trailErr);
+          }
+        }
         fetchSessions();
       } else {
         toast.error("Erro ao confirmar sessão");

@@ -1594,11 +1594,15 @@ export type Database = {
       }
     }
     Functions: {
-      add_admin_by_email: { Args: { admin_email: string }; Returns: undefined }
+      add_admin_by_email: { Args: { admin_email: string }; Returns: undefined },
+      sync_trail_mentoria_for_completed_session: {
+        Args: { p_session_id: string }
+        Returns: undefined
+      },
       add_volunteer_role_by_email: {
         Args: { mentor_email: string }
         Returns: boolean
-      }
+      },
       current_user_email: { Args: never; Returns: string }
       get_activation_rate: { Args: never; Returns: Json }
       get_admin_alerts: { Args: never; Returns: Json }

@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { syncTrailProgressAfterMentorshipCompleted } from "@/lib/syncTrailProgressAfterMentorshipCompleted";
 
 // Sessions created before this date follow old auto-complete logic
 // Sessions created on or after this date require manual confirmation
@@ -233,89 +234,11 @@ const MentorshipSection = () => {
     toast.success("Sessão confirmada como realizada! 🎉");
     setConfirmingId(null);
 
-    // Auto-complete trail mentoria steps
     try {
       if (user) {
-        const { data: mentorTags } = await supabase
-          .from("mentor_tags")
-          .select("tags(slug)")
-          .eq("mentor_id", session.mentor_id);
-
-        const tagSlugs = (mentorTags || []).map((mt: any) => mt.tags?.slug).filter(Boolean);
-
-        const { data: activeTrails } = await supabase
-          .from("progresso_trilha")
-          .select("trilha_id")
-          .eq("mentorado_id", user.id)
-          .is("concluido_em", null);
-
-        if (activeTrails && activeTrails.length > 0) {
-          const trilhaIds = activeTrails.map(t => t.trilha_id);
-
-          const { data: mentoriaSteps } = await supabase
-            .from("passos_trilha")
-            .select("id, trilha_id, tags_mentor_requeridas, ordem")
-            .in("trilha_id", trilhaIds)
-            .eq("tipo", "mentoria");
-
-          for (const step of mentoriaSteps || []) {
-            const { data: existing } = await supabase
-              .from("progresso_passo")
-              .select("id")
-              .eq("mentorado_id", user.id)
-              .eq("passo_id", step.id)
-              .eq("completado", true)
-              .maybeSingle();
-
-            if (existing) continue;
-
-            const requiredTags = step.tags_mentor_requeridas || [];
-            const hasMatch = requiredTags.length === 0 || requiredTags.some((tag: string) =>
-              tagSlugs.some((s: string) => s.toLowerCase().includes(tag.toLowerCase()) || tag.toLowerCase().includes(s.toLowerCase()))
-            );
-
-            if (hasMatch) {
-              await supabase.from("progresso_passo").upsert({
-                mentorado_id: user.id,
-                passo_id: step.id,
-                completado: true,
-                completado_em: new Date().toISOString(),
-                completado_automaticamente: true,
-              }, { onConflict: "mentorado_id,passo_id" });
-
-              const { data: allSteps } = await supabase
-                .from("passos_trilha")
-                .select("id")
-                .eq("trilha_id", step.trilha_id);
-
-              const { data: completedSteps } = await supabase
-                .from("progresso_passo")
-                .select("passo_id")
-                .eq("mentorado_id", user.id)
-                .eq("completado", true)
-                .in("passo_id", (allSteps || []).map(s => s.id));
-
-              const total = allSteps?.length || 1;
-              const done = completedSteps?.length || 0;
-              const pct = Math.round((done / total) * 100);
-
-              const updateData: any = { progresso_percentual: pct };
-              if (done >= total) updateData.concluido_em = new Date().toISOString();
-
-              await supabase.from("progresso_trilha")
-                .update(updateData)
-                .eq("mentorado_id", user.id)
-                .eq("trilha_id", step.trilha_id);
-
-              const { data: trailInfo } = await supabase
-                .from("trilhas")
-                .select("titulo")
-                .eq("id", step.trilha_id)
-                .maybeSingle();
-
-              toast.success(`✅ Passo da trilha '${trailInfo?.titulo || ""}' completado automaticamente!`);
-            }
-          }
+        const trailTitles = await syncTrailProgressAfterMentorshipCompleted(user.id, session.mentor_id);
+        for (const titulo of trailTitles) {
+          toast.success(`✅ Passo da trilha '${titulo}' completado automaticamente!`);
         }
       }
     } catch (err) {
