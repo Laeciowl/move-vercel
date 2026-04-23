@@ -631,7 +631,7 @@ const Mentors = () => {
               onClick={() => navigate("/cadastro")}
               className="bg-accent text-accent-foreground px-6 py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity"
             >
-              Fazer parte do Movê
+              Fazer parte da Movê
             </button>
           </motion.div>
         )}

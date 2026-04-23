@@ -22,10 +22,10 @@ const studentWelcomeMessage = `
     Que bom ter você por aqui 😊
   </p>
   <p style="color: #666; font-size: 16px; line-height: 1.6;">
-    Ao se inscrever no Movê, você passa a fazer parte de uma comunidade que acredita que carreira não é linha reta — é movimento, troca, aprendizado e apoio ao longo do caminho.
+    Ao se inscrever na Movê, você passa a fazer parte de uma comunidade que acredita que carreira não é linha reta — é movimento, troca, aprendizado e apoio ao longo do caminho.
   </p>
   <p style="color: #666; font-size: 16px; line-height: 1.6;">
-    O Movê nasceu para conectar pessoas a orientação real, experiências práticas e conversas honestas sobre carreira. Aqui, ninguém caminha sozinho. A ideia é aprender junto, trocar vivências e evoluir passo a passo.
+    A Movê nasceu para conectar pessoas a orientação real, experiências práticas e conversas honestas sobre carreira. Aqui, ninguém caminha sozinho. A ideia é aprender junto, trocar vivências e evoluir passo a passo.
   </p>
   <p style="color: #666; font-size: 16px; line-height: 1.6;">
     Esse é só o começo — e ficamos felizes de ter você com a gente nessa jornada.
@@ -46,7 +46,7 @@ const founderSignature = `
       "Juntos, criamos um movimento que move a sociedade. Cada conexão, cada mentoria, cada aprendizado nos aproxima de um futuro onde todos têm as mesmas oportunidades."
     </p>
     <p style="color: #7c3aed; font-weight: bold; margin: 0; font-size: 13px;">
-      — Laecio Oliveira, Fundador do Movê
+      — Laecio Oliveira, Fundador da Movê
     </p>
     <p style="color: #999; font-size: 12px; margin: 8px 0 0 0;">
       Contato: <a href="https://www.linkedin.com/in/laecio-rodrigues" style="color: #7c3aed;">LinkedIn</a>
@@ -204,7 +204,7 @@ const handler = async (req: Request): Promise<Response> => {
 
       for (const adminEmail of adminEmails) {
         try {
-          await sendEmail(adminEmail, "Novo usuário cadastrado no Movê 📊", adminNotificationHtml);
+          await sendEmail(adminEmail, "Novo usuário cadastrado na Movê 📊", adminNotificationHtml);
           console.log("Admin notification sent to:", adminEmail);
         } catch (emailError) {
           console.error("Error sending admin notification to:", adminEmail, emailError);

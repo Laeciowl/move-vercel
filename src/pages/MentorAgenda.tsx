@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import MentorBlockedPeriodsManager from "@/components/MentorBlockedPeriodsManager";
 import MentorSessionConfirmation from "@/components/MentorSessionConfirmation";
+import MentorGoogleCalendarRequiredBanner from "@/components/MentorGoogleCalendarRequiredBanner";
 import MentorAvailabilityEditor from "@/components/MentorAvailabilityEditor";
 import MentorAdvanceNoticeEditor from "@/components/MentorAdvanceNoticeEditor";
 import MentorTagsEditor from "@/components/MentorTagsEditor";
@@ -398,6 +399,10 @@ const MentorAgenda = () => {
             </div>
           </div>
         </motion.div>
+
+        <div className="mb-6">
+          <MentorGoogleCalendarRequiredBanner />
+        </div>
 
         {/* Session confirmations */}
         {sessions.length > 0 && (

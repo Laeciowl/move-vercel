@@ -222,7 +222,7 @@ const AchievementCard = ({ achievement, index }: AchievementCardProps) => {
     : 0;
 
   const shareOnLinkedIn = () => {
-    const text = `🏆 Acabei de desbloquear a conquista "${achievement.name}" na plataforma Movê!\n\n${achievement.icon} ${achievement.description}\n\nO Movê conecta jovens a mentores voluntários para orientação profissional gratuita.\n\n#Movê #Mentoria #DesenvolvimentoProfissional`;
+    const text = `🏆 Acabei de desbloquear a conquista "${achievement.name}" na plataforma Movê!\n\n${achievement.icon} ${achievement.description}\n\nA Movê conecta jovens a mentores voluntários para orientação profissional gratuita.\n\n#Movê #Mentoria #DesenvolvimentoProfissional`;
     const url = "https://movesocial.lovable.app";
     window.open(
       `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`,

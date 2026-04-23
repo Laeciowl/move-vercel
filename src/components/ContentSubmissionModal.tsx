@@ -232,7 +232,7 @@ const ContentSubmissionModal = ({ isOpen, onClose, onSuccess, category }: Conten
                   </div>
                   <div>
                     <h3 className="font-bold text-foreground">Enviar {info.label}</h3>
-                    <p className="text-xs text-muted-foreground">Contribua com o Movê</p>
+                    <p className="text-xs text-muted-foreground">Contribua com a Movê</p>
                   </div>
                 </div>
                 <button

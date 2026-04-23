@@ -104,7 +104,7 @@ const ForMentors = () => {
                 transition={{ delay: 0.2 }}
                 className="text-xl text-muted-foreground mb-8 max-w-2xl"
               >
-                Como mentor voluntário no Movê, você tem a oportunidade de compartilhar sua experiência profissional e ajudar jovens a construírem carreiras de sucesso. Seu conhecimento pode mudar trajetórias.
+                Como mentor voluntário na Movê, você tem a oportunidade de compartilhar sua experiência profissional e ajudar jovens a construírem carreiras de sucesso. Seu conhecimento pode mudar trajetórias.
               </motion.p>
 
               <motion.button
@@ -132,7 +132,7 @@ const ForMentors = () => {
               className="text-center mb-12"
             >
               <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-                Por que ser mentor no Movê?
+                Por que ser mentor na Movê?
               </h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
                 Mentoria é uma via de mão dupla: você impacta e também aprende

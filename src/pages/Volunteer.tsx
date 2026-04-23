@@ -497,7 +497,7 @@ const Volunteer = () => {
           </div>
 
           <p className="text-muted-foreground mb-8">
-            O Movê é construído por gente que acredita que educação é o caminho. 
+            A Movê é construída por gente que acredita que educação é o caminho. 
             Se você já passou por desafios de carreira e quer ajudar quem está começando, 
             vem com a gente. Seu tempo e conhecimento podem fazer uma diferença enorme.
           </p>

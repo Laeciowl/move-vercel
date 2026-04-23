@@ -1055,6 +1055,9 @@ export type Database = {
           income_range: Database["public"]["Enums"]["income_range"]
           lgpd_consent: boolean
           lgpd_consent_at: string | null
+          mentee_discovery_source:
+            | Database["public"]["Enums"]["mentee_discovery_source"]
+            | null
           name: string
           onboarding_completed: boolean
           onboarding_quiz_passed: boolean
@@ -1076,6 +1079,9 @@ export type Database = {
           income_range: Database["public"]["Enums"]["income_range"]
           lgpd_consent?: boolean
           lgpd_consent_at?: string | null
+          mentee_discovery_source?:
+            | Database["public"]["Enums"]["mentee_discovery_source"]
+            | null
           name: string
           onboarding_completed?: boolean
           onboarding_quiz_passed?: boolean
@@ -1097,6 +1103,9 @@ export type Database = {
           income_range?: Database["public"]["Enums"]["income_range"]
           lgpd_consent?: boolean
           lgpd_consent_at?: string | null
+          mentee_discovery_source?:
+            | Database["public"]["Enums"]["mentee_discovery_source"]
+            | null
           name?: string
           onboarding_completed?: boolean
           onboarding_quiz_passed?: boolean
@@ -1775,6 +1784,7 @@ export type Database = {
         | "reagendada"
       community_category: "vagas" | "networking" | "conteudo" | "outros"
       income_range: "sem_renda" | "ate_1500" | "1500_3000" | "acima_3000"
+      mentee_discovery_source: "indicacao" | "linkedin" | "redes_sociais" | "outro"
       mentor_status: "pending" | "approved" | "rejected"
       penalty_status:
         | "ativo"
@@ -1955,6 +1965,7 @@ export const Constants = {
       ],
       community_category: ["vagas", "networking", "conteudo", "outros"],
       income_range: ["sem_renda", "ate_1500", "1500_3000", "acima_3000"],
+      mentee_discovery_source: ["indicacao", "linkedin", "redes_sociais", "outro"],
       mentor_status: ["pending", "approved", "rejected"],
       penalty_status: [
         "ativo",

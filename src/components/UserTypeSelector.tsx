@@ -12,7 +12,7 @@ const UserTypeSelector = ({ selectedType, onSelect }: UserTypeSelectorProps) => 
   return (
     <div className="space-y-4">
       <p className="text-center text-muted-foreground mb-6">
-        Como você quer fazer parte do Movê?
+        Como você quer fazer parte da Movê?
       </p>
       
       <div className="grid grid-cols-1 gap-4">

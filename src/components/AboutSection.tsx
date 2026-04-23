@@ -37,7 +37,7 @@ const AboutSection = () => {
             className="space-y-8">
 
             <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed">
-              O Movê nasceu de uma inquietação real: muitos jovens não carecem de talento, 
+              A Movê nasceu de uma inquietação real: muitos jovens não carecem de talento, 
               mas de orientação, referências e segurança para tomar decisões sobre carreira.
             </p>
             

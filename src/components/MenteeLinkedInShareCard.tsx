@@ -18,7 +18,7 @@ Agora faço parte de uma rede que conecta quem quer crescer com quem já chegou 
 
 Se você também é um jovem profissional e quer direcionamento, venha pra Movê! 💜
 
-O Movê é uma plataforma social de desenvolvimento profissional que conecta jovens a mentores de diversas áreas — tudo gratuito e movido por quem acredita no poder da orientação.
+A Movê é uma plataforma social de desenvolvimento profissional que conecta jovens a mentores de diversas áreas — tudo gratuito e movido por quem acredita no poder da orientação.
 
 #Movê #Mentoria #DesenvolvimentoProfissional #CarreiraProfissional`;
 

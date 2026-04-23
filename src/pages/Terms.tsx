@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { ArrowLeft, Shield, FileText, Lock, Users, Scale } from "lucide-react";
 import logoMove from "@/assets/logo-move.png";
 
+const CONTACT_EMAIL = "movecarreiras@gmail.com";
+
 const Terms = () => {
   return (
     <div className="min-h-screen bg-background">
@@ -223,14 +225,12 @@ const Terms = () => {
             <div>
               <h4 className="font-semibold text-foreground mb-2">9. Fale com a gente</h4>
               <p>
-                Dúvidas? Preocupações? Quer só bater um papo? Entre em contato pelo{" "}
-                <a 
-                  href="https://www.linkedin.com/in/laecio-rodrigues" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-primary font-semibold hover:underline"
+                Dúvidas? Preocupações? Quer só bater um papo? Entre em contato conosco pelo e-mail{" "}
+                <a
+                  href={`mailto:${CONTACT_EMAIL}`}
+                  className="text-primary font-semibold hover:underline break-all"
                 >
-                  LinkedIn do Laecio
+                  {CONTACT_EMAIL}
                 </a>
                 {" "}que a gente responde!
               </p>
@@ -258,16 +258,15 @@ const Terms = () => {
               é lei, mas porque acreditamos que seus dados são seus e ponto final.
             </p>
             <p>
-              <strong>Responsável pelos dados:</strong> Qualquer dúvida sobre proteção de dados, 
-              entre em contato pelo{" "}
-              <a 
-                href="https://www.linkedin.com/in/laecio-rodrigues" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-primary font-semibold hover:underline"
+              <strong>Responsável pelos dados:</strong> Qualquer dúvida sobre proteção de dados, entre em contato
+              conosco pelo e-mail{" "}
+              <a
+                href={`mailto:${CONTACT_EMAIL}`}
+                className="text-primary font-semibold hover:underline break-all"
               >
-                LinkedIn do Laecio Oliveira
-              </a>.
+                {CONTACT_EMAIL}
+              </a>
+              .
             </p>
           </div>
         </motion.section>
@@ -292,18 +291,14 @@ const Terms = () => {
           </p>
           <div className="mt-4 pt-4 border-t border-border">
             <p className="text-muted-foreground text-xs">
-              Projeto fundado e mantido por{" "}
-              <a 
-                href="https://www.linkedin.com/in/laecio-rodrigues" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-primary hover:underline font-medium"
-              >
-                Laecio Oliveira
-              </a>
+              Projeto fundado e mantido por Laecio Oliveira.
             </p>
             <p className="text-muted-foreground text-xs mt-1">
-              Interessados podem entrar em contato pelo LinkedIn.
+              Interessados podem entrar em contato conosco pelo e-mail{" "}
+              <a href={`mailto:${CONTACT_EMAIL}`} className="text-primary hover:underline font-medium break-all">
+                {CONTACT_EMAIL}
+              </a>
+              .
             </p>
           </div>
         </div>

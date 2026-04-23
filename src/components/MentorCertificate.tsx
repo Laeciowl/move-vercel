@@ -66,7 +66,7 @@ const MentorCertificate = ({
       setGenerating(false);
     }
 
-    const text = `🏆 Sou Mentor Movê!\n\nEu faço parte dos que movem a sociedade.\n\n📊 ${completedSessions} mentorias realizadas\n🌱 ${uniqueMentees} vidas impactadas\n⏱️ ${totalMinutes} minutos transformando vidas\n\nO Movê é um hub gratuito de orientação profissional para jovens. Se você quer transformar vidas doando seu tempo e conhecimento, venha fazer parte!\n\n#MentorMovê #Mentoria #ImpactoSocial #Voluntariado`;
+    const text = `🏆 Sou Mentor Movê!\n\nEu faço parte dos que movem a sociedade.\n\n📊 ${completedSessions} mentorias realizadas\n🌱 ${uniqueMentees} vidas impactadas\n⏱️ ${totalMinutes} minutos transformando vidas\n\nA Movê é um hub gratuito de orientação profissional para jovens. Se você quer transformar vidas doando seu tempo e conhecimento, venha fazer parte!\n\n#MentorMovê #Mentoria #ImpactoSocial #Voluntariado`;
     const url = "https://movesocial.lovable.app";
     setTimeout(() => {
       window.open(

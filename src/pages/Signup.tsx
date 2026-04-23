@@ -48,6 +48,15 @@ const professionalStatusOptions = [
   { value: "freelancer_pj", label: "Freelancer / PJ" },
 ];
 
+type MenteeDiscoverySource = Enums<"mentee_discovery_source">;
+
+const menteeDiscoverySourceOptions: { value: MenteeDiscoverySource; label: string }[] = [
+  { value: "indicacao", label: "Indicação (amigo, familiar, colega…)" },
+  { value: "linkedin", label: "LinkedIn" },
+  { value: "redes_sociais", label: "Redes sociais (Instagram, TikTok, etc.)" },
+  { value: "outro", label: "Outro (Google, evento, e-mail…)" },
+];
+
 const dayOptions = [
   { value: "monday", label: "Segunda-feira" },
   { value: "tuesday", label: "Terça-feira" },
@@ -97,6 +106,7 @@ const Signup = () => {
   const [menteeData, setMenteeData] = useState({
     age: "",
     professionalStatus: "",
+    discoverySource: "" as "" | MenteeDiscoverySource,
     lgpdConsent: false,
   });
 
@@ -211,13 +221,18 @@ const Signup = () => {
     }
     if (userAge > 30) {
       toast.error(
-        "O Movê foi desenvolvido para jovens de 18 a 30 anos. Infelizmente não é possível concluir a inscrição com essa idade.",
+        "A Movê foi desenvolvida para jovens de 18 a 30 anos. Infelizmente não é possível concluir a inscrição com essa idade.",
       );
       return false;
     }
 
     if (!menteeData.professionalStatus) {
       toast.error("Selecione sua situação profissional");
+      return false;
+    }
+
+    if (!menteeData.discoverySource) {
+      toast.error("Conte como você conheceu a Movê");
       return false;
     }
 
@@ -316,6 +331,7 @@ const Signup = () => {
             professional_status: menteeData.professionalStatus,
             income_range: "sem_renda",
             phone: formData.phone.trim(),
+            mentee_discovery_source: menteeData.discoverySource,
           },
         },
       });
@@ -373,6 +389,8 @@ const Signup = () => {
                 email: formData.email,
                 city: "N/A",
                 state: "N/A",
+                menteeDiscoveryLabel:
+                  menteeDiscoverySourceOptions.find((o) => o.value === menteeData.discoverySource)?.label ?? "",
               },
               skipPreferenceCheck: true,
             },
@@ -777,7 +795,7 @@ const Signup = () => {
                   </p>
                   {menteeAgeOverProgramLimit ? (
                     <p className="text-sm text-destructive mt-2 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2">
-                      O Movê foi desenvolvido para jovens entre 18 e 30 anos. Infelizmente, com essa idade não é
+                      A Movê foi desenvolvida para jovens entre 18 e 30 anos. Infelizmente, com essa idade não é
                       possível se inscrever como mentorado.
                     </p>
                   ) : null}
@@ -798,6 +816,33 @@ const Signup = () => {
                       <option key={option.value} value={option.value}>{option.label}</option>
                     ))}
                   </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Como você conheceu a Movê? *
+                  </label>
+                  <select
+                    value={menteeData.discoverySource}
+                    onChange={(e) =>
+                      setMenteeData({
+                        ...menteeData,
+                        discoverySource: e.target.value as MenteeDiscoverySource | "",
+                      })
+                    }
+                    className="w-full px-4 py-3 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    required
+                  >
+                    <option value="">Selecione</option>
+                    {menteeDiscoverySourceOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Ajuda a equipe a entender de onde vêm as pessoas que chegam na plataforma.
+                  </p>
                 </div>
 
                 <div className="flex items-start gap-3 p-4 bg-accent rounded-xl">

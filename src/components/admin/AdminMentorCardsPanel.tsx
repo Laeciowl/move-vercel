@@ -111,7 +111,7 @@ const MentorCard = ({ mentor, onDownload }: { mentor: Mentor; onDownload: (mento
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "10px", paddingTop: "10px", borderTop: "1px solid rgba(255,255,255,0.2)" }}>
             <span style={{ fontSize: "11px", fontWeight: 500, color: "rgba(255,255,255,0.8)" }}>movecarreiras.org</span>
             <div style={{ backgroundColor: "white", color: "#f97316", fontWeight: "bold", padding: "5px 12px", borderRadius: "16px", fontSize: "11px" }}>
-              O Movê
+              A Movê
             </div>
           </div>
         </div>

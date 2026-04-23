@@ -8,6 +8,7 @@ import { useVolunteerCheck } from "@/hooks/useVolunteerCheck";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import MentorSessionConfirmation from "./MentorSessionConfirmation";
+import MentorGoogleCalendarRequiredBanner from "./MentorGoogleCalendarRequiredBanner";
 
 import { useMentorTags } from "@/hooks/useTags";
 import { isPast, format } from "date-fns";
@@ -172,7 +173,7 @@ const VolunteerPanel = () => {
       transition={{ duration: 0.4 }}
       className="space-y-5"
     >
-      {/* Header removed - "Área do Mentor" rectangle not needed */}
+      <MentorGoogleCalendarRequiredBanner />
 
       {/* NÍVEL 1: Solicitações Pendentes */}
       {pendingRequests.length > 0 && (

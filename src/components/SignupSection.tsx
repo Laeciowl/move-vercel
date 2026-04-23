@@ -58,7 +58,7 @@ const SignupSection = () => {
                 Eu preciso pagar pra usar?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground text-base pb-6">
-                Não! O Movê é 100% gratuito. A gente existe pra te ajudar, não pra cobrar. 
+                Não! A Movê é 100% gratuita. A gente existe pra te ajudar, não pra cobrar. 
                 Sem taxas escondidas, sem surpresas — só educação de qualidade, de graça.
               </AccordionContent>
             </AccordionItem>
@@ -80,7 +80,7 @@ const SignupSection = () => {
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground text-base pb-6">
                 Se você quer evoluir na carreira, sim! Seja você estudante, desempregado, 
-                fazendo transição de área ou só querendo crescer — o Movê foi feito pra te apoiar.
+                fazendo transição de área ou só querendo crescer — a Movê foi feita pra te apoiar.
               </AccordionContent>
             </AccordionItem>
 

@@ -64,10 +64,10 @@ const studentWelcomeMessage = `
     Que bom ter você por aqui 😊
   </p>
   <p style="color: ${MOVE_COLORS.text}; font-size: 16px; line-height: 1.6;">
-    Ao se inscrever no Movê, você passa a fazer parte de uma comunidade que acredita que carreira não é linha reta — é movimento, troca, aprendizado e apoio ao longo do caminho.
+    Ao se inscrever na Movê, você passa a fazer parte de uma comunidade que acredita que carreira não é linha reta — é movimento, troca, aprendizado e apoio ao longo do caminho.
   </p>
   <p style="color: ${MOVE_COLORS.text}; font-size: 16px; line-height: 1.6;">
-    O Movê nasceu para conectar pessoas a orientação real, experiências práticas e conversas honestas sobre carreira. Aqui, ninguém caminha sozinho. A ideia é aprender junto, trocar vivências e evoluir passo a passo.
+    A Movê nasceu para conectar pessoas a orientação real, experiências práticas e conversas honestas sobre carreira. Aqui, ninguém caminha sozinho. A ideia é aprender junto, trocar vivências e evoluir passo a passo.
   </p>
   <p style="color: ${MOVE_COLORS.text}; font-size: 16px; line-height: 1.6;">
     Esse é só o começo — e ficamos felizes de ter você com a gente nessa jornada.
@@ -84,13 +84,13 @@ const studentWelcomeMessage = `
 
 const volunteerWelcomeMessage = `
   <p style="color: ${MOVE_COLORS.text}; font-size: 16px; line-height: 1.6;">
-    Muito obrigado por se inscrever como voluntário(a) no Movê 🧡
+    Muito obrigado por se inscrever como voluntário(a) na Movê 🧡
   </p>
   <p style="color: ${MOVE_COLORS.text}; font-size: 16px; line-height: 1.6;">
     Ao dar esse passo, você ajuda a construir algo maior: um movimento que acredita no poder da orientação, da escuta e da troca genuína para transformar trajetórias profissionais.
   </p>
   <p style="color: ${MOVE_COLORS.text}; font-size: 16px; line-height: 1.6;">
-    Compartilhar sua experiência pode fazer muita diferença na vida de alguém — e é isso que move o Movê todos os dias. Aqui, voluntários não são "apoio", são parte central do movimento.
+    Compartilhar sua experiência pode fazer muita diferença na vida de alguém — e é isso que move a Movê todos os dias. Aqui, voluntários não são "apoio", são parte central do movimento.
   </p>
   <p style="color: ${MOVE_COLORS.text}; font-size: 16px; line-height: 1.6;">
     Estamos muito felizes de ter você com a gente. Em breve, entraremos em contato com os próximos passos.
@@ -111,7 +111,7 @@ const founderSignature = `
       "Juntos, criamos um movimento que move a sociedade. Cada conexão, cada mentoria, cada aprendizado nos aproxima de um futuro onde todos têm as mesmas oportunidades."
     </p>
     <p style="color: ${MOVE_COLORS.primary}; font-weight: bold; margin: 0; font-size: 13px;">
-      — Laecio Oliveira, Fundador do Movê
+      — Laecio Oliveira, Fundador da Movê
     </p>
     <p style="color: ${MOVE_COLORS.textMuted}; font-size: 12px; margin: 8px 0 0 0;">
       Contato: <a href="https://www.linkedin.com/in/laecio-rodrigues" style="color: ${MOVE_COLORS.primary}; text-decoration: underline;">LinkedIn</a>
@@ -121,7 +121,7 @@ const founderSignature = `
 
 const emailTemplates: Record<string, { subject: string; html: (name: string, data?: Record<string, string>) => string; isTransactional?: boolean }> = {
   welcome: {
-    subject: "Bem-vindo ao Movê! 🎉",
+    subject: "Bem-vindo à Movê! 🎉",
     isTransactional: false,
     html: (name) => `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #fffbf7;">
@@ -163,7 +163,7 @@ const emailTemplates: Record<string, { subject: string; html: (name: string, dat
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #fffbf7;">
         <h1 style="color: ${MOVE_COLORS.success}; text-align: center;">Parabéns, ${name}! 🎉</h1>
         <p style="color: ${MOVE_COLORS.text}; font-size: 16px; line-height: 1.6;">
-          Sua candidatura como <strong style="color: ${MOVE_COLORS.primary};">voluntário</strong> no Movê foi aprovada!
+          Sua candidatura como <strong style="color: ${MOVE_COLORS.primary};">voluntário</strong> na Movê foi aprovada!
         </p>
         <p style="color: ${MOVE_COLORS.text}; font-size: 16px; line-height: 1.6;">
           Agora você pode:
@@ -197,7 +197,7 @@ const emailTemplates: Record<string, { subject: string; html: (name: string, dat
         <div style="text-align: center; margin-top: 30px;">
           <a href="https://movecarreiras.org" 
              style="background: linear-gradient(135deg, ${MOVE_COLORS.primary} 0%, #fb923c 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 12px; font-weight: bold; display: inline-block;">
-            Conhecer mais sobre o Movê
+            Conhecer mais sobre a Movê
           </a>
         </div>
         ${founderSignature}
@@ -206,7 +206,7 @@ const emailTemplates: Record<string, { subject: string; html: (name: string, dat
     `,
   },
   new_user_admin_notification: {
-    subject: "Novo usuário cadastrado no Movê 📊",
+    subject: "Novo usuário cadastrado na Movê 📊",
     isTransactional: true,
     html: (name, data) => `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #fffbf7;">
@@ -219,6 +219,7 @@ const emailTemplates: Record<string, { subject: string; html: (name: string, dat
           <p style="color: ${MOVE_COLORS.text}; margin: 10px 0 0 0;"><strong>Email:</strong> ${data?.email || "N/A"}</p>
           <p style="color: ${MOVE_COLORS.text}; margin: 10px 0 0 0;"><strong>Cidade:</strong> ${data?.city || "N/A"}</p>
           <p style="color: ${MOVE_COLORS.text}; margin: 10px 0 0 0;"><strong>Estado:</strong> ${data?.state || "N/A"}</p>
+          ${data?.menteeDiscoveryLabel ? `<p style="color: ${MOVE_COLORS.text}; margin: 10px 0 0 0;"><strong>Como conheceu a Movê:</strong> ${data.menteeDiscoveryLabel}</p>` : ""}
         </div>
         <div style="text-align: center; margin-top: 30px;">
           <a href="https://movecarreiras.org/admin" 
@@ -464,7 +465,7 @@ const emailTemplates: Record<string, { subject: string; html: (name: string, dat
           Olá, ${name}! Seu conteúdo "<strong style="color: ${MOVE_COLORS.primary};">${data?.title || ""}</strong>" foi aprovado e já está disponível para a comunidade.
         </p>
         <p style="color: ${MOVE_COLORS.text}; font-size: 16px; line-height: 1.6;">
-          Obrigado por contribuir com o Movê! Sua dedicação ajuda a transformar vidas.
+          Obrigado por contribuir com a Movê! Sua dedicação ajuda a transformar vidas.
         </p>
         ${founderSignature}
         ${emailFooter}
@@ -527,7 +528,7 @@ const emailTemplates: Record<string, { subject: string; html: (name: string, dat
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #fffbf7;">
         <h1 style="color: ${MOVE_COLORS.primary}; text-align: center;">Obrigado por se inscrever! 🎯</h1>
         <p style="color: ${MOVE_COLORS.text}; font-size: 16px; line-height: 1.6;">
-          Olá, ${name}! Recebemos sua inscrição como mentor no Movê.
+          Olá, ${name}! Recebemos sua inscrição como mentor na Movê.
         </p>
         <div style="background-color: ${MOVE_COLORS.accent}; padding: 20px; border-radius: 12px; margin: 20px 0; border-left: 4px solid ${MOVE_COLORS.primary};">
           <p style="color: ${MOVE_COLORS.text}; margin: 0;"><strong>Área de atuação:</strong> ${data?.area || "N/A"}</p>

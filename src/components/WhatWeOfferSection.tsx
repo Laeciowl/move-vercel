@@ -6,7 +6,7 @@ const WhatWeOfferSection = () => {
   return (
     <section className="pt-12 md:pt-16 pb-24 md:pb-32 bg-background overflow-hidden">
       <div className="container mx-auto px-4">
-        {/* O que é o Movê - minimal structure */}
+        {/* O que é a Movê - minimal structure */}
         <div className="mb-10">
           <motion.p
             initial={{ opacity: 0 }}

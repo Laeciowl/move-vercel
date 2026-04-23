@@ -19,7 +19,7 @@ CREATE POLICY "Admins can manage platform videos" ON public.platform_videos
 
 -- Insert default entries
 INSERT INTO public.platform_videos (key, youtube_url, title) VALUES
-  ('hero_video', 'https://www.youtube.com/embed/9AoueBf7Tr0', 'Apresentação do Movê'),
+  ('hero_video', 'https://www.youtube.com/embed/9AoueBf7Tr0', 'Apresentação da Movê'),
   ('onboarding_video', '', 'Vídeo de Onboarding');
 
 -- Onboarding quiz questions (admin-editable)

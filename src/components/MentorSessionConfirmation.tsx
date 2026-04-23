@@ -1,10 +1,14 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, X, Loader2, Calendar, User, MessageSquare, Mail, Phone, Info, GraduationCap, Target } from "lucide-react";
+import { Check, X, Loader2, Calendar, User, MessageSquare, Mail, Phone, Info, GraduationCap, Target, Video } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { useGoogleCalendarConnectionStatus } from "@/hooks/useGoogleCalendarConnectionStatus";
 import WhatsAppTemplates from "./WhatsAppTemplates";
 import MenteeAttendanceBadge from "./MenteeAttendanceBadge";
 
@@ -34,8 +38,10 @@ interface MentorSessionConfirmationProps {
 }
 
 const MentorSessionConfirmation = ({ sessions, mentorName, mentorEmail, onUpdate }: MentorSessionConfirmationProps) => {
+  const navigate = useNavigate();
   const [updating, setUpdating] = useState<string | null>(null);
   const [notesModal, setNotesModal] = useState<{ sessionId: string; notes: string } | null>(null);
+  const { connected: calendarConnected, loading: calLoading } = useGoogleCalendarConnectionStatus();
 
   // Sessions awaiting initial confirmation (before session time)
   const pendingSessions = sessions.filter(
@@ -91,8 +97,19 @@ const MentorSessionConfirmation = ({ sessions, mentorName, mentorEmail, onUpdate
   };
 
   const confirmSession = async (sessionId: string, confirmed: boolean, notes?: string) => {
+    if (confirmed) {
+      if (calLoading) {
+        toast.error("Aguarde a verificação da conexão com o Google Calendar ou tente de novo em instantes.");
+        return;
+      }
+      if (!calendarConnected) {
+        toast.error("Conecte o Google Calendar no seu perfil antes de confirmar esta mentoria.");
+        return;
+      }
+    }
+
     setUpdating(sessionId);
-    
+
     const session = sessions.find(s => s.id === sessionId);
     
     const updateData: Record<string, unknown> = {
@@ -125,26 +142,45 @@ const MentorSessionConfirmation = ({ sessions, mentorName, mentorEmail, onUpdate
         // Create Google Calendar events for both mentor and mentee
         try {
           const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+          const publishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
           const { data: { session: authSession } } = await supabase.auth.getSession();
           const token = authSession?.access_token;
-          
-          const calResponse = await fetch(`${supabaseUrl}/functions/v1/google-calendar-sync?action=create-event`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${token}`,
-            },
-            body: JSON.stringify({ session_id: sessionId }),
-          });
-          const calResult = await calResponse.json();
-          console.log("Google Calendar sync result:", calResult);
-          
-          if (calResult?.results?.meetingLink) {
-            meetingLink = calResult.results.meetingLink;
-            toast.success("Link do Google Meet criado automaticamente! 🎥");
+
+          if (!token) {
+            toast.error("Sessão expirada. Entre de novo para gerar o convite no Google Calendar.");
+          } else {
+            const calResponse = await fetch(`${supabaseUrl}/functions/v1/google-calendar-sync?action=create-event`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+                ...(publishableKey ? { apikey: publishableKey } : {}),
+              },
+              body: JSON.stringify({ session_id: sessionId }),
+            });
+            const calResult = await calResponse.json().catch(() => ({}));
+            console.log("Google Calendar sync result:", calResult);
+
+            if (!calResponse.ok || calResult?.error) {
+              toast.error(
+                "A mentoria foi confirmada, mas o convite automático (Google Meet) falhou: " +
+                  (calResult?.error || calResponse.statusText || "erro desconhecido") +
+                  ". Peça ao suporte para verificar a integração do Google Calendar ou adicione o link manualmente na agenda do mentor."
+              );
+            } else if (calResult?.results?.meetingLink) {
+              meetingLink = calResult.results.meetingLink;
+              toast.success("Link do Google Meet criado automaticamente! 🎥");
+            } else if (calResult?.success) {
+              toast.message(
+                "Evento criado no Google Calendar, mas o link do Meet não veio na resposta. Verifique o evento no calendário da conta conectada."
+              );
+            }
           }
         } catch (calErr) {
           console.error("Error creating Google Calendar events:", calErr);
+          toast.error(
+            "A mentoria foi confirmada, mas houve erro ao chamar o Google Calendar. Verifique sua conexão ou tente de novo em alguns minutos."
+          );
         }
 
         // Now send emails WITH the meeting link if available
@@ -153,7 +189,7 @@ const MentorSessionConfirmation = ({ sessions, mentorName, mentorEmail, onUpdate
       
       onUpdate();
     }
-    
+
     setUpdating(null);
     setNotesModal(null);
   };
@@ -167,8 +203,31 @@ const MentorSessionConfirmation = ({ sessions, mentorName, mentorEmail, onUpdate
     return null;
   }
 
+  const confirmBlocked = calLoading || !calendarConnected;
+
   return (
     <div id="mentor-sessions" className="space-y-4">
+      {!calLoading && !calendarConnected && (
+        <Alert className="border-amber-500/40 bg-amber-50/90 dark:bg-amber-950/25 [&>svg]:text-amber-700 dark:[&>svg]:text-amber-400">
+          <Video className="h-4 w-4" />
+          <AlertTitle className="text-amber-900 dark:text-amber-100">Confirmação bloqueada</AlertTitle>
+          <AlertDescription className="text-amber-900/90 dark:text-amber-100/90 space-y-2">
+            <p>
+              Conecte o <strong className="font-semibold">Google Calendar</strong> no seu perfil (seção no final do
+              formulário) para aceitar pedidos e gerar o link do Meet automaticamente.
+            </p>
+            <Button type="button" size="sm" className="bg-amber-700 hover:bg-amber-800 text-white" onClick={() => navigate("/inicio?editarPerfil=1")}>
+              Abrir perfil e conectar
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+      {calLoading && (
+        <p className="text-xs text-muted-foreground flex items-center gap-2">
+          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+          Verificando conexão com o Google Calendar…
+        </p>
+      )}
       <h4 className="text-sm font-medium text-foreground flex items-center gap-2">
         <Calendar className="w-4 h-4 text-primary" />
         Sessões aguardando confirmação ({pendingSessions.length})
@@ -317,7 +376,7 @@ const MentorSessionConfirmation = ({ sessions, mentorName, mentorEmail, onUpdate
             <div className="flex flex-wrap gap-2 pt-2">
               <button
                 onClick={() => confirmSession(session.id, true)}
-                disabled={updating === session.id}
+                disabled={updating === session.id || confirmBlocked}
                 className="flex-1 flex items-center justify-center gap-2 bg-green-600 text-white py-2 px-4 rounded-lg font-medium text-sm hover:bg-green-700 transition-colors disabled:opacity-50"
               >
                 {updating === session.id ? (

@@ -97,7 +97,7 @@ const NpsModal = ({ forceShow = false }: NpsModalProps) => {
     if (nota === null) return "";
     if (nota <= 6) return "O que podemos melhorar para você dar nota 10?";
     if (nota <= 8) return "O que está faltando para ser 10?";
-    return "Que bom! O que você mais gosta no Movê?";
+    return "Que bom! O que você mais gosta na Movê?";
   };
 
   const handleSubmit = async () => {
@@ -144,7 +144,7 @@ const NpsModal = ({ forceShow = false }: NpsModalProps) => {
         <div>
           <h3 className="text-sm font-bold text-foreground">💙 Sua opinião é muito importante!</h3>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Em uma escala de 0 a 10, o quanto você recomendaria o Movê para um amigo?
+            Em uma escala de 0 a 10, o quanto você recomendaria a Movê para um amigo?
           </p>
         </div>
         {!forceShow && (

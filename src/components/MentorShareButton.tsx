@@ -70,7 +70,7 @@ const MentorShareButton = ({
   }, [fetchCardMessage]);
 
   const profileUrl = `https://movecarreiras.org/mentores?mentor=${mentorId}`;
-  const shareText = `🧡 Sou mentor(a) voluntário(a) no Movê!\n\n${displayMessage}\n\n👉 ${profileUrl}`;
+  const shareText = `🧡 Sou mentor(a) voluntário(a) na Movê!\n\n${displayMessage}\n\n👉 ${profileUrl}`;
 
   const handleWhatsAppShare = () => {
     window.open(`https://wa.me/?text=${encodeURIComponent(shareText)}`, "_blank");
@@ -241,7 +241,7 @@ const MentorShareButton = ({
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "12px", paddingTop: "12px", borderTop: "1px solid rgba(255,255,255,0.2)" }}>
                 <span style={{ fontSize: "14px", fontWeight: 500, color: "rgba(255,255,255,0.8)" }}>movecarreiras.org</span>
                 <div style={{ backgroundColor: "white", color: "#f97316", fontWeight: "bold", padding: "8px 16px", borderRadius: "20px", fontSize: "14px" }}>
-                  O Movê
+                  A Movê
                 </div>
               </div>
             </div>

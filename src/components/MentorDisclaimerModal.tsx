@@ -46,7 +46,7 @@ const MentorDisclaimerModal = ({ isOpen, onClose, onAccept }: MentorDisclaimerMo
                 <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
                   <Shield className="w-5 h-5 text-primary" />
                 </div>
-                <h2 className="text-xl font-bold text-foreground">Compromisso como mentor no Movê</h2>
+                <h2 className="text-xl font-bold text-foreground">Compromisso como mentor na Movê</h2>
               </div>
               <button
                 onClick={onClose}
@@ -59,7 +59,7 @@ const MentorDisclaimerModal = ({ isOpen, onClose, onAccept }: MentorDisclaimerMo
             {/* Content */}
             <div className="p-6 space-y-6 overflow-y-auto flex-1">
               <p className="text-muted-foreground">
-                Ao atuar como mentor no Movê, você concorda em:
+                Ao atuar como mentor na Movê, você concorda em:
               </p>
 
               <ul className="space-y-4">
@@ -115,7 +115,7 @@ const MentorDisclaimerModal = ({ isOpen, onClose, onAccept }: MentorDisclaimerMo
                   htmlFor="disclaimer-accept" 
                   className="text-sm font-medium text-foreground cursor-pointer"
                 >
-                  Li e concordo com os compromissos de mentor no Movê
+                  Li e concordo com os compromissos de mentor na Movê
                 </label>
               </div>
 

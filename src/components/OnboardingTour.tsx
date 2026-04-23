@@ -20,7 +20,7 @@ interface OnboardingStep {
 const steps: OnboardingStep[] = [
   {
     id: "welcome",
-    title: "Bem-vindo(a) ao Movê! 🎉",
+    title: "Bem-vindo(a) à Movê! 🎉",
     description: "Conectamos você a mentores, conteúdos e uma comunidade para impulsionar sua carreira. Vamos fazer um tour!",
     icon: <Sparkles className="w-5 h-5" />,
     navigateTo: "/inicio",

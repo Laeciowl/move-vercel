@@ -297,7 +297,7 @@ const ProfileEditModal = ({ isOpen, onClose, profile, onProfileUpdated }: Profil
                   />
                   <div>
                     <span className="block text-sm font-medium text-foreground">
-                      Desejo receber comunicações por e-mail do Movê
+                      Desejo receber comunicações por e-mail da Movê
                     </span>
                     <span className="block text-xs text-muted-foreground mt-1">
                       Você pode alterar essa preferência a qualquer momento. E-mails transacionais (confirmações, aprovações) serão sempre enviados.

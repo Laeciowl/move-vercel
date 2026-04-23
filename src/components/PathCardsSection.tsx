@@ -19,7 +19,7 @@ const PathCardsSection = () => {
             Qual é o seu caminho?
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Escolha como você quer fazer parte do Movê
+            Escolha como você quer fazer parte da Movê
           </p>
         </motion.div>
 
@@ -48,7 +48,7 @@ const PathCardsSection = () => {
                 </h3>
                 
                 <p className="text-lg text-muted-foreground mb-6 leading-relaxed">
-                  A mentoria é pra mim? Descubra como o Movê pode ajudar você a dar os próximos passos na sua carreira.
+                  A mentoria é pra mim? Descubra como a Movê pode ajudar você a dar os próximos passos na sua carreira.
                 </p>
                 
                 <div className="flex items-center gap-2 text-primary font-semibold group-hover:gap-4 transition-all">

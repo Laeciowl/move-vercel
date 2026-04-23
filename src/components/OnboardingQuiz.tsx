@@ -158,7 +158,7 @@ const OnboardingQuiz = ({ onPassed }: { onPassed: () => void }) => {
         {/* Header */}
         <div className="text-center mb-6">
           <img src={logoMove} alt="Movê" className="h-10 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-foreground">Bem-vindo ao Movê!</h1>
+          <h1 className="text-2xl font-bold text-foreground">Bem-vindo à Movê!</h1>
           <p className="text-muted-foreground text-sm mt-1">
             Antes de começar, assista o vídeo e responda o questionário
           </p>
@@ -369,7 +369,7 @@ const OnboardingQuiz = ({ onPassed }: { onPassed: () => void }) => {
                       <p className="text-sm font-semibold text-foreground">Nossos valores</p>
                     </div>
                     <ul className="text-xs text-muted-foreground space-y-1">
-                      <li>• O Movê é um <strong>projeto social</strong> — todos os mentores são voluntários</li>
+                      <li>• A Movê é um <strong>projeto social</strong> — todos os mentores são voluntários</li>
                       <li>• <strong>Respeite o tempo dos mentores</strong> — confirme presença e compareça</li>
                       <li>• Faltas sem aviso resultam em <strong>penalidades progressivas</strong></li>
                       <li>• Use a plataforma com <strong>responsabilidade e gratidão</strong></li>
@@ -437,10 +437,10 @@ const OnboardingQuiz = ({ onPassed }: { onPassed: () => void }) => {
                   <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 text-left mt-6">
                     <div className="flex items-center gap-2 mb-2">
                       <Heart className="w-4 h-4 text-primary" />
-                      <p className="text-sm font-semibold text-foreground">Lembre-se dos valores do Movê</p>
+                      <p className="text-sm font-semibold text-foreground">Lembre-se dos valores da Movê</p>
                     </div>
                     <ul className="text-xs text-muted-foreground space-y-1">
-                      <li>• O Movê é um <strong>projeto social</strong> — todos os mentores são voluntários</li>
+                      <li>• A Movê é um <strong>projeto social</strong> — todos os mentores são voluntários</li>
                       <li>• <strong>Respeite o tempo dos mentores</strong> — confirme presença e compareça</li>
                       <li>• Faltas sem aviso resultam em <strong>penalidades progressivas</strong></li>
                       <li>• Use a plataforma com <strong>responsabilidade e gratidão</strong></li>

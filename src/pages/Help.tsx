@@ -58,7 +58,7 @@ const Help = () => {
           <div className="w-14 h-14 rounded-2xl bg-gradient-hero flex items-center justify-center shadow-button mx-auto">
             <Lightbulb className="w-7 h-7 text-primary-foreground" />
           </div>
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Como Aproveitar o Movê</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground">Como Aproveitar a Movê</h1>
           <p className="text-sm text-muted-foreground max-w-md mx-auto">
             Tudo que você precisa saber para crescer na carreira
           </p>
@@ -220,7 +220,7 @@ const Help = () => {
             <SectionCard icon={<HelpCircle className="w-5 h-5 text-primary" />} title="Perguntas Frequentes">
               <Accordion type="single" collapsible className="w-full space-y-2">
                 <FAQItem value="1" question="As mentorias são gratuitas?"
-                  answer="Sim! O Movê é 100% gratuito. Sempre foi e sempre será. Nossos mentores são voluntários que doam seu tempo para ajudar jovens profissionais a crescerem." />
+                  answer="Sim! A Movê é 100% gratuita. Sempre foi e sempre será. Nossos mentores são voluntários que doam seu tempo para ajudar jovens profissionais a crescerem." />
                 <FAQItem value="2" question="Quanto tempo dura uma mentoria?"
                   answer="Geralmente 30 a 60 minutos. O mentor define a duração disponível e você escolhe ao agendar." />
                 <FAQItem value="3" question="Posso remarcar uma mentoria?"

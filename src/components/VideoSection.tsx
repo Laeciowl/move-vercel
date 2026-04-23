@@ -41,7 +41,7 @@ const VideoSection = () => {
           className="text-center mb-10"
         >
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-            Conheça o Movê
+            Conheça a Movê
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             Veja como a plataforma funciona e como podemos te ajudar na sua jornada profissional
@@ -58,7 +58,7 @@ const VideoSection = () => {
           <div className="relative w-full aspect-video rounded-2xl overflow-hidden shadow-2xl border border-border/50">
             <iframe
               src={videoUrl}
-              title="Apresentação do Movê"
+              title="Apresentação da Movê"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               allowFullScreen
               className="absolute inset-0 w-full h-full"

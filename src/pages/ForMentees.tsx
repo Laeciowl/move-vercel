@@ -101,7 +101,7 @@ const ForMentees = () => {
                 transition={{ delay: 0.2 }}
                 className="text-xl text-muted-foreground mb-8 max-w-2xl"
               >
-                O Movê é uma plataforma gratuita de orientação profissional para jovens que estão construindo suas carreiras. Se você se identifica com nosso público, bora lá!
+                A Movê é uma plataforma gratuita de orientação profissional para jovens que estão construindo suas carreiras. Se você se identifica com nosso público, bora lá!
               </motion.p>
 
               <motion.button
@@ -128,7 +128,7 @@ const ForMentees = () => {
               className="max-w-4xl mx-auto"
             >
               <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-                Para quem é o Movê?
+                Para quem é a Movê?
               </h2>
               <p className="text-lg text-muted-foreground mb-10">
                 Nosso foco são jovens profissionais em diferentes momentos da jornada:

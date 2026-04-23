@@ -9,6 +9,7 @@ import { useMentorTags } from "@/hooks/useTags";
 import MentorBlockedPeriodsManager from "./MentorBlockedPeriodsManager";
 import MentorDisclaimerModal from "./MentorDisclaimerModal";
 import MentorSessionConfirmation from "./MentorSessionConfirmation";
+import MentorGoogleCalendarRequiredBanner from "./MentorGoogleCalendarRequiredBanner";
 import MentorAvailabilityEditor from "./MentorAvailabilityEditor";
 import MentorProfileEditor from "./MentorProfileEditor";
 import MentorAdvanceNoticeEditor from "./MentorAdvanceNoticeEditor";
@@ -232,6 +233,8 @@ const MentorPanel = () => {
           {statusLabels[mentorData.status]}
         </motion.span>
       </div>
+
+      <MentorGoogleCalendarRequiredBanner />
 
       {/* Disclaimer status */}
       {!mentorData.disclaimer_accepted ? (
