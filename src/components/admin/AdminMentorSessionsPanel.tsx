@@ -368,7 +368,14 @@ const AdminMentorSessionsPanel = () => {
                   )}
                   {session.mentor_notes && (
                     <p className="text-sm text-muted-foreground">
-                      📋 <strong>Notas do mentor:</strong> {session.mentor_notes}
+                      📋{" "}
+                      <strong>
+                        {session.status === "cancelled" && !session.notes
+                          ? "Nota de cancelamento"
+                          : "Notas do mentor"}
+                        :
+                      </strong>{" "}
+                      {session.mentor_notes}
                     </p>
                   )}
                   {!attendance && (
