@@ -80,6 +80,8 @@ const Volunteer = () => {
     password: "",
     phone: "",
     // Mentor fields - todos voluntários são mentores
+    cargoEmpresa: "",
+    anosExperiencia: "",
     description: "",
     education: "",
   });
@@ -187,6 +189,17 @@ const Volunteer = () => {
       return false;
     }
 
+    if (!formData.cargoEmpresa.trim()) {
+      toast.error("Informe seu cargo e empresa atual");
+      return false;
+    }
+
+    const anosExp = formData.anosExperiencia ? parseInt(formData.anosExperiencia, 10) : NaN;
+    if (Number.isNaN(anosExp) || anosExp < 0 || anosExp > 70) {
+      toast.error("Informe seus anos de experiência profissional (0 a 70)");
+      return false;
+    }
+
     // Validação de descrição (todos são mentores agora)
     if (!formData.description.trim()) {
       toast.error("Escreve um pouquinho sobre você! Ajuda os mentorados te conhecerem.");
@@ -290,7 +303,7 @@ const Volunteer = () => {
             name: formData.name.trim(),
             email: formData.email.trim(),
             phone: formData.phone.trim(),
-            area: selectedTags.map(t => t.name).join(", ") || "Mentoria",
+            area: formData.cargoEmpresa.trim() || selectedTags.map(t => t.name).join(", ") || "Mentoria",
             how_to_help: "Mentoria, Aulas/Lives, Templates",
             categories: ["mentoria", "aulas_lives", "templates_arquivos"],
             user_id: currentUserId,
@@ -332,13 +345,14 @@ const Volunteer = () => {
         const { data: mentorData, error: mentorError } = await supabase.from("mentors").insert([{
           name: formData.name.trim(),
           email: formData.email.trim(),
-          area: selectedTags.map(t => t.name).join(", ") || "Mentoria",
+          area: formData.cargoEmpresa.trim() || selectedTags.map(t => t.name).join(", ") || "Mentoria",
           description: formData.description.trim(),
           education: formData.education.trim() || null,
           photo_url: photoUrl,
           availability: JSON.parse(JSON.stringify(availability)),
           disclaimer_accepted: true,
           disclaimer_accepted_at: new Date().toISOString(),
+          anos_experiencia: parseInt(formData.anosExperiencia, 10),
         }]).select('id').single();
 
         if (mentorError) {
@@ -372,7 +386,7 @@ const Volunteer = () => {
             name: formData.name.trim(),
             type: "mentor_application_received",
             data: {
-              area: selectedTags.map(t => t.name).join(", ") || "Mentoria",
+              area: formData.cargoEmpresa.trim() || selectedTags.map(t => t.name).join(", ") || "Mentoria",
             },
             skipPreferenceCheck: true,
           },
@@ -691,6 +705,40 @@ const Volunteer = () => {
                   </div>
                 </div>
 
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Cargo | Empresa *
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.cargoEmpresa}
+                    onChange={(e) => setFormData({ ...formData, cargoEmpresa: e.target.value })}
+                    className="w-full px-4 py-3 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    placeholder="Ex: Analista de Marketing | Google"
+                    required
+                    maxLength={150}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Será exibido como destaque no seu perfil público (as tags acima continuam valendo para combinar com mentorados)
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Anos de experiência profissional *
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.anosExperiencia}
+                    onChange={(e) => setFormData({ ...formData, anosExperiencia: e.target.value })}
+                    className="w-full px-4 py-3 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    placeholder="Ex: 5"
+                    min={0}
+                    max={70}
+                    required
+                  />
+                </div>
+
                 {/* Description */}
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
@@ -815,7 +863,7 @@ const Volunteer = () => {
                   Enviando...
                 </>
               ) : (
-                "Quero ser voluntário"
+                "Quero ser Mentor voluntário"
               )}
             </button>
           </form>

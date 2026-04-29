@@ -96,7 +96,7 @@ const SessionReviewModal = ({
     setSubmitting(true);
 
     // Update session to cancelled with the reason
-    const mentorNotes = motivoNaoAconteceu === "eu_nao_apareci"
+    const menteeNotes = motivoNaoAconteceu === "eu_nao_apareci"
       ? "Não realizada: mentorado não apareceu"
       : motivoNaoAconteceu === "mentor_nao_apareceu"
       ? "Não realizada: mentor não apareceu"
@@ -106,7 +106,7 @@ const SessionReviewModal = ({
       .from("mentor_sessions")
       .update({
         status: "cancelled",
-        mentor_notes: mentorNotes + (detalhesMotivo.trim() ? ` — ${detalhesMotivo.trim()}` : ""),
+        notes: menteeNotes + (detalhesMotivo.trim() ? ` — ${detalhesMotivo.trim()}` : ""),
       })
       .eq("id", sessionId);
 
@@ -125,7 +125,7 @@ const SessionReviewModal = ({
             mentee_user_id: userId,
             status: attendanceStatus,
             mentee_avisou: false,
-            mentor_observations: mentorNotes + (detalhesMotivo.trim() ? ` — ${detalhesMotivo.trim()}` : ""),
+            mentor_observations: menteeNotes + (detalhesMotivo.trim() ? ` — ${detalhesMotivo.trim()}` : ""),
             reported_by: userId,
           } as any);
         } catch (err) {

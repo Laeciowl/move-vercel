@@ -1,12 +1,15 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAdminCheck } from "@/hooks/useAdminCheck";
 import AppLayout from "@/components/AppLayout";
 import MentorshipSection from "@/components/MentorshipSection";
+import MenteeNoShowPenaltyBanner from "@/components/MenteeNoShowPenaltyBanner";
 import { Loader2 } from "lucide-react";
 
 const MinhasMentorias = () => {
   const { user, loading: authLoading } = useAuth();
+  const { isAdmin } = useAdminCheck();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -23,7 +26,8 @@ const MinhasMentorias = () => {
 
   return (
     <AppLayout>
-      <div className="max-w-4xl mx-auto pb-6">
+      <div className="max-w-4xl mx-auto pb-6 space-y-4">
+        {!isAdmin && <MenteeNoShowPenaltyBanner userId={user.id} />}
         <MentorshipSection />
       </div>
     </AppLayout>

@@ -44,6 +44,7 @@ interface BookingCalendarProps {
   onConfirm: (date: Date, time: string, duration: number, formation: string, objective: string) => Promise<void>;
   loading: boolean;
   minAdvanceHours?: number;
+  autoCancelNoReconfirmation?: boolean;
 }
 
 const dayIndexMap: Record<string, number> = {
@@ -79,6 +80,7 @@ const BookingCalendar = ({
   onConfirm, 
   loading,
   minAdvanceHours = 24,
+  autoCancelNoReconfirmation = false,
 }: BookingCalendarProps) => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState<string>("");
@@ -448,10 +450,18 @@ const BookingCalendar = ({
             <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 rounded-xl p-4 space-y-2">
               <p className="text-sm text-foreground font-medium">⏰ Reconfirmação obrigatória</p>
               <p className="text-sm text-muted-foreground">
-                Você receberá um e-mail <strong>6 horas antes</strong> da mentoria pedindo para confirmar sua presença.
+                Você receberá um e-mail <strong>algumas horas antes da mentoria</strong> pedindo para confirmar sua presença.
               </p>
               <p className="text-sm text-muted-foreground">
-                Se você <strong>não confirmar até 3 horas antes</strong>, a sessão será <strong>cancelada automaticamente</strong> e registrada como falta.
+                {autoCancelNoReconfirmation ? (
+                  <>
+                    Se você <strong>não confirmar até 3 horas antes</strong>, a sessão será <strong>cancelada automaticamente</strong> e registrada como falta.
+                  </>
+                ) : (
+                  <>
+                    É muito importante <strong>reconfirmar sua presença até 3 horas antes</strong> para respeitar o tempo do mentor voluntário.
+                  </>
+                )}
               </p>
             </div>
 

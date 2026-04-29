@@ -332,6 +332,8 @@ export type Database = {
           blocked_until: string | null
           created_at: string | null
           id: string
+          last_forgiven_at: string | null
+          last_forgiven_by: string | null
           status: Database["public"]["Enums"]["penalty_status"] | null
           total_completed: number | null
           total_no_shows: number | null
@@ -343,6 +345,8 @@ export type Database = {
           blocked_until?: string | null
           created_at?: string | null
           id?: string
+          last_forgiven_at?: string | null
+          last_forgiven_by?: string | null
           status?: Database["public"]["Enums"]["penalty_status"] | null
           total_completed?: number | null
           total_no_shows?: number | null
@@ -354,6 +358,8 @@ export type Database = {
           blocked_until?: string | null
           created_at?: string | null
           id?: string
+          last_forgiven_at?: string | null
+          last_forgiven_by?: string | null
           status?: Database["public"]["Enums"]["penalty_status"] | null
           total_completed?: number | null
           total_no_shows?: number | null
@@ -675,6 +681,7 @@ export type Database = {
       }
       mentors: {
         Row: {
+          auto_cancel_no_reconfirmation: boolean
           anos_experiencia: number | null
           area: string
           availability: Json
@@ -696,6 +703,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          auto_cancel_no_reconfirmation?: boolean
           anos_experiencia?: number | null
           area: string
           availability?: Json
@@ -717,6 +725,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          auto_cancel_no_reconfirmation?: boolean
           anos_experiencia?: number | null
           area?: string
           availability?: Json
@@ -1058,6 +1067,7 @@ export type Database = {
           mentee_discovery_source:
             | Database["public"]["Enums"]["mentee_discovery_source"]
             | null
+          mentee_referrer_name: string | null
           name: string
           onboarding_completed: boolean
           onboarding_quiz_passed: boolean
@@ -1082,6 +1092,7 @@ export type Database = {
           mentee_discovery_source?:
             | Database["public"]["Enums"]["mentee_discovery_source"]
             | null
+          mentee_referrer_name?: string | null
           name: string
           onboarding_completed?: boolean
           onboarding_quiz_passed?: boolean
@@ -1106,6 +1117,7 @@ export type Database = {
           mentee_discovery_source?:
             | Database["public"]["Enums"]["mentee_discovery_source"]
             | null
+          mentee_referrer_name?: string | null
           name?: string
           onboarding_completed?: boolean
           onboarding_quiz_passed?: boolean

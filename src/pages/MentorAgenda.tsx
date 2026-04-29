@@ -30,6 +30,7 @@ interface MentorData {
   availability: any[];
   min_advance_hours?: number;
   temporarily_unavailable?: boolean;
+  auto_cancel_no_reconfirmation?: boolean;
 }
 
 interface MentorSession {
@@ -157,6 +158,7 @@ const MentorAgenda = () => {
         availability: (mentor.availability as any[]) || [],
         min_advance_hours: (mentor as any).min_advance_hours ?? 24,
         temporarily_unavailable: (mentor as any).temporarily_unavailable ?? false,
+        auto_cancel_no_reconfirmation: (mentor as any).auto_cancel_no_reconfirmation ?? false,
       });
 
       const { data: sessionsData } = await supabase
@@ -336,45 +338,92 @@ const MentorAgenda = () => {
 
             {/* Temporarily Unavailable Toggle */}
             {mentorData.status === "approved" && (
-              <div className={`flex items-center justify-between p-4 mt-4 rounded-xl border transition-colors ${
-                mentorData.temporarily_unavailable
-                  ? "bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700/50"
-                  : "bg-muted/30 border-border/50"
-              }`}>
-                <div className="flex items-center gap-3">
-                  {mentorData.temporarily_unavailable ? (
-                    <PauseCircle className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-                  ) : (
-                    <PlayCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
-                  )}
-                  <div>
-                    <p className="text-sm font-medium text-foreground">
-                      {mentorData.temporarily_unavailable ? "Agenda desativada" : "Agenda ativa"}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {mentorData.temporarily_unavailable 
-                        ? "Você está indisponível para mentorados"
-                        : "Mentorados podem agendar com você"
-                      }
-                    </p>
+              <div className="space-y-3 mt-4">
+                <div className={`flex items-center justify-between p-4 rounded-xl border transition-colors ${
+                  mentorData.temporarily_unavailable
+                    ? "bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700/50"
+                    : "bg-muted/30 border-border/50"
+                }`}>
+                  <div className="flex items-center gap-3">
+                    {mentorData.temporarily_unavailable ? (
+                      <PauseCircle className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                    ) : (
+                      <PlayCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+                    )}
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        {mentorData.temporarily_unavailable ? "Agenda desativada" : "Agenda ativa"}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {mentorData.temporarily_unavailable
+                          ? "Você está indisponível para mentorados"
+                          : "Mentorados podem agendar com você"
+                        }
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <Switch
-                  checked={!mentorData.temporarily_unavailable}
-                  onCheckedChange={async (checked) => {
-                    const { error } = await supabase
-                      .from("mentors")
-                      .update({ temporarily_unavailable: !checked })
-                      .eq("id", mentorData.id);
+                  <Switch
+                    checked={!mentorData.temporarily_unavailable}
+                    onCheckedChange={async (checked) => {
+                      const { error } = await supabase
+                        .from("mentors")
+                        .update({ temporarily_unavailable: !checked })
+                        .eq("id", mentorData.id);
 
-                    if (error) {
-                      toast.error("Erro ao atualizar status: " + error.message);
-                    } else {
-                      toast.success(checked ? "Agenda reativada! 🎉" : "Agenda desativada temporariamente");
-                      fetchData();
-                    }
-                  }}
-                />
+                      if (error) {
+                        toast.error("Erro ao atualizar status: " + error.message);
+                      } else {
+                        toast.success(checked ? "Agenda reativada! 🎉" : "Agenda desativada temporariamente");
+                        fetchData();
+                      }
+                    }}
+                  />
+                </div>
+
+                <div className={`flex items-center justify-between p-4 rounded-xl border transition-colors ${
+                  mentorData.auto_cancel_no_reconfirmation
+                    ? "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700/50"
+                    : "bg-muted/30 border-border/50"
+                }`}>
+                  <div className="flex items-center gap-3">
+                    <AlertTriangle className={`w-5 h-5 ${
+                      mentorData.auto_cancel_no_reconfirmation
+                        ? "text-red-600 dark:text-red-400"
+                        : "text-muted-foreground"
+                    }`} />
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        Cancelamento automático por falta de reconfirmação
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {mentorData.auto_cancel_no_reconfirmation
+                          ? "Ligado: sessão é cancelada se o mentorado não reconfirmar até 3h antes."
+                          : "Desligado (padrão): sessão continua e você recebe apenas um aviso."
+                        }
+                      </p>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={mentorData.auto_cancel_no_reconfirmation ?? false}
+                    onCheckedChange={async (checked) => {
+                      const { error } = await supabase
+                        .from("mentors")
+                        .update({ auto_cancel_no_reconfirmation: checked })
+                        .eq("id", mentorData.id);
+
+                      if (error) {
+                        toast.error("Erro ao atualizar preferência: " + error.message);
+                      } else {
+                        toast.success(
+                          checked
+                            ? "Cancelamento automático ativado."
+                            : "Cancelamento automático desativado.",
+                        );
+                        fetchData();
+                      }
+                    }}
+                  />
+                </div>
               </div>
             )}
 

@@ -23,6 +23,7 @@ interface NpsStats {
   passives: number;
   detractors: number;
   score: number;
+  average: number;
 }
 
 const AdminTrailsNpsPanel = () => {
@@ -33,18 +34,18 @@ const AdminTrailsNpsPanel = () => {
   const [loading, setLoading] = useState(true);
   const [showTrailDetail, setShowTrailDetail] = useState(false);
   const [showNpsDetail, setShowNpsDetail] = useState(false);
-  const [npsByType, setNpsByType] = useState<{ mentors: NpsStats; mentees: NpsStats } | null>(null);
-  const [recentFeedback, setRecentFeedback] = useState<{ nota: number; feedback: string; user_type: string; created_at: string }[]>([]);
+  const [recentFeedback, setRecentFeedback] = useState<{ nota: number; feedback: string; created_at: string; user_name: string }[]>([]);
   const [trailMentees, setTrailMentees] = useState<Map<string, { name: string; progresso: number; concluido: boolean }[]>>(new Map());
   const [loadingMentees, setLoadingMentees] = useState(false);
   const calcNps = (responses: { nota: number }[]): NpsStats => {
-    if (responses.length === 0) return { total: 0, promoters: 0, passives: 0, detractors: 0, score: 0 };
+    if (responses.length === 0) return { total: 0, promoters: 0, passives: 0, detractors: 0, score: 0, average: 0 };
     const promoters = responses.filter(r => r.nota >= 9).length;
     const passives = responses.filter(r => r.nota >= 7 && r.nota <= 8).length;
     const detractors = responses.filter(r => r.nota <= 6).length;
     const total = responses.length;
     const score = Math.round(((promoters - detractors) / total) * 100);
-    return { total, promoters, passives, detractors, score };
+    const average = Number((responses.reduce((acc, r) => acc + r.nota, 0) / total).toFixed(1));
+    return { total, promoters, passives, detractors, score, average };
   };
 
   const fetchData = useCallback(async () => {
@@ -53,7 +54,7 @@ const AdminTrailsNpsPanel = () => {
     const [trailsRes, progressRes, npsRes] = await Promise.all([
       supabase.from("trilhas").select("id, titulo, icone").eq("ativo", true),
       supabase.from("progresso_trilha").select("trilha_id, mentorado_id, concluido_em"),
-      supabase.from("nps_respostas").select("nota, feedback, user_type, created_at").order("created_at", { ascending: false }),
+      supabase.from("nps_respostas").select("user_id, nota, feedback, created_at").order("created_at", { ascending: false }),
     ]);
 
     // Trail stats
@@ -91,14 +92,24 @@ const AdminTrailsNpsPanel = () => {
     const npsData = npsRes.data || [];
     setNpsStats(calcNps(npsData));
 
-    const mentorNps = npsData.filter(n => n.user_type === "mentor");
-    const menteeNps = npsData.filter(n => n.user_type === "mentorado");
-    setNpsByType({
-      mentors: calcNps(mentorNps),
-      mentees: calcNps(menteeNps),
-    });
+    const npsUserIds = Array.from(new Set(npsData.map((n: any) => n.user_id)));
+    let profileNameMap = new Map<string, string>();
+    if (npsUserIds.length > 0) {
+      const { data: profilesData } = await supabase
+        .from("profiles")
+        .select("user_id, name")
+        .in("user_id", npsUserIds);
+      profileNameMap = new Map((profilesData || []).map((p: any) => [p.user_id, p.name]));
+    }
 
-    setRecentFeedback(npsData.filter(n => n.feedback).slice(0, 10) as any);
+    setRecentFeedback(
+      npsData.map((n: any) => ({
+        nota: n.nota,
+        feedback: n.feedback || "",
+        created_at: n.created_at,
+        user_name: profileNameMap.get(n.user_id) || "Usuário",
+      })),
+    );
 
     setLoading(false);
   }, []);
@@ -204,6 +215,7 @@ const AdminTrailsNpsPanel = () => {
                     {getNpsLabel(npsStats.score).label}
                   </span>
                 </div>
+                <p className="text-sm text-muted-foreground mt-1">Nota média: {npsStats.average.toFixed(1)}/10</p>
                 <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
                   <span className="text-emerald-500">Promotores: {Math.round((npsStats.promoters / npsStats.total) * 100)}%</span>
                   <span>Neutros: {Math.round((npsStats.passives / npsStats.total) * 100)}%</span>
@@ -286,31 +298,31 @@ const AdminTrailsNpsPanel = () => {
           <DialogHeader>
             <DialogTitle>⭐ Detalhes do NPS</DialogTitle>
             <DialogDescription>
-              {npsStats ? `${npsStats.total} respostas • Score: ${npsStats.score}` : "Sem dados"}
+              {npsStats ? `${npsStats.total} respostas • Score: ${npsStats.score} • Média: ${npsStats.average.toFixed(1)}/10` : "Sem dados"}
             </DialogDescription>
           </DialogHeader>
-          {npsByType && (
+          {npsStats && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div className="p-3 rounded-lg bg-muted/50">
-                  <p className="text-xs text-muted-foreground mb-1">Mentorados</p>
-                  <p className={`text-xl font-bold ${getNpsLabel(npsByType.mentees.score).color}`}>
-                    {npsByType.mentees.score}
+                  <p className="text-xs text-muted-foreground mb-1">NPS Score</p>
+                  <p className={`text-xl font-bold ${getNpsLabel(npsStats.score).color}`}>
+                    {npsStats.score}
                   </p>
-                  <p className="text-xs text-muted-foreground">{npsByType.mentees.total} respostas</p>
+                  <p className="text-xs text-muted-foreground">{npsStats.total} respostas</p>
                 </div>
                 <div className="p-3 rounded-lg bg-muted/50">
-                  <p className="text-xs text-muted-foreground mb-1">Mentores</p>
-                  <p className={`text-xl font-bold ${getNpsLabel(npsByType.mentors.score).color}`}>
-                    {npsByType.mentors.score}
+                  <p className="text-xs text-muted-foreground mb-1">Nota média</p>
+                  <p className="text-xl font-bold text-foreground">
+                    {npsStats.average.toFixed(1)}
                   </p>
-                  <p className="text-xs text-muted-foreground">{npsByType.mentors.total} respostas</p>
+                  <p className="text-xs text-muted-foreground">de 0 a 10</p>
                 </div>
               </div>
 
               {recentFeedback.length > 0 && (
                 <div>
-                  <h4 className="text-sm font-medium text-foreground mb-2">Últimos feedbacks</h4>
+                  <h4 className="text-sm font-medium text-foreground mb-2">Respostas (mais recentes primeiro)</h4>
                   <div className="space-y-2">
                     {recentFeedback.map((fb, i) => (
                       <div key={i} className="p-3 rounded-lg bg-muted/50 text-sm">
@@ -323,10 +335,10 @@ const AdminTrailsNpsPanel = () => {
                             {fb.nota}
                           </span>
                           <span className="text-xs text-muted-foreground">
-                            {fb.user_type === "mentor" ? "Mentor" : "Mentorado"}
+                            {fb.user_name} • {new Date(fb.created_at).toLocaleDateString("pt-BR")}
                           </span>
                         </div>
-                        <p className="text-muted-foreground text-xs">{fb.feedback}</p>
+                        <p className="text-muted-foreground text-xs">{fb.feedback || "Sem comentário."}</p>
                       </div>
                     ))}
                   </div>

@@ -69,7 +69,7 @@ const BugReportButton = () => {
       {/* Floating button */}
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-40 bg-destructive text-destructive-foreground p-3 rounded-full shadow-lg hover:scale-105 transition-transform flex items-center gap-2 group"
+        className="fixed z-40 bg-destructive text-destructive-foreground p-3 rounded-full shadow-lg hover:scale-105 transition-transform flex items-center gap-2 group right-3 md:right-6 bottom-[calc(5.25rem+env(safe-area-inset-bottom,0px))] md:bottom-6"
         title="Reportar erro"
       >
         <Bug className="w-5 h-5" />

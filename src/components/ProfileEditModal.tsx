@@ -145,6 +145,21 @@ const ProfileEditModal = ({ isOpen, onClose, profile, onProfileUpdated }: Profil
 
       if (error) throw error;
 
+      // Keep public mentor listing in sync: it reads mentors.name, not profiles.name
+      try {
+        const { data: authUserData } = await supabase.auth.getUser();
+        const email = authUserData.user?.email;
+        const trimmedName = formData.name.trim();
+        if (email && trimmedName) {
+          await supabase
+            .from("mentors")
+            .update({ name: trimmedName, updated_at: new Date().toISOString() })
+            .eq("email", email);
+        }
+      } catch {
+        // non-mentors: no row updated; ignore
+      }
+
       toast.success("Perfil atualizado!");
       onProfileUpdated();
       onClose();

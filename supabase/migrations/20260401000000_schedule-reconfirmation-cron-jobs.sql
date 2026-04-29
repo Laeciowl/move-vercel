@@ -3,8 +3,8 @@
 -- Both functions have verify_jwt = false in config.toml, so the anon/publishable
 -- key in the apikey header is sufficient for the API gateway to accept the request.
 --
--- send-reconfirmation   : picks up sessions in [now+5.5h, now+6.5h] → sends email + sets reconfirmation_sent=true
--- auto-cancel-unconfirmed: picks up sessions in [now+2.5h, now+3.5h] with no response → cancels + records no-show
+-- send-reconfirmation   : (edge function) sessões com início entre ~3h15 e ~7h → e-mail + reconfirmation_sent=true
+-- auto-cancel-unconfirmed: [now+2h, now+3h], sem resposta; alinhado ao fim do prazo de confirmação (>3h no handle-reconfirmation); graça 45min após envio do e-mail
 --
 -- Running every 30 minutes guarantees every session falls inside at least one cron window
 -- (windows are 1h wide, interval is 30m → no session can be skipped).

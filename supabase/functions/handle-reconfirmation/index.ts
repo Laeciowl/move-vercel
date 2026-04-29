@@ -145,6 +145,18 @@ Deno.serve(async (req) => {
     const now = new Date().toISOString();
 
     if (action === "confirm") {
+      const scheduledAt = new Date(session.scheduled_at as string);
+      const minutesUntil = (scheduledAt.getTime() - Date.now()) / 60_000;
+      // Alinhado ao e-mail e ao auto-cancel: confirmar só com mais de 3h até o início
+      if (minutesUntil <= 180) {
+        return json({
+          result: "deadline_expired",
+          message:
+            "O prazo para confirmar presença (até 3 horas antes da mentoria) já encerrou. Se a sessão foi cancelada automaticamente, você pode agendar outra.",
+          sessionInfo,
+        });
+      }
+
       await adminClient
         .from("mentor_sessions")
         .update({

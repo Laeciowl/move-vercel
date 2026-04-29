@@ -23,6 +23,7 @@ import MentorTagFilter from "@/components/MentorTagFilter";
 import MentorMatchBadge from "@/components/MentorMatchBadge";
 import { Button } from "@/components/ui/button";
 import type { TagItem } from "@/components/TagSelector";
+import { getMenteeBookingBlock, type MenteeAttendanceStatsRow } from "@/lib/menteePenaltyBooking";
 
 interface Availability {
   day: string;
@@ -60,6 +61,7 @@ interface Mentor {
   matchingTags: TagItem[];
   temporarily_unavailable: boolean;
   anos_experiencia: number | null;
+  auto_cancel_no_reconfirmation: boolean;
 }
 
 const dayLabels: Record<string, string> = {
@@ -96,8 +98,26 @@ const Mentors = () => {
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
   const [selectedMentorForProfile, setSelectedMentorForProfile] = useState<Mentor | null>(null);
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+  const [menteeBookingBlock, setMenteeBookingBlock] = useState<{ blocked: boolean; message?: string }>({
+    blocked: false,
+  });
 
   const userInterestTagIds = useMemo(() => userInterests.map(t => t.id), [userInterests]);
+
+  useEffect(() => {
+    if (!user?.id) {
+      setMenteeBookingBlock({ blocked: false });
+      return;
+    }
+    (async () => {
+      const { data, error } = await supabase.rpc("get_mentee_attendance_stats", { mentee_id: user.id });
+      if (error || !data?.length) {
+        setMenteeBookingBlock({ blocked: false });
+        return;
+      }
+      setMenteeBookingBlock(getMenteeBookingBlock(data[0] as MenteeAttendanceStatsRow));
+    })();
+  }, [user?.id]);
 
   useEffect(() => {
     const fetchMentors = async () => {
@@ -150,6 +170,7 @@ const Mentors = () => {
               matchingTags: [],
               temporarily_unavailable: (m as any).temporarily_unavailable ?? false,
               anos_experiencia: (m as any).anos_experiencia ?? null,
+              auto_cancel_no_reconfirmation: (m as any).auto_cancel_no_reconfirmation ?? false,
             };
           });
           setMentors(formattedMentors);
@@ -208,6 +229,7 @@ const Mentors = () => {
           matchingTags: (m.matching_tags as unknown as TagItem[]) || [],
           temporarily_unavailable: (m as any).temporarily_unavailable ?? false,
           anos_experiencia: (m as any).anos_experiencia ?? null,
+          auto_cancel_no_reconfirmation: (m as any).auto_cancel_no_reconfirmation ?? false,
         };
       });
 
@@ -274,6 +296,15 @@ const Mentors = () => {
       toast.error("Antes de agendar, adiciona seu telefone no perfil — é assim que o mentor vai falar com você.");
       setDialogOpen(false);
       navigate("/dashboard?editarPerfil=1");
+      return;
+    }
+
+    const { data: penaltyData } = await supabase.rpc("get_mentee_attendance_stats", { mentee_id: user.id });
+    const block = getMenteeBookingBlock(
+      penaltyData?.length ? (penaltyData[0] as MenteeAttendanceStatsRow) : null,
+    );
+    if (block.blocked) {
+      toast.error(block.message ?? "Não é possível agendar mentorias no momento.");
       return;
     }
 
@@ -347,6 +378,17 @@ const Mentors = () => {
       return;
     }
 
+    const { data: penaltyData } = await supabase.rpc("get_mentee_attendance_stats", { mentee_id: user.id });
+    const block = getMenteeBookingBlock(
+      penaltyData?.length ? (penaltyData[0] as MenteeAttendanceStatsRow) : null,
+    );
+    if (block.blocked) {
+      toast.error(block.message ?? "Não é possível agendar mentorias no momento.");
+      setMenteeBookingBlock(block);
+      return;
+    }
+    setMenteeBookingBlock(block);
+
     setSelectedMentor(mentor);
     setBlockedPeriods([]);
     setBookedSessions([]);
@@ -374,7 +416,7 @@ const Mentors = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-warm py-12 px-4">
+    <div className="min-h-screen min-h-dvh bg-gradient-warm py-8 sm:py-12 px-3 sm:px-4 pb-[max(2rem,env(safe-area-inset-bottom,0px))]">
       <div className="container mx-auto max-w-6xl">
         <button
           onClick={() => navigate("/inicio")}
@@ -383,6 +425,16 @@ const Mentors = () => {
           <ArrowLeft className="w-4 h-4" />
           Voltar para a página inicial
         </button>
+
+        {user && menteeBookingBlock.blocked && (
+          <div
+            className="mb-8 max-w-2xl mx-auto rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+            role="alert"
+          >
+            {menteeBookingBlock.message ??
+              "Não é possível agendar novas mentorias no momento. Entre em contato pelo suporte se precisar de ajuda."}
+          </div>
+        )}
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -602,7 +654,8 @@ const Mentors = () => {
                     ) : (
                       <button
                         onClick={() => openBookingDialog(mentor)}
-                        className="w-full bg-primary text-primary-foreground py-2.5 rounded-xl font-semibold hover:opacity-90 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 text-sm"
+                        disabled={!!user && menteeBookingBlock.blocked}
+                        className="w-full bg-primary text-primary-foreground py-2.5 rounded-xl font-semibold hover:opacity-90 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-50 disabled:pointer-events-none disabled:hover:translate-y-0"
                       >
                         <Calendar className="w-4 h-4" />
                         Agendar mentoria
@@ -656,6 +709,7 @@ const Mentors = () => {
                 onConfirm={handleBookSession}
                 loading={booking}
                 minAdvanceHours={selectedMentor.min_advance_hours}
+                autoCancelNoReconfirmation={selectedMentor.auto_cancel_no_reconfirmation}
               />
             )}
           </DialogContent>
@@ -837,7 +891,8 @@ const Mentors = () => {
                 ) : (
                   <button
                     onClick={() => handleBookFromProfile(selectedMentorForProfile)}
-                    className="w-full bg-gradient-hero text-primary-foreground py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+                    disabled={!!user && menteeBookingBlock.blocked}
+                    className="w-full bg-gradient-hero text-primary-foreground py-3 rounded-xl font-semibold hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-50 disabled:pointer-events-none"
                   >
                     <Calendar className="w-4 h-4" />
                     Agendar mentoria

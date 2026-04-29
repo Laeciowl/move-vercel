@@ -52,6 +52,38 @@ function generateCancellationHtml(name: string, role: "mentor" | "mentee", other
   `;
 }
 
+function generateMentorWarningHtml(mentorName: string, menteeName: string, date: string): string {
+  return `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #fffbf7;">
+      <h1 style="color: #d97706; text-align: center;">⚠️ Mentorado não reconfirmou</h1>
+      <p style="color: ${MOVE_COLORS.text}; font-size: 16px; line-height: 1.6;">
+        Olá, ${mentorName}!
+      </p>
+      <p style="color: ${MOVE_COLORS.text}; font-size: 16px; line-height: 1.6;">
+        O mentorado <strong>${menteeName}</strong> não reconfirmou presença para a mentoria de
+        <strong> ${date}</strong>.
+      </p>
+      <div style="background-color: #fffbeb; padding: 15px; border-radius: 12px; margin: 15px 0; border-left: 4px solid #d97706;">
+        <p style="color: ${MOVE_COLORS.text}; margin: 0;">
+          A sessão <strong>continua agendada</strong> porque seu cancelamento automático está desativado.
+        </p>
+      </div>
+      <p style="color: ${MOVE_COLORS.text}; font-size: 14px; line-height: 1.6;">
+        Se quiser, você pode ativar o cancelamento automático em <strong>Minha Agenda</strong>.
+      </p>
+      <div style="text-align: center; margin-top: 25px;">
+        <a href="https://movecarreiras.org/mentor/agenda"
+           style="background: linear-gradient(135deg, ${MOVE_COLORS.primary} 0%, #fb923c 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 12px; font-weight: bold; display: inline-block;">
+          Abrir Minha Agenda
+        </a>
+      </div>
+      <p style="color: ${MOVE_COLORS.textMuted}; font-size: 12px; text-align: center; margin-top: 30px;">
+        <strong style="color: ${MOVE_COLORS.primary};">Movê</strong> — educação que Move
+      </p>
+    </div>
+  `;
+}
+
 async function sendEmail(to: string, subject: string, html: string): Promise<boolean> {
   if (!RESEND_API_KEY) return false;
   try {
@@ -86,27 +118,45 @@ Deno.serve(async (req) => {
     // Find sessions where:
     // - Reconfirmation was sent
     // - No reconfirmation response received (reconfirmation_confirmed IS NULL)
-    // - Session is 2.5-3.5h from now (deadline zone: 3h before session)
-    const in2h30 = new Date(now.getTime() + 2.5 * 60 * 60 * 1000).toISOString();
-    const in3h30 = new Date(now.getTime() + 3.5 * 60 * 60 * 1000).toISOString();
+    // - Session start está entre 2h e 3h no futuro (janela de 1h para o cron */30 pegar uma vez)
+    //
+    // Importante: handle-reconfirmation só aceita confirmar com minutesUntil > 180 (estritamente mais de 3h).
+    // A janela antiga [2,5h, 3,5h] cancelava por volta de 14:30 para sessão 18h — ainda dava para confirmar até ~15h.
+    // Com [2h, 3h], só entram sessões com 2h–3h até o início, ou seja, depois que o prazo de confirmação já fechou.
+    const in2h = new Date(now.getTime() + 2 * 60 * 60 * 1000).toISOString();
+    const in3h = new Date(now.getTime() + 3 * 60 * 60 * 1000).toISOString();
 
-    const { data: sessions } = await adminClient
+    const { data: rawSessions } = await adminClient
       .from("mentor_sessions")
-      .select("*, mentors(name, email)")
+      .select("*, mentors(name, email, auto_cancel_no_reconfirmation)")
       .eq("status", "scheduled")
       .eq("confirmed_by_mentor", true)
       .eq("reconfirmation_sent", true)
       .is("reconfirmation_confirmed", null)
-      .gte("scheduled_at", in2h30)
-      .lte("scheduled_at", in3h30);
+      .gte("scheduled_at", in2h)
+      .lte("scheduled_at", in3h);
+
+    // Período de graça após o envio do e-mail (evita corrida se o envio atrasar e cair no mesmo tick).
+    const GRACE_MS = 45 * 60 * 1000;
+    const nowMs = Date.now();
+    const sessions = (rawSessions || []).filter((session) => {
+      if (!session.reconfirmation_sent_at) return true;
+      const sentAt = new Date(session.reconfirmation_sent_at as string).getTime();
+      return nowMs - sentAt >= GRACE_MS;
+    });
 
     let cancelledCount = 0;
 
-    if (sessions) {
+    if (sessions.length > 0) {
       for (const session of sessions) {
+        const scheduledAt = new Date(session.scheduled_at);
+        const minutesUntil = (scheduledAt.getTime() - Date.now()) / 60_000;
+        // Mesmo critério do handle-reconfirmation: só cancelar se já não for possível confirmar.
+        if (minutesUntil > 180) continue;
+
         const mentorName = (session.mentors as any)?.name || "Mentor";
         const mentorEmail = (session.mentors as any)?.email;
-        const scheduledAt = new Date(session.scheduled_at);
+        const autoCancelEnabled = Boolean((session.mentors as any)?.auto_cancel_no_reconfirmation);
         const dateStr = scheduledAt.toLocaleDateString('pt-BR', {
           weekday: 'long', day: '2-digit', month: 'long',
           hour: '2-digit', minute: '2-digit',
@@ -124,67 +174,91 @@ Deno.serve(async (req) => {
         const { data: menteeUser } = await adminClient.auth.admin.getUserById(session.user_id);
         const menteeEmail = menteeUser?.user?.email;
 
-        // Cancel the session
-        await adminClient
-          .from("mentor_sessions")
-          .update({
-            status: "cancelled",
-            mentor_notes: "Cancelada automaticamente: mentorado não confirmou presença (deadline 3h antes)",
-          })
-          .eq("id", session.id);
-
-        // Record as no-show
-        try {
+        if (autoCancelEnabled) {
+          // Cancel the session when mentor opted-in.
           await adminClient
-            .from("mentee_attendance")
-            .insert({
-              session_id: session.id,
-              mentor_id: session.mentor_id,
-              mentee_user_id: session.user_id,
-              status: "no_show_mentorado",
-              mentee_avisou: false,
-              mentor_observations: "Cancelamento automático: não confirmou presença 3h antes",
-              reported_by: session.user_id, // system report
-            });
-        } catch (e) {
-          console.error("Error recording no-show:", e);
-        }
+            .from("mentor_sessions")
+            .update({
+              status: "cancelled",
+              reconfirmation_confirmed: false,
+              reconfirmation_confirmed_at: new Date().toISOString(),
+              mentor_notes: "Cancelada automaticamente: mentorado não confirmou presença (deadline 3h antes)",
+            })
+            .eq("id", session.id);
 
-        // Notify mentor
-        if (mentorEmail) {
-          await sendEmail(
-            mentorEmail,
-            "❌ Mentoria cancelada — mentorado não confirmou presença",
-            generateCancellationHtml(
-              mentorName,
-              "mentor",
-              menteeName,
-              dateStr,
-              `O mentorado ${menteeName} não confirmou presença para a mentoria de hoje. A sessão foi cancelada automaticamente e você está liberado(a) para este horário.`
-            )
-          );
-        }
+          // Record as no-show
+          try {
+            await adminClient
+              .from("mentee_attendance")
+              .insert({
+                session_id: session.id,
+                mentor_id: session.mentor_id,
+                mentee_user_id: session.user_id,
+                status: "no_show_mentorado",
+                mentee_avisou: false,
+                mentor_observations: "Cancelamento automático: não confirmou presença 3h antes",
+                reported_by: session.user_id, // system report
+              });
+          } catch (e) {
+            console.error("Error recording no-show:", e);
+          }
 
-        // Notify mentee
-        if (menteeEmail) {
-          await sendEmail(
-            menteeEmail,
-            "❌ Sua sessão de mentoria foi cancelada",
-            generateCancellationHtml(
-              menteeName,
-              "mentee",
-              mentorName,
-              dateStr,
-              `Sua sessão de mentoria foi cancelada porque você não confirmou presença a tempo. O mentor foi liberado.`
-            )
-          );
-        }
+          // Notify mentor
+          if (mentorEmail) {
+            await sendEmail(
+              mentorEmail,
+              "❌ Mentoria cancelada — mentorado não confirmou presença",
+              generateCancellationHtml(
+                mentorName,
+                "mentor",
+                menteeName,
+                dateStr,
+                `O mentorado ${menteeName} não confirmou presença para a mentoria de hoje. A sessão foi cancelada automaticamente e você está liberado(a) para este horário.`,
+              ),
+            );
+          }
 
-        cancelledCount++;
+          // Notify mentee
+          if (menteeEmail) {
+            await sendEmail(
+              menteeEmail,
+              "❌ Sua sessão de mentoria foi cancelada",
+              generateCancellationHtml(
+                menteeName,
+                "mentee",
+                mentorName,
+                dateStr,
+                `Sua sessão de mentoria foi cancelada porque você não confirmou presença a tempo. O mentor foi liberado.`,
+              ),
+            );
+          }
+
+          cancelledCount++;
+        } else {
+          // Keep session and notify mentor only once.
+          await adminClient
+            .from("mentor_sessions")
+            .update({
+              reconfirmation_confirmed: false,
+              reconfirmation_confirmed_at: new Date().toISOString(),
+              mentor_notes: "Aviso enviado: mentorado não reconfirmou presença até 3h antes (sessão mantida).",
+            })
+            .eq("id", session.id);
+
+          if (mentorEmail) {
+            await sendEmail(
+              mentorEmail,
+              "⚠️ Aviso: mentorado não reconfirmou presença",
+              generateMentorWarningHtml(mentorName, menteeName, dateStr),
+            );
+          }
+        }
       }
     }
 
-    console.log(`Auto-cancel: ${cancelledCount} sessions cancelled out of ${sessions?.length || 0}`);
+    console.log(
+      `Auto-cancel: ${cancelledCount} sessions cancelled out of ${sessions.length} eligible (${rawSessions?.length || 0} in time window before grace filter)`,
+    );
 
     return new Response(
       JSON.stringify({ success: true, cancelled: cancelledCount }),

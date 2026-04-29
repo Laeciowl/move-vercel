@@ -220,6 +220,7 @@ const emailTemplates: Record<string, { subject: string; html: (name: string, dat
           <p style="color: ${MOVE_COLORS.text}; margin: 10px 0 0 0;"><strong>Cidade:</strong> ${data?.city || "N/A"}</p>
           <p style="color: ${MOVE_COLORS.text}; margin: 10px 0 0 0;"><strong>Estado:</strong> ${data?.state || "N/A"}</p>
           ${data?.menteeDiscoveryLabel ? `<p style="color: ${MOVE_COLORS.text}; margin: 10px 0 0 0;"><strong>Como conheceu a Movê:</strong> ${data.menteeDiscoveryLabel}</p>` : ""}
+          ${data?.menteeReferrerName ? `<p style="color: ${MOVE_COLORS.text}; margin: 10px 0 0 0;"><strong>Quem indicou:</strong> ${data.menteeReferrerName}</p>` : ""}
         </div>
         <div style="text-align: center; margin-top: 30px;">
           <a href="https://movecarreiras.org/admin" 
@@ -438,10 +439,11 @@ const emailTemplates: Record<string, { subject: string; html: (name: string, dat
           <p style="color: ${MOVE_COLORS.success}; margin: 10px 0 0 0; font-size: 18px;"><strong>Nova data:</strong> ${data?.newDate || ""}</p>
           <p style="color: ${MOVE_COLORS.text}; margin: 10px 0 0 0;"><strong>Remarcado por:</strong> ${data?.rescheduledBy || "Participante"}</p>
           ${data?.reason && data.reason !== "Não informado" ? `<p style="color: ${MOVE_COLORS.text}; margin: 10px 0 0 0;"><strong>Motivo:</strong> ${data.reason}</p>` : ''}
+          ${data?.meetingLink ? `<p style="color: ${MOVE_COLORS.success}; margin: 14px 0 0 0;"><strong>Google Meet:</strong> <a href="${data.meetingLink}" style="color: ${MOVE_COLORS.secondary};">${data.meetingLink}</a></p>` : ''}
         </div>
         <div style="background-color: #f0f9ff; padding: 15px; border-radius: 12px; margin: 20px 0; border-left: 4px solid ${MOVE_COLORS.secondary};">
           <p style="color: ${MOVE_COLORS.secondary}; font-size: 14px; margin: 0;">
-            <strong>📌 Importante:</strong> A sessão precisará ser confirmada novamente. ${data?.userRole === "mentee" ? "O mentor entrará em contato para confirmar os detalhes." : "Entre em contato com o mentorado para confirmar."}
+            <strong>📌 Importante:</strong> ${data?.meetingLink ? "Um novo convite foi gerado no Google Calendar (veja o link acima, se aplicável). " : ""}A sessão segue como pendente de confirmação do mentor na plataforma. ${data?.userRole === "mentee" ? "O mentor pode entrar em contato para alinhar detalhes." : "Entre em contato com o mentorado se precisar confirmar."}
           </p>
         </div>
         <div style="text-align: center; margin-top: 30px;">

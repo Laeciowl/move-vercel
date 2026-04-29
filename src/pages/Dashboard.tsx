@@ -22,7 +22,7 @@ import OnboardingTour from "@/components/OnboardingTour";
 import NavigationGrid from "@/components/NavigationGrid";
 
 import PlatformGuide from "@/components/PlatformGuide";
-import PendingMentorBanner from "@/components/PendingMentorBanner";
+import PendingMentorFullScreen from "@/components/PendingMentorFullScreen";
 import MenteeInterestsEditor from "@/components/MenteeInterestsEditor";
 import InterestsOnboardingModal from "@/components/InterestsOnboardingModal";
 import InterestsNotificationBanner from "@/components/InterestsNotificationBanner";
@@ -59,10 +59,10 @@ const professionalStatusOptions = [
 
 const Dashboard = () => {
   const { user, profile, loading: authLoading, signOut, refreshProfile } = useAuth();
-  const { isAdmin } = useAdminCheck();
-  const { isVolunteer } = useVolunteerCheck();
-  const { isMentor } = useMentorCheck();
-  const { isPendingMentor } = usePendingMentorCheck();
+  const { isAdmin, loading: adminLoading } = useAdminCheck();
+  const { isVolunteer, loading: volunteerLoading } = useVolunteerCheck();
+  const { isMentor, loading: mentorLoading } = useMentorCheck();
+  const { isPendingMentor, loading: pendingMentorLoading } = usePendingMentorCheck();
   const navigate = useNavigate();
   const location = useLocation();
   const [impactHistory, setImpactHistory] = useState<ImpactHistory[]>([]);
@@ -112,11 +112,11 @@ const Dashboard = () => {
       // Applies to: new signups AND mentees who haven't booked a mentorship yet
       // Exempt: admins, volunteers, mentors
       const quizPassed = (profile as any).onboarding_quiz_passed;
-      if (!quizPassed && !isAdmin && !isVolunteer && !isMentor && !profile.first_mentorship_booked) {
+      if (!quizPassed && !isAdmin && !isVolunteer && !isMentor && !isPendingMentor && !profile.first_mentorship_booked) {
         setNeedsQuiz(true);
       }
     }
-  }, [profile, isVolunteer, isAdmin, isMentor]);
+  }, [profile, isVolunteer, isAdmin, isMentor, isPendingMentor]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -193,6 +193,27 @@ const Dashboard = () => {
         </motion.div>
       </div>
     );
+  }
+
+  if (adminLoading || pendingMentorLoading || volunteerLoading || mentorLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="flex flex-col items-center gap-4"
+        >
+          <div className="w-16 h-16 rounded-full bg-gradient-hero flex items-center justify-center shadow-button">
+            <Loader2 className="w-8 h-8 animate-spin text-primary-foreground" />
+          </div>
+          <p className="text-muted-foreground font-medium">Carregando...</p>
+        </motion.div>
+      </div>
+    );
+  }
+
+  if (user && !isAdmin && isPendingMentor && !isVolunteer && !isMentor) {
+    return <PendingMentorFullScreen />;
   }
 
   // Quiz gate is now handled by AppLayout
@@ -359,7 +380,6 @@ const Dashboard = () => {
             onOpenInterestsEditor={() => setShowInterestsOnboarding(true)} 
           />
         )}
-        {isPendingMentor && !isVolunteer && <PendingMentorBanner />}
 
         {/* Volunteer Panel */}
         <VolunteerPanel />

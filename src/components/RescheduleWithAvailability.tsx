@@ -71,6 +71,7 @@ const RescheduleWithAvailability = ({
   const [blockedPeriods, setBlockedPeriods] = useState<BlockedPeriod[]>([]);
   const [bookedSessions, setBookedSessions] = useState<BookedSession[]>([]);
   const [minAdvanceHours, setMinAdvanceHours] = useState<number>(24);
+  const [sessionDurationMinutes, setSessionDurationMinutes] = useState<number>(30);
 
   const sessionDate = new Date(scheduledAt);
   const formattedDate = format(sessionDate, "EEEE, d 'de' MMMM 'às' HH:mm", { locale: ptBR });
@@ -89,6 +90,15 @@ const RescheduleWithAvailability = ({
       if (mentor) {
         setAvailability((mentor.availability as unknown as Availability[]) || []);
         setMinAdvanceHours((mentor as any).min_advance_hours ?? 24);
+      }
+
+      const { data: sessionRow } = await supabase
+        .from("mentor_sessions")
+        .select("duration")
+        .eq("id", sessionId)
+        .maybeSingle();
+      if (sessionRow?.duration && sessionRow.duration > 0) {
+        setSessionDurationMinutes(sessionRow.duration);
       }
 
       const { data: blocked } = await supabase
@@ -127,7 +137,7 @@ const RescheduleWithAvailability = ({
     };
 
     fetchMentorData();
-  }, [mentorId, sessionId]);
+  }, [mentorId, sessionId, scheduledAt]);
 
   // Check if a time slot is in the past or doesn't meet minimum advance booking
   const isTimeSlotInPastOrTooSoon = (date: Date, time: string): boolean => {
@@ -146,7 +156,7 @@ const RescheduleWithAvailability = ({
     const [hours, minutes] = time.split(":").map(Number);
     const slotStart = new Date(date);
     slotStart.setHours(hours, minutes, 0, 0);
-    const slotEnd = addMinutes(slotStart, 30);
+    const slotEnd = addMinutes(slotStart, sessionDurationMinutes);
     
     for (const session of bookedSessions) {
       const sessionStart = parseISO(session.scheduled_at);
@@ -213,7 +223,7 @@ const RescheduleWithAvailability = ({
   const availableTimes = useMemo(() => {
     if (!selectedDate) return [];
     return getAvailableTimesForDate(selectedDate);
-  }, [selectedDate, availability, bookedSessions, minAdvanceHours]);
+  }, [selectedDate, availability, bookedSessions, minAdvanceHours, sessionDurationMinutes]);
 
   const handleReschedule = async () => {
     if (!selectedDate || !selectedTime) {
@@ -229,19 +239,66 @@ const RescheduleWithAvailability = ({
     
     const newFormattedDate = format(newScheduledAt, "EEEE, d 'de' MMMM 'às' HH:mm", { locale: ptBR });
 
-    const { error } = await supabase
-      .from("mentor_sessions")
-      .update({
-        scheduled_at: newScheduledAt.toISOString(),
-        confirmed_by_mentor: false,
-        mentor_notes: reason || `Remarcado pelo ${userRole === "mentor" ? "mentor" : "mentorado"}`,
-      })
-      .eq("id", sessionId);
+    const rescheduleNote = reason || `Remarcado pelo ${userRole === "mentor" ? "mentor" : "mentorado"}`;
+    const updatePayload =
+      userRole === "mentor"
+        ? {
+            scheduled_at: newScheduledAt.toISOString(),
+            confirmed_by_mentor: false,
+            mentor_notes: rescheduleNote,
+          }
+        : {
+            scheduled_at: newScheduledAt.toISOString(),
+            confirmed_by_mentor: false,
+            notes: rescheduleNote,
+          };
+
+    const { error } = await supabase.from("mentor_sessions").update(updatePayload).eq("id", sessionId);
 
     if (error) {
       toast.error("Erro ao remarcar sessão: " + error.message);
       setLoading(false);
       return;
+    }
+
+    let meetingLink: string | null = null;
+    let calendarInviteOk = false;
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const publishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      const { data: { session: authSession } } = await supabase.auth.getSession();
+      const token = authSession?.access_token;
+
+      if (!token) {
+        toast.error("Sessão expirada. Entre de novo para gerar o convite no Google Calendar.");
+      } else {
+        const calResponse = await fetch(`${supabaseUrl}/functions/v1/google-calendar-sync?action=create-event`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+            ...(publishableKey ? { apikey: publishableKey } : {}),
+          },
+          body: JSON.stringify({ session_id: sessionId }),
+        });
+        const calResult = await calResponse.json().catch(() => ({}));
+
+        if (!calResponse.ok || calResult?.error) {
+          toast.error(
+            "A mentoria foi remarcada, mas o convite automático (Google Meet) falhou: " +
+              (calResult?.error || calResponse.statusText || "erro desconhecido") +
+              ". Verifique a integração do Google Calendar ou peça suporte."
+          );
+        } else if (calResult?.success) {
+          calendarInviteOk = true;
+          meetingLink = calResult?.results?.meetingLink ?? null;
+        }
+      }
+    } catch (calErr) {
+      console.error("Google Calendar create on reschedule:", calErr);
+      toast.error(
+        "A mentoria foi remarcada, mas houve erro ao gerar o convite no Google Calendar. Tente de novo em alguns minutos."
+      );
     }
 
     // Send reschedule emails
@@ -262,6 +319,7 @@ const RescheduleWithAvailability = ({
               rescheduledBy: rescheduledBy || "O participante",
               reason: reason || "Não informado",
               userRole: userRole,
+              meetingLink: meetingLink || "",
             },
           },
         });
@@ -270,7 +328,13 @@ const RescheduleWithAvailability = ({
       }
     }
 
-    toast.success("Sessão remarcada com sucesso");
+    if (calendarInviteOk && meetingLink) {
+      toast.success("Sessão remarcada com sucesso. Novo convite com Google Meet foi enviado.");
+    } else if (calendarInviteOk) {
+      toast.success("Sessão remarcada com sucesso. Convite atualizado no Google Calendar.");
+    } else {
+      toast.success("Sessão remarcada com sucesso");
+    }
     onClose();
     onUpdate();
     setLoading(false);

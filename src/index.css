@@ -132,11 +132,15 @@
 
   html {
     scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-family: 'Plus Jakarta Sans', sans-serif;
+    min-height: 100dvh;
+    min-height: -webkit-fill-available;
   }
 }
 

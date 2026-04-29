@@ -57,12 +57,15 @@ const SessionManagement = ({
       .eq("id", sessionId)
       .maybeSingle();
 
+    const cancellationNote = reason || `Cancelado pelo ${userRole === "mentor" ? "mentor" : "mentorado"}`;
+    const updatePayload =
+      userRole === "mentor"
+        ? { status: "cancelled", mentor_notes: cancellationNote }
+        : { status: "cancelled", notes: cancellationNote };
+
     const { error } = await supabase
       .from("mentor_sessions")
-      .update({
-        status: "cancelled",
-        mentor_notes: reason || `Cancelado pelo ${userRole === "mentor" ? "mentor" : "mentorado"}`,
-      })
+      .update(updatePayload)
       .eq("id", sessionId);
 
     if (error) {
@@ -138,13 +141,23 @@ const SessionManagement = ({
     const newScheduledAt = new Date(`${newDate}T${newTime}:00`);
     const newFormattedDate = format(newScheduledAt, "EEEE, d 'de' MMMM 'às' HH:mm", { locale: ptBR });
 
+    const rescheduleNote = reason || `Remarcado pelo ${userRole === "mentor" ? "mentor" : "mentorado"}`;
+    const reschedulePayload =
+      userRole === "mentor"
+        ? {
+            scheduled_at: newScheduledAt.toISOString(),
+            confirmed_by_mentor: false,
+            mentor_notes: rescheduleNote,
+          }
+        : {
+            scheduled_at: newScheduledAt.toISOString(),
+            confirmed_by_mentor: false,
+            notes: rescheduleNote,
+          };
+
     const { error } = await supabase
       .from("mentor_sessions")
-      .update({
-        scheduled_at: newScheduledAt.toISOString(),
-        confirmed_by_mentor: false,
-        mentor_notes: reason || `Remarcado pelo ${userRole === "mentor" ? "mentor" : "mentorado"}`,
-      })
+      .update(reschedulePayload)
       .eq("id", sessionId);
 
     if (error) {
@@ -275,7 +288,7 @@ const SessionManagement = ({
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="fixed left-4 right-4 top-[5%] bottom-[5%] md:left-1/2 md:right-auto md:-translate-x-1/2 md:max-w-lg md:w-full md:top-[5%] md:bottom-auto md:max-h-[90vh] bg-card rounded-2xl shadow-xl z-50 overflow-hidden flex flex-col"
+              className="fixed left-3 right-3 top-[max(0.75rem,env(safe-area-inset-top))] bottom-[max(0.75rem,env(safe-area-inset-bottom))] max-h-[min(90dvh,92vh)] md:left-1/2 md:right-auto md:-translate-x-1/2 md:max-w-lg md:w-full md:top-[5%] md:bottom-auto md:max-h-[90dvh] bg-card rounded-2xl shadow-xl z-50 overflow-hidden flex flex-col"
             >
               <div className="p-6 border-b border-border shrink-0">
                 <h3 className="text-lg font-bold text-foreground flex items-center gap-2">

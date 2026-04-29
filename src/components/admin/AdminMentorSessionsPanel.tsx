@@ -297,7 +297,7 @@ const AdminMentorSessionsPanel = () => {
                     {/* Show attendance badge prominently */}
                     {attendanceBadge(session)}
                     {/* Show confirmation status */}
-                    {!attendance && (
+                    {!attendance && session.status === "scheduled" && (
                       session.confirmed_by_mentor ? (
                         <Badge className="bg-green-500/10 text-green-600 border-green-500/20 text-xs">✅ Aceita</Badge>
                       ) : (
@@ -363,7 +363,7 @@ const AdminMentorSessionsPanel = () => {
                   )}
                   {session.notes && (
                     <p className="text-sm text-muted-foreground">
-                      📝 <strong>Notas:</strong> {session.notes}
+                      📝 <strong>Notas do mentorado:</strong> {session.notes}
                     </p>
                   )}
                   {session.mentor_notes && (

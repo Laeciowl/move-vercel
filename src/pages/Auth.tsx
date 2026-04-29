@@ -11,6 +11,12 @@ import { z } from "zod";
 
 const emailSchema = z.string().email("E-mail inválido").max(255);
 
+/** Login accepts any existing password; strength rules apply only on signup / reset. */
+const loginPasswordSchema = z
+  .string()
+  .min(1, "Digite sua senha")
+  .max(72, "Senha muito longa");
+
 // Strong password validation: min 8 chars, uppercase, lowercase, number, special char
 const passwordSchema = z
   .string()
@@ -22,6 +28,21 @@ const passwordSchema = z
   .regex(/[^A-Za-z0-9]/, "Senha deve conter pelo menos um caractere especial (!@#$%^&*)");
 
 type AuthView = "login" | "forgot-password" | "reset-password" | "link-expired";
+
+function getAuthErrorToastMessage(message: string): string {
+  const lower = message.toLowerCase();
+  if (
+    lower.includes("failed to fetch") ||
+    lower.includes("load failed") ||
+    lower.includes("networkerror") ||
+    lower.includes("network request failed") ||
+    lower.includes("err_network") ||
+    lower.includes("fetch failed")
+  ) {
+    return "Não foi possível conectar ao servidor. Confira sua internet, tente outra rede ou dados móveis, desligue VPN ou bloqueador de anúncios e tente de novo. Se continuar, avise o suporte.";
+  }
+  return message;
+}
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
@@ -80,7 +101,7 @@ const Auth = () => {
     
     try {
       emailSchema.parse(loginData.email);
-      passwordSchema.parse(loginData.password);
+      loginPasswordSchema.parse(loginData.password);
     } catch (error) {
       if (error instanceof z.ZodError) {
         toast.error(error.errors[0].message);
@@ -88,23 +109,34 @@ const Auth = () => {
       }
     }
 
-    setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({
-      email: loginData.email,
-      password: loginData.password,
-    });
-
-    if (error) {
-      if (error.message.includes("Invalid login credentials")) {
-        toast.error("E-mail ou senha incorretos");
-      } else {
-        toast.error(error.message);
-      }
-    } else {
-      toast.success("Entrou! Bora lá 🚀");
-      navigate("/inicio");
+    if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY) {
+      toast.error("Configuração do aplicativo incompleta. Avise o suporte.");
+      return;
     }
-    setLoading(false);
+
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: loginData.email,
+        password: loginData.password,
+      });
+
+      if (error) {
+        if (error.message.includes("Invalid login credentials")) {
+          toast.error("E-mail ou senha incorretos");
+        } else {
+          toast.error(getAuthErrorToastMessage(error.message));
+        }
+      } else {
+        toast.success("Entrou! Bora lá 🚀");
+        navigate("/inicio");
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      toast.error(getAuthErrorToastMessage(msg));
+    } finally {
+      setLoading(false);
+    }
   };
 
 
@@ -127,7 +159,7 @@ const Auth = () => {
     });
 
     if (error) {
-      toast.error(error.message);
+      toast.error(getAuthErrorToastMessage(error.message));
     } else {
       toast.success("E-mail enviado! Dá uma olhada na sua caixa de entrada.");
       setView("login");
@@ -160,7 +192,7 @@ const Auth = () => {
     });
 
     if (error) {
-      toast.error(error.message);
+      toast.error(getAuthErrorToastMessage(error.message));
     } else {
       toast.success("Senha nova salva! Agora você já pode usar.");
       navigate("/inicio");

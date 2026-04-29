@@ -9,10 +9,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
 import { useVolunteerCheck } from "@/hooks/useVolunteerCheck";
 import { useMentorCheck } from "@/hooks/useMentorCheck";
+import { usePendingMentorCheck } from "@/hooks/usePendingMentorCheck";
+import PendingMentorFullScreen from "@/components/PendingMentorFullScreen";
 import NotificationBell from "@/components/NotificationBell";
 import BugReportButton from "@/components/BugReportButton";
-import NpsModal from "@/components/NpsModal";
 import OnboardingQuiz from "@/components/OnboardingQuiz";
+import MenteeNpsLoginPopup from "@/components/MenteeNpsLoginPopup";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Loader2 } from "lucide-react";
@@ -29,10 +31,11 @@ const AppLayout = ({ children }: AppLayoutProps) => {
   const { isAdmin, loading: adminLoading } = useAdminCheck();
   const { isVolunteer, loading: volunteerLoading } = useVolunteerCheck();
   const { isMentor, loading: mentorLoading } = useMentorCheck();
+  const { isPendingMentor, loading: pendingMentorLoading } = usePendingMentorCheck();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [needsQuiz, setNeedsQuiz] = useState<boolean | null>(null);
 
-  const rolesLoading = adminLoading || volunteerLoading || mentorLoading;
+  const rolesLoading = adminLoading || volunteerLoading || mentorLoading || pendingMentorLoading;
 
   // Check if mentee needs onboarding quiz
   // Only block users who never had ANY session (no interaction at all)
@@ -42,7 +45,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
       return;
     }
     const quizPassed = profile.onboarding_quiz_passed;
-    if (!quizPassed && !isVolunteer && !isMentor) {
+    if (!quizPassed && !isVolunteer && !isMentor && !isPendingMentor) {
       // Check if user has any sessions at all — if yes, they're active and exempt
       import("@/integrations/supabase/client").then(({ supabase }) => {
         supabase
@@ -56,7 +59,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
     } else {
       setNeedsQuiz(false);
     }
-  }, [profile, user, rolesLoading, isAdmin, isVolunteer, isMentor]);
+  }, [profile, user, rolesLoading, isAdmin, isVolunteer, isMentor, isPendingMentor]);
 
   const handleLogout = async () => {
     await signOut();
@@ -111,11 +114,12 @@ const AppLayout = ({ children }: AppLayoutProps) => {
 
   const navItems = getNavItems();
   const isActive = (path: string) => location.pathname === path;
+  const npsUserType = (isVolunteer || isMentor) ? "mentor" : "mentorado";
 
   // Show quiz gate for mentees who haven't passed yet
   if (needsQuiz === null && rolesLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-screen min-h-dvh flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
           <div className="w-16 h-16 rounded-full bg-gradient-hero flex items-center justify-center shadow-button">
             <Loader2 className="w-8 h-8 animate-spin text-primary-foreground" />
@@ -124,6 +128,16 @@ const AppLayout = ({ children }: AppLayoutProps) => {
         </div>
       </div>
     );
+  }
+
+  if (
+    user &&
+    !isAdmin &&
+    isPendingMentor &&
+    !isVolunteer &&
+    !isMentor
+  ) {
+    return <PendingMentorFullScreen />;
   }
 
   if (needsQuiz) {
@@ -136,9 +150,9 @@ const AppLayout = ({ children }: AppLayoutProps) => {
   }
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
+    <div className="min-h-screen min-h-dvh bg-background relative overflow-x-hidden">
       {/* Background effects */}
-      <div className="fixed inset-0 pointer-events-none">
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute inset-0 bg-gradient-mesh opacity-60" />
         <div
           className="absolute inset-0 opacity-[0.015]"
@@ -154,9 +168,9 @@ const AppLayout = ({ children }: AppLayoutProps) => {
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.4 }}
-        className="sticky top-0 z-40 bg-background/60 backdrop-blur-2xl border-b border-border/30"
+        className="sticky top-0 z-40 bg-background/60 backdrop-blur-2xl border-b border-border/30 pt-[env(safe-area-inset-top,0px)]"
       >
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+        <div className="container mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-2 min-w-0">
           <div className="flex items-center gap-4">
             <motion.div
               className="cursor-pointer"
@@ -248,9 +262,9 @@ const AppLayout = ({ children }: AppLayoutProps) => {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="fixed right-0 top-0 bottom-0 w-72 bg-card border-l border-border z-40 md:hidden"
+              className="fixed right-0 top-0 bottom-0 w-[min(18rem,100vw-2rem)] max-w-[85vw] bg-card border-l border-border z-40 md:hidden pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)]"
             >
-              <div className="p-4 space-y-4">
+              <div className="p-4 space-y-4 h-full overflow-y-auto overscroll-contain">
                 <div className="flex items-center justify-between pb-3 border-b border-border/30">
                   <span className="font-semibold text-foreground">Menu</span>
                   <Button variant="ghost" size="sm" onClick={() => setMobileMenuOpen(false)}>
@@ -340,8 +354,8 @@ const AppLayout = ({ children }: AppLayoutProps) => {
       </AnimatePresence>
 
       {/* Mobile Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 z-30 bg-card/90 backdrop-blur-xl border-t border-border/30 md:hidden">
-        <nav className="flex items-center justify-around py-2 px-2">
+      <div className="fixed bottom-0 left-0 right-0 z-30 bg-card/90 backdrop-blur-xl border-t border-border/30 md:hidden pb-[env(safe-area-inset-bottom,0px)]">
+        <nav className="flex items-center justify-around py-1.5 px-1 min-h-[3.25rem]">
           {navItems.slice(0, 5).map((item) => {
             const Icon = item.icon;
             const active = isActive(item.path);
@@ -349,25 +363,26 @@ const AppLayout = ({ children }: AppLayoutProps) => {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all ${
+                className={`flex flex-col items-center gap-0.5 px-1.5 sm:px-3 py-1 rounded-xl transition-all min-w-0 flex-1 max-w-[4.5rem] ${
                   active
                     ? "text-primary"
                     : "text-muted-foreground"
                 }`}
               >
                 <Icon className={`w-5 h-5 ${active ? "text-primary" : ""}`} />
-                <span className="text-[10px] font-medium">{item.label}</span>
+                <span className="text-[10px] font-medium leading-tight text-center line-clamp-2 w-full">{item.label}</span>
               </Link>
             );
           })}
         </nav>
       </div>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-4 md:py-6 relative z-10 pb-24 md:pb-6">
+      {/* Main Content — bottom padding clears fixed nav + home indicator (dvh-safe) */}
+      <main className="container mx-auto px-3 sm:px-4 py-4 md:py-6 relative z-10 pb-[calc(5.25rem+env(safe-area-inset-bottom,0px))] md:pb-6">
         {children}
       </main>
 
+      <MenteeNpsLoginPopup enabled={!rolesLoading} userType={npsUserType} />
       <BugReportButton />
     </div>
   );

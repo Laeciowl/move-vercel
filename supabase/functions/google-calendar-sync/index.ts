@@ -131,6 +131,53 @@ async function deleteCalendarEvent(accessToken: string, eventId: string): Promis
   return res.ok;
 }
 
+/** Deletes the event from Google (mentor calendar first, then orchestrator) and clears stored IDs. */
+async function removeGoogleCalendarEventForSession(
+  adminClient: any,
+  sessionId: string,
+  googleCalendarEventId: string | null | undefined,
+  mentorEmail: string | null | undefined
+): Promise<{ deleted: boolean; error?: string }> {
+  if (!googleCalendarEventId) {
+    return { deleted: false };
+  }
+
+  let deleted = false;
+
+  if (mentorEmail) {
+    const mentorTokenResult = await getMentorToken(adminClient, mentorEmail);
+    if (mentorTokenResult) {
+      deleted = await deleteCalendarEvent(mentorTokenResult.token, googleCalendarEventId);
+      console.log("removeGoogleCalendarEvent: mentor delete:", deleted ? "success" : "failed");
+    }
+  }
+
+  let orchestratorTokenForFallback: string | null = null;
+  if (!deleted) {
+    orchestratorTokenForFallback = await getOrchestratorToken(adminClient);
+    if (orchestratorTokenForFallback) {
+      deleted = await deleteCalendarEvent(orchestratorTokenForFallback, googleCalendarEventId);
+      console.log("removeGoogleCalendarEvent: orchestrator delete:", deleted ? "success" : "failed");
+    } else {
+      console.error("removeGoogleCalendarEvent: No calendar account available for deletion");
+    }
+  }
+
+  await adminClient
+    .from("mentor_sessions")
+    .update({
+      google_calendar_event_id: null,
+      google_calendar_mentee_event_id: null,
+      meeting_link: null,
+    })
+    .eq("id", sessionId);
+
+  return {
+    deleted,
+    ...(!deleted && !orchestratorTokenForFallback ? { error: "no_calendar_account_available" } : {}),
+  };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -189,6 +236,20 @@ Deno.serve(async (req) => {
     const mentorName = (session.mentors as any)?.name || "Mentor";
     const menteeName = menteeProfile?.name || "Mentorado";
     const mentorEmail = (session.mentors as any)?.email;
+
+    if (session.google_calendar_event_id) {
+      console.log(
+        "create-event: Removing previous calendar event before creating new one:",
+        session.google_calendar_event_id
+      );
+      await removeGoogleCalendarEventForSession(
+        adminClient,
+        session_id,
+        session.google_calendar_event_id,
+        mentorEmail
+      );
+    }
+
     const scheduledAt = new Date(session.scheduled_at);
     const durationMin = session.duration || 30;
     const endAt = new Date(scheduledAt.getTime() + durationMin * 60 * 1000);
@@ -275,7 +336,7 @@ Deno.serve(async (req) => {
       attendees,
       conferenceData: {
         createRequest: {
-          requestId: `move-session-${session_id}`,
+          requestId: `move-session-${session_id}-${Date.now()}`,
           conferenceSolutionKey: { type: "hangoutsMeet" },
         },
       },
@@ -404,44 +465,18 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "Session not found" }), { status: 404, headers: corsHeaders });
     }
 
+    const mentorEmail = (session.mentors as any)?.email;
     const results: any = { deleted: false };
 
     if (session.google_calendar_event_id) {
-      let deleted = false;
-      const mentorEmail = (session.mentors as any)?.email;
-
-      // Try deleting from mentor's calendar first
-      if (mentorEmail) {
-        const mentorTokenResult = await getMentorToken(adminClient, mentorEmail);
-        if (mentorTokenResult) {
-          deleted = await deleteCalendarEvent(mentorTokenResult.token, session.google_calendar_event_id);
-          console.log("cancel-event: Tried mentor delete:", deleted ? "success" : "failed");
-        }
-      }
-
-      // If mentor delete failed or mentor not connected, try orchestrator
-      if (!deleted) {
-        const orchestratorToken = await getOrchestratorToken(adminClient);
-        if (orchestratorToken) {
-          deleted = await deleteCalendarEvent(orchestratorToken, session.google_calendar_event_id);
-          console.log("cancel-event: Tried orchestrator delete:", deleted ? "success" : "failed");
-        } else {
-          results.error = "no_calendar_account_available";
-          console.error("cancel-event: No calendar account available for deletion");
-        }
-      }
-
+      const { deleted, error } = await removeGoogleCalendarEventForSession(
+        adminClient,
+        session_id,
+        session.google_calendar_event_id,
+        mentorEmail
+      );
       results.deleted = deleted;
-
-      // Clear event ID and meeting link
-      await adminClient
-        .from("mentor_sessions")
-        .update({
-          google_calendar_event_id: null,
-          google_calendar_mentee_event_id: null,
-          meeting_link: null,
-        })
-        .eq("id", session_id);
+      if (error) results.error = error;
     }
 
     return new Response(JSON.stringify({ success: true, results }), {

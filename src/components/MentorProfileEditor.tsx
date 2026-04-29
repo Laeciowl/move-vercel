@@ -118,6 +118,14 @@ const MentorProfileEditor = ({
     if (error) {
       toast.error("Erro ao salvar: " + error.message);
     } else {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user?.id) {
+          await supabase.from("profiles").update({ name: formData.name.trim() }).eq("user_id", user.id);
+        }
+      } catch {
+        // ignore if no profile row
+      }
       toast.success("Perfil de mentor atualizado!");
       setIsEditing(false);
       onUpdate();

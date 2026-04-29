@@ -3,13 +3,14 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Loader2, User, Edit } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAdminCheck } from "@/hooks/useAdminCheck";
 import { useVolunteerCheck } from "@/hooks/useVolunteerCheck";
 import { useMentorCheck } from "@/hooks/useMentorCheck";
 import AppLayout from "@/components/AppLayout";
 import ProfileEditModal from "@/components/ProfileEditModal";
 import InterestsOnboardingModal from "@/components/InterestsOnboardingModal";
 import InterestsNotificationBanner from "@/components/InterestsNotificationBanner";
-import PendingMentorBanner from "@/components/PendingMentorBanner";
+import MenteeNoShowPenaltyBanner from "@/components/MenteeNoShowPenaltyBanner";
 import VolunteerPanel from "@/components/VolunteerPanel";
 import NavigationGrid from "@/components/NavigationGrid";
 import MenteeSessions from "@/components/MenteeSessions";
@@ -21,6 +22,7 @@ import { usePendingMentorCheck } from "@/hooks/usePendingMentorCheck";
 
 const Home = () => {
   const { user, profile, loading: authLoading, refreshProfile } = useAuth();
+  const { isAdmin } = useAdminCheck();
   const { isVolunteer } = useVolunteerCheck();
   const { isMentor } = useMentorCheck();
   const { isPendingMentor } = usePendingMentorCheck();
@@ -45,7 +47,7 @@ const Home = () => {
 
   if (authLoading || !profile) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-screen min-h-dvh flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
           <div className="w-16 h-16 rounded-full bg-gradient-hero flex items-center justify-center shadow-button">
             <Loader2 className="w-8 h-8 animate-spin text-primary-foreground" />
@@ -110,6 +112,12 @@ const Home = () => {
           </div>
         </motion.div>
 
+        {user && isMentorado && !isAdmin && (
+          <motion.div variants={{ initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 } }}>
+            <MenteeNoShowPenaltyBanner userId={user.id} />
+          </motion.div>
+        )}
+
         {/* Mentee Sessions - Top priority */}
         {isMentorado && (
           <motion.div variants={{ initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 } }}>
@@ -122,7 +130,6 @@ const Home = () => {
         {isMentorado && <ProfileCompletionBanner />}
 
         {/* Banners */}
-        {isPendingMentor && !isVolunteer && <PendingMentorBanner />}
         {isMentorado && (
           <InterestsNotificationBanner onOpenInterestsEditor={() => setShowInterestsOnboarding(true)} />
         )}

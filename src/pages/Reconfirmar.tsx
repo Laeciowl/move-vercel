@@ -6,7 +6,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import AppLayout from "@/components/AppLayout";
 
-type PageStatus = "loading" | "confirming" | "confirmed" | "cancelled" | "error" | "already_done";
+type PageStatus =
+  | "loading"
+  | "confirming"
+  | "confirmed"
+  | "cancelled"
+  | "error"
+  | "already_done"
+  | "deadline_expired";
 
 interface SessionInfo {
   mentorName: string;
@@ -35,7 +42,8 @@ const Reconfirmar = () => {
     });
     if (error) throw error;
     return data as {
-      result?: "confirmed" | "cancelled" | "already_done";
+      result?: "confirmed" | "cancelled" | "already_done" | "deadline_expired";
+      message?: string;
       status?: string;
       reconfirmation_confirmed?: boolean | null;
       sessionInfo?: SessionInfo;
@@ -72,6 +80,10 @@ const Reconfirmar = () => {
     try {
       const data = await invoke("confirm");
       if (data.sessionInfo) setSessionInfo(data.sessionInfo);
+      if (data.result === "deadline_expired") {
+        setStatus("deadline_expired");
+        return;
+      }
       if (data.result === "already_done") {
         setStatus("already_done");
       } else {
@@ -188,6 +200,22 @@ const Reconfirmar = () => {
               </p>
               <Button onClick={() => navigate("/inicio")} variant="outline" className="w-full">
                 Voltar para a plataforma
+              </Button>
+            </>
+          )}
+
+          {status === "deadline_expired" && (
+            <>
+              <div className="w-16 h-16 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mx-auto">
+                <AlertTriangle className="w-8 h-8 text-amber-600" />
+              </div>
+              <h2 className="text-xl font-bold text-foreground">Prazo encerrado</h2>
+              <p className="text-sm text-muted-foreground">
+                É preciso confirmar presença até 3 horas antes da mentoria. Se a sessão foi cancelada
+                automaticamente, você pode agendar outra na plataforma.
+              </p>
+              <Button onClick={() => navigate("/mentores")} className="w-full">
+                Ver mentores
               </Button>
             </>
           )}

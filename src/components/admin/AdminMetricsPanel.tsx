@@ -19,8 +19,13 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, Legend,
+  ResponsiveContainer, Legend, PieChart, Pie, Cell,
 } from "recharts";
+import {
+  MENTEE_DISCOVERY_SHORT_LABELS,
+  getMenteeDiscoveryShortLabel,
+  type MenteeDiscoverySource,
+} from "@/lib/menteeDiscoverySource";
 import { cn } from "@/lib/utils";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
@@ -92,10 +97,22 @@ interface MentorAlertDetail {
 }
 
 interface RetentionMentee {
+  user_id: string;
   name: string;
   totalSessions: number;
   lastSession: string;
   mentors: string[];
+  /** null = cadastro antes do campo ou não preenchido — não exibir texto */
+  discoveryLabel: string | null;
+  /** Quem indicou (cadastro), quando informado */
+  menteeReferrerName: string | null;
+}
+
+interface DiscoveryChartSlice {
+  key: string;
+  name: string;
+  value: number;
+  fill: string;
 }
 
 // ─── Helpers ─────────────────────────────────────────────
@@ -163,6 +180,46 @@ const groupByMonth = (items: { date: string }[]): Map<string, number> => {
 
 const MONTH_NAMES = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
 
+const TABLE_PAGE_SIZE = 1000;
+
+/** PostgREST defaults to a max row cap; paginate so metrics match the full database. */
+async function fetchAllProfileRowsForMetrics() {
+  const rows: { user_id: string; created_at: string; onboarding_quiz_passed: boolean; first_mentorship_booked: boolean }[] = [];
+  for (let from = 0; ; from += TABLE_PAGE_SIZE) {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("user_id, created_at, onboarding_quiz_passed, first_mentorship_booked")
+      .order("user_id", { ascending: true })
+      .range(from, from + TABLE_PAGE_SIZE - 1);
+    if (error) throw error;
+    if (!data?.length) break;
+    rows.push(...(data as typeof rows));
+    if (data.length < TABLE_PAGE_SIZE) break;
+  }
+  return rows;
+}
+
+async function fetchAllMentorSessionRowsForMetrics() {
+  const rows: { user_id: string; completed_at: string | null; status: string }[] = [];
+  for (let from = 0; ; from += TABLE_PAGE_SIZE) {
+    const { data, error } = await supabase
+      .from("mentor_sessions")
+      .select("user_id, completed_at, status")
+      .order("id", { ascending: true })
+      .range(from, from + TABLE_PAGE_SIZE - 1);
+    if (error) throw error;
+    if (!data?.length) break;
+    rows.push(...(data as typeof rows));
+    if (data.length < TABLE_PAGE_SIZE) break;
+  }
+  return rows;
+}
+
+function roundRatePct(numerator: number, denominator: number): number {
+  if (denominator <= 0) return 0;
+  return Math.round((numerator / denominator) * 1000) / 10;
+}
+
 // ─── Component ───────────────────────────────────────────
 const AdminMetricsPanel = () => {
   const [coreMetrics, setCoreMetrics] = useState<CoreMetrics | null>(null);
@@ -195,6 +252,9 @@ const AdminMetricsPanel = () => {
 
   const [showMenteeBreakdown, setShowMenteeBreakdown] = useState(false);
 
+  const [discoveryChart, setDiscoveryChart] = useState<DiscoveryChartSlice[]>([]);
+  const [discoveryMenteeTotal, setDiscoveryMenteeTotal] = useState(0);
+
   // ─── Data Fetching ─────────────────────────────────
   const fetchCoreAndHealth = useCallback(async () => {
     try {
@@ -204,17 +264,16 @@ const AdminMetricsPanel = () => {
       const lastMonthEnd = endOfMonth(subMonths(now, 1)).toISOString();
 
       const [
-        profilesRes, mentorsRes, completedRes, livesRes, scheduledRes,
-        activationRes, confirmationRes, completionRes, retentionRes,
+        profilesRes, mentorsRes, completedRes, scheduledRes,
+        confirmationRes, completionRes, retentionRes,
         thisMonthRes, lastMonthRes,
-        quizPassedRes, quizNotPassedRes,
+        allProfiles,
+        allSessions,
       ] = await Promise.all([
         supabase.from("profiles").select("id", { count: "exact", head: true }),
         supabase.from("mentors").select("id", { count: "exact", head: true }).eq("status", "approved"),
         supabase.rpc("get_total_completed_sessions"),
-        supabase.rpc("get_lives_impacted"),
         supabase.rpc("get_future_scheduled_sessions"),
-        supabase.rpc("get_activation_rate"),
         supabase.rpc("get_confirmation_rate"),
         supabase.rpc("get_completion_rate"),
         supabase.rpc("get_retention_rate"),
@@ -227,16 +286,14 @@ const AdminMetricsPanel = () => {
           .eq("status", "completed")
           .gte("completed_at", lastMonthStart)
           .lte("completed_at", lastMonthEnd),
-        supabase.from("profiles").select("user_id, created_at, onboarding_quiz_passed, first_mentorship_booked"),
-        supabase.from("mentor_sessions").select("user_id, completed_at, status"),
+        fetchAllProfileRowsForMetrics(),
+        fetchAllMentorSessionRowsForMetrics(),
       ]);
 
       const totalUsers = profilesRes.count || 0;
       const totalMentors = mentorsRes.count || 0;
 
       // Build profile + session data for active/pending and time-to-first calc
-      const allProfiles = quizPassedRes.data || [];
-      const allSessions = quizNotPassedRes.data || [];
       const completedUserIds = new Set<string>();
       
       // Map: user_id -> earliest completed_at
@@ -292,6 +349,22 @@ const AdminMetricsPanel = () => {
         else pendingCount++;
       });
 
+      const usersWithCompletedSession = new Set<string>();
+      allSessions.forEach((s: any) => {
+        if (s.status === "completed") usersWithCompletedSession.add(s.user_id);
+      });
+
+      let activatedAmongActiveMentees = 0;
+      allProfiles.forEach((p: any) => {
+        if (mentorUserIdsForCard.has(p.user_id)) return;
+        const isActive = p.onboarding_quiz_passed || p.first_mentorship_booked || completedUserIds.has(p.user_id);
+        if (isActive && usersWithCompletedSession.has(p.user_id)) activatedAmongActiveMentees++;
+      });
+
+      const livesImpactedNonMentors = [...usersWithCompletedSession].filter(
+        (uid) => !mentorUserIdsForCard.has(uid),
+      ).length;
+
       setCoreMetrics({
         totalUsers,
         totalMentors,
@@ -301,22 +374,26 @@ const AdminMetricsPanel = () => {
         completedSessions: (completedRes.data as number) ?? 0,
         completedThisMonth: thisMonthRes.count ?? 0,
         completedLastMonth: lastMonthRes.count ?? 0,
-        livesImpacted: (livesRes.data as number) ?? 0,
+        livesImpacted: livesImpactedNonMentors,
         scheduledSessions: (scheduledRes.data as number) ?? 0,
       });
 
-      const activation = activationRes.data as any;
+      const activationRate = roundRatePct(activatedAmongActiveMentees, activeCount);
       const confirmation = confirmationRes.data as any;
       const completion = completionRes.data as any;
       const retention = retentionRes.data as any;
 
       setHealthMetrics([
         {
-          label: "Taxa de Ativação (mentorados)",
-          value: Number(activation?.rate ?? 0),
+          label: "Taxa de Ativação (base: mentorados ativos)",
+          value: activationRate,
           benchmarkGood: 60, benchmarkAlert: 40, suffix: "%",
           type: "activation",
-          details: { total_mentees: activation?.total_mentees, activated: activation?.activated },
+          details: {
+            active_mentees: activeCount,
+            activated: activatedAmongActiveMentees,
+            total_mentees: activeCount,
+          },
         },
         {
           label: "Taxa de Confirmação",
@@ -559,25 +636,119 @@ const AdminMetricsPanel = () => {
     }
   }, []);
 
+  const fetchMenteeDiscoveryBreakdown = useCallback(async () => {
+    try {
+      const { data: approvedMentors } = await supabase.from("mentors").select("id").eq("status", "approved");
+      const mentorIds = (approvedMentors || []).map((m: { id: string }) => m.id);
+      const mentorUserIds = new Set<string>();
+      for (let i = 0; i < mentorIds.length; i += 50) {
+        const chunk = mentorIds.slice(i, i + 50);
+        const { data: uidRows } = await supabase.rpc("get_mentor_user_ids", { mentor_ids: chunk });
+        (uidRows || []).forEach((row: { user_id: string }) => mentorUserIds.add(row.user_id));
+      }
+
+      const { data: profiles, error } = await supabase
+        .from("profiles")
+        .select("user_id, mentee_discovery_source");
+      if (error) throw error;
+
+      const menteeRows = (profiles || []).filter((p: { user_id: string }) => !mentorUserIds.has(p.user_id));
+
+      const counts: Record<MenteeDiscoverySource | "unset", number> = {
+        indicacao: 0,
+        linkedin: 0,
+        redes_sociais: 0,
+        outro: 0,
+        unset: 0,
+      };
+
+      menteeRows.forEach((p: { mentee_discovery_source: MenteeDiscoverySource | null }) => {
+        const s = p.mentee_discovery_source;
+        if (s == null) counts.unset++;
+        else if (s in counts) counts[s as MenteeDiscoverySource]++;
+      });
+
+      const fill: Record<string, string> = {
+        indicacao: "#ea580c",
+        linkedin: "#0a66c2",
+        redes_sociais: "#7c3aed",
+        outro: "#64748b",
+        unset: "#94a3b8",
+      };
+
+      const order: (MenteeDiscoverySource | "unset")[] = [
+        "indicacao",
+        "linkedin",
+        "redes_sociais",
+        "outro",
+        "unset",
+      ];
+
+      const slices: DiscoveryChartSlice[] = order
+        .map((key) => {
+          const name =
+            key === "unset"
+              ? "Não informado"
+              : MENTEE_DISCOVERY_SHORT_LABELS[key as MenteeDiscoverySource];
+          return {
+            key,
+            name,
+            value: counts[key],
+            fill: fill[key],
+          };
+        })
+        .filter((d) => d.value > 0);
+
+      setDiscoveryChart(slices);
+      setDiscoveryMenteeTotal(menteeRows.length);
+    } catch (err) {
+      console.error("mentee discovery chart:", err);
+      setDiscoveryChart([]);
+      setDiscoveryMenteeTotal(0);
+    }
+  }, []);
+
   const fetchRetentionDetails = useCallback(async () => {
     setLoadingRetention(true);
     try {
-      const { data: sessions } = await supabase
-        .from("mentor_sessions")
-        .select("user_id, mentor_id, completed_at")
-        .eq("status", "completed");
+      const sessions: { user_id: string; mentor_id: string; completed_at: string }[] = [];
+      for (let from = 0; ; from += TABLE_PAGE_SIZE) {
+        const { data: page, error: sessErr } = await supabase
+          .from("mentor_sessions")
+          .select("user_id, mentor_id, completed_at")
+          .eq("status", "completed")
+          .order("id", { ascending: true })
+          .range(from, from + TABLE_PAGE_SIZE - 1);
+        if (sessErr) {
+          console.error("fetchRetentionDetails sessions:", sessErr);
+          toast.error("Erro ao carregar sessões para retenção.");
+          break;
+        }
+        if (!page?.length) break;
+        sessions.push(...(page as typeof sessions));
+        if (page.length < TABLE_PAGE_SIZE) break;
+      }
 
-      // Get mentor names
-      const mentorIds = [...new Set((sessions || []).map((s: any) => s.mentor_id))];
-      const { data: mentors } = await supabase
-        .from("mentors")
-        .select("id, name")
-        .in("id", mentorIds);
-      const mentorNameMap = new Map((mentors || []).map((m: any) => [m.id, m.name]));
+      // Get mentor names (chunk .in() to avoid PostgREST URL / filter limits)
+      const mentorIds = [...new Set(sessions.map((s) => s.mentor_id))];
+      const mentorNameMap = new Map<string, string>();
+      const MENTOR_IN_CHUNK = 100;
+      for (let i = 0; i < mentorIds.length; i += MENTOR_IN_CHUNK) {
+        const chunk = mentorIds.slice(i, i + MENTOR_IN_CHUNK);
+        const { data: mentors, error: menErr } = await supabase
+          .from("mentors")
+          .select("id, name")
+          .in("id", chunk);
+        if (menErr) {
+          console.error("fetchRetentionDetails mentors:", menErr);
+          break;
+        }
+        (mentors || []).forEach((m: any) => mentorNameMap.set(m.id, m.name));
+      }
 
       // Group by user
       const userMap = new Map<string, { count: number; lastDate: string; mentorNames: Set<string> }>();
-      (sessions || []).forEach((s: any) => {
+      sessions.forEach((s: any) => {
         const existing = userMap.get(s.user_id);
         const mentorName = mentorNameMap.get(s.mentor_id) || "Desconhecido";
         if (!existing) {
@@ -600,21 +771,57 @@ const AdminMetricsPanel = () => {
         return;
       }
 
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("user_id, name")
-        .in("user_id", retainedUserIds);
-
-      const profileMap = new Map((profiles || []).map((p: any) => [p.user_id, p.name]));
+      const PROFILE_IN_CHUNK = 100;
+      const profileMap = new Map<
+        string,
+        {
+          name: string;
+          mentee_discovery_source: MenteeDiscoverySource | null;
+          mentee_referrer_name: string | null;
+        }
+      >();
+      for (let i = 0; i < retainedUserIds.length; i += PROFILE_IN_CHUNK) {
+        const chunk = retainedUserIds.slice(i, i + PROFILE_IN_CHUNK);
+        let profRes = await supabase
+          .from("profiles")
+          .select("user_id, name, mentee_discovery_source, mentee_referrer_name")
+          .in("user_id", chunk);
+        if (profRes.error && (profRes.error.message || "").toLowerCase().includes("mentee_referrer_name")) {
+          profRes = await supabase
+            .from("profiles")
+            .select("user_id, name, mentee_discovery_source")
+            .in("user_id", chunk);
+        }
+        const { data: profiles, error: profErr } = profRes;
+        if (profErr) {
+          console.error("fetchRetentionDetails profiles:", profErr);
+          toast.error("Não foi possível carregar alguns nomes dos mentorados.");
+          break;
+        }
+        (profiles || []).forEach((p: any) => {
+          profileMap.set(p.user_id, {
+            name: (p.name as string) || "",
+            mentee_discovery_source: p.mentee_discovery_source as MenteeDiscoverySource | null,
+            mentee_referrer_name: (p.mentee_referrer_name as string | null) ?? null,
+          });
+        });
+      }
 
       const details: RetentionMentee[] = retainedUserIds
         .map((uid) => {
           const d = userMap.get(uid)!;
+          const prof = profileMap.get(uid);
+          const displayName =
+            prof?.name?.trim() ||
+            `Mentorado (${uid.slice(0, 8)}…)`;
           return {
-            name: profileMap.get(uid) || "Desconhecido",
+            user_id: uid,
+            name: displayName,
             totalSessions: d.count,
             lastSession: d.lastDate,
             mentors: Array.from(d.mentorNames),
+            discoveryLabel: getMenteeDiscoveryShortLabel(prof?.mentee_discovery_source ?? null),
+            menteeReferrerName: prof?.mentee_referrer_name?.trim() || null,
           };
         })
         .sort((a, b) => b.totalSessions - a.totalSessions);
@@ -631,15 +838,25 @@ const AdminMetricsPanel = () => {
   useEffect(() => {
     const load = async () => {
       setLoading(true);
-      await Promise.all([fetchCoreAndHealth(), fetchAlerts(), fetchGrowthData("launch")]);
+      await Promise.all([
+        fetchCoreAndHealth(),
+        fetchAlerts(),
+        fetchGrowthData("launch"),
+        fetchMenteeDiscoveryBreakdown(),
+      ]);
       setLoading(false);
     };
     load();
-  }, [fetchCoreAndHealth, fetchAlerts, fetchGrowthData]);
+  }, [fetchCoreAndHealth, fetchAlerts, fetchGrowthData, fetchMenteeDiscoveryBreakdown]);
 
   const handleRefresh = async () => {
     setLoading(true);
-    await Promise.all([fetchCoreAndHealth(), fetchAlerts(), fetchGrowthData(growthPeriod, customFrom, customTo)]);
+    await Promise.all([
+      fetchCoreAndHealth(),
+      fetchAlerts(),
+      fetchGrowthData(growthPeriod, customFrom, customTo),
+      fetchMenteeDiscoveryBreakdown(),
+    ]);
     setLoading(false);
   };
 
@@ -711,6 +928,11 @@ const AdminMetricsPanel = () => {
           <CardContent>
             <div className="text-3xl font-bold">{coreMetrics.livesImpacted}</div>
             <p className="text-sm text-muted-foreground mt-1">vidas impactadas</p>
+            <p className="text-xs text-muted-foreground mt-1 leading-snug">
+              Conta apenas perfis que <strong className="text-foreground font-medium">não são mentor aprovado</strong> e
+              tiveram pelo menos uma mentoria <strong className="text-foreground font-medium">concluída</strong> (pessoas
+              distintas).
+            </p>
             {alerts && Number(alerts.avg_mentorships_per_mentee) > 0 && (
               <p className="text-xs text-muted-foreground mt-1">
                 Média de {alerts.avg_mentorships_per_mentee} mentorias/mentorado
@@ -753,14 +975,86 @@ const AdminMetricsPanel = () => {
             )}
           </CardContent>
         </Card>
-
-        <AdminMenteeBreakdownDialog
-          open={showMenteeBreakdown}
-          onOpenChange={setShowMenteeBreakdown}
-          activeCount={coreMetrics.menteesQuizPassed}
-          pendingCount={coreMetrics.menteesQuizNotPassed}
-        />
       </div>
+
+      <AdminMenteeBreakdownDialog
+        open={showMenteeBreakdown}
+        onOpenChange={setShowMenteeBreakdown}
+        activeCount={coreMetrics.menteesQuizPassed}
+        pendingCount={coreMetrics.menteesQuizNotPassed}
+      />
+
+      <Card className="border-border/50">
+        <CardHeader>
+          <CardTitle className="text-base">📣 Como conheceram a Movê</CardTitle>
+          <p className="text-sm text-muted-foreground font-normal leading-relaxed">
+            Mentorados apenas (quem não é mentor aprovado). <strong className="text-foreground">Não informado</strong>{" "}
+            reúne quem não preencheu — inclusive cadastros anteriores à pergunta no formulário.
+          </p>
+        </CardHeader>
+        <CardContent>
+          {discoveryMenteeTotal === 0 ? (
+            <p className="text-sm text-muted-foreground">Nenhum mentorado na base para este gráfico.</p>
+          ) : discoveryChart.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Sem dados agregados de origem.</p>
+          ) : (
+            <div className="grid md:grid-cols-2 gap-6 items-start min-w-0">
+              <div className="h-[min(280px,50vh)] w-full min-h-[220px] min-w-0 overflow-visible">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart margin={{ top: 8, right: 8, bottom: 8, left: 8 }}>
+                    <Pie
+                      data={discoveryChart}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={0}
+                      outerRadius={100}
+                      paddingAngle={1}
+                      labelLine={false}
+                      isAnimationActive={false}
+                      label={false}
+                    >
+                      {discoveryChart.map((entry) => (
+                        <Cell key={entry.key} fill={entry.fill} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      formatter={(value: number) => [
+                        `${value} mentorado${value !== 1 ? "s" : ""}`,
+                        "Quantidade",
+                      ]}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <ul className="text-sm space-y-2 min-w-0">
+                {discoveryChart.map((d) => (
+                  <li
+                    key={d.key}
+                    className="flex items-start justify-between gap-3 border-b border-border/40 pb-2 last:border-0 min-w-0"
+                  >
+                    <span className="flex items-start gap-2 min-w-0 flex-1">
+                      <span
+                        className="w-2.5 h-2.5 rounded-full shrink-0 mt-1.5 ring-1 ring-border/50"
+                        style={{ backgroundColor: d.fill }}
+                      />
+                      <span className="min-w-0 flex-1 text-foreground break-words [overflow-wrap:anywhere] leading-snug">
+                        {d.name}
+                      </span>
+                    </span>
+                    <span className="font-semibold tabular-nums text-foreground shrink-0 pt-0.5">{d.value}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          <p className="text-xs text-muted-foreground mt-4 pt-2 border-t border-border/30">
+            Total considerado: <strong className="text-foreground">{discoveryMenteeTotal}</strong> mentorados
+            (mesma regra do diálogo &quot;Usuários por etapa&quot; para exclusão de mentores).
+          </p>
+        </CardContent>
+      </Card>
 
       {/* Health Metrics */}
       <Card className="border-border/50">
@@ -806,7 +1100,14 @@ const AdminMetricsPanel = () => {
                   <div className="bg-muted/50 rounded-lg p-3 mt-1 mb-2 text-sm text-muted-foreground space-y-1">
                     {metric.type === "activation" && (
                       <>
-                        <p><strong className="text-foreground">{metric.details.activated}</strong> de {metric.details.total_mentees} mentorados tiveram pelo menos 1 mentoria completada.</p>
+                        <p>
+                          <strong className="text-foreground">{metric.details.activated}</strong> de{" "}
+                          <strong className="text-foreground">
+                            {metric.details.active_mentees ?? metric.details.total_mentees}
+                          </strong>{" "}
+                          mentorados <strong className="text-foreground">ativos</strong> (quiz, agendamento ou alguma
+                          sessão) tiveram pelo menos 1 mentoria completada.
+                        </p>
                       </>
                     )}
                     {metric.type === "confirmation" && (
@@ -1109,8 +1410,18 @@ const AdminMetricsPanel = () => {
           ) : retentionDetails && retentionDetails.length > 0 ? (
             <div className="space-y-3">
               {retentionDetails.map((m, i) => (
-                <div key={i} className="p-3 rounded-lg bg-muted/50 space-y-1">
+                <div key={m.user_id} className="p-3 rounded-lg bg-muted/50 space-y-1">
                   <p className="font-medium text-sm">{i + 1}. {m.name}</p>
+                  {m.discoveryLabel && (
+                    <p className="text-xs text-muted-foreground">
+                      Como conheceu: <strong className="text-foreground">{m.discoveryLabel}</strong>
+                    </p>
+                  )}
+                  {m.menteeReferrerName && (
+                    <p className="text-xs text-muted-foreground">
+                      Quem indicou: <strong className="text-foreground">{m.menteeReferrerName}</strong>
+                    </p>
+                  )}
                   <p className="text-xs text-muted-foreground">Total de mentorias: <strong>{m.totalSessions}</strong></p>
                   <p className="text-xs text-muted-foreground">
                     Última mentoria: <strong>{format(new Date(m.lastSession), "dd/MM/yyyy")}</strong>

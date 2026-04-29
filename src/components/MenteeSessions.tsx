@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import SessionReviewModal from "./SessionReviewModal";
 import { toast } from "sonner";
 import { syncTrailProgressAfterMentorshipCompleted } from "@/lib/syncTrailProgressAfterMentorshipCompleted";
+import { menteeReconfirmationUiOpen } from "@/lib/reconfirmationWindow";
 
 interface Session {
   id: string;
@@ -172,7 +173,7 @@ const MenteeSessions = () => {
     }
     return (
       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-amber-500/10 text-amber-600 border border-amber-500/20">
-        <Clock className="w-3 h-3" /> Aguardando
+        <Clock className="w-3 h-3" /> Pendente
       </span>
     );
   };
@@ -182,6 +183,12 @@ const MenteeSessions = () => {
     session.status === "completed" && !isReviewed(session.id);
 
   const handleReconfirm = async (sessionId: string) => {
+    const session = sessions.find((s) => s.id === sessionId);
+    if (session && !menteeReconfirmationUiOpen(session.scheduled_at)) {
+      toast.error("O prazo para reconfirmar (entre 6h e 3h antes da mentoria) já passou ou ainda não abriu.");
+      return;
+    }
+
     const { error } = await supabase
       .from("mentor_sessions")
       .update({
@@ -209,11 +216,9 @@ const MenteeSessions = () => {
     const reviewed = isReviewed(session.id);
     const needsReview = canReview(session);
     const reviewData = reviewedSessions.get(session.id);
-    const minutesUntil = (new Date(session.scheduled_at).getTime() - Date.now()) / 60_000;
     const needsReconfirmation = session.status === "scheduled"
       && session.confirmed_by_mentor === true
-      && minutesUntil <= 360  // within 6 hours
-      && minutesUntil > 0     // session hasn't started yet
+      && menteeReconfirmationUiOpen(session.scheduled_at)
       && session.reconfirmation_confirmed === null;
     const isReconfirmed = session.reconfirmation_confirmed === true;
 

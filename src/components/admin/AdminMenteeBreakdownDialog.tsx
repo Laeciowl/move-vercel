@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getMenteeDiscoveryShortLabel, type MenteeDiscoverySource } from "@/lib/menteeDiscoverySource";
 
 /** Texto curto (lista) e por extenso (detalhe); menos de 24h em horas ou minutos, senão em dias corridos */
 function formatSignupToEventGap(signupIso: string, eventIso: string): { compact: string; verbose: string } | null {
@@ -70,6 +71,9 @@ interface MenteeRow {
   user_id: string;
   name: string;
   photo_url: string | null;
+  mentee_discovery_source: MenteeDiscoverySource | null;
+  /** Preenchido no cadastro quando a fonte é indicação */
+  mentee_referrer_name: string | null;
   created_at: string;
   onboarding_quiz_passed: boolean;
   first_mentorship_booked: boolean;
@@ -112,13 +116,40 @@ const AdminMenteeBreakdownDialog = ({ open, onOpenChange, activeCount, pendingCo
   const fetchMentees = useCallback(async () => {
     setLoading(true);
     try {
-      const [profilesRes, sessionsRes, mentorsRes] = await Promise.all([
-        supabase.from("profiles").select("user_id, name, photo_url, created_at, onboarding_quiz_passed, first_mentorship_booked"),
+      const baseProfileSelect =
+        "user_id, name, photo_url, created_at, onboarding_quiz_passed, first_mentorship_booked";
+
+      const [profilesResFirst, sessionsRes, mentorsRes] = await Promise.all([
+        supabase.from("profiles").select(`${baseProfileSelect}, mentee_discovery_source, mentee_referrer_name`),
         supabase
           .from("mentor_sessions_with_names")
           .select("id, user_id, created_at, scheduled_at, status, completed_at, confirmed_by_mentor, mentor_name"),
         supabase.from("mentors").select("id, status"),
       ]);
+
+      let profilesRes = profilesResFirst;
+      if (profilesRes.error) {
+        const msg = (profilesRes.error.message || "").toLowerCase();
+        if (msg.includes("mentee_referrer_name")) {
+          profilesRes = await supabase.from("profiles").select(`${baseProfileSelect}, mentee_discovery_source`);
+        }
+      }
+      if (profilesRes.error) {
+        const msg = (profilesRes.error.message || "").toLowerCase();
+        if (
+          msg.includes("mentee_discovery_source") ||
+          profilesRes.error.code === "42703" ||
+          profilesRes.error.code === "PGRST204"
+        ) {
+          profilesRes = await supabase.from("profiles").select(baseProfileSelect);
+        }
+      }
+
+      if (profilesRes.error) {
+        console.error("AdminMenteeBreakdown profiles:", profilesRes.error);
+        setMentees([]);
+        return;
+      }
 
       const profiles = profilesRes.data || [];
       const sessions = sessionsRes.data || [];
@@ -281,6 +312,8 @@ const AdminMenteeBreakdownDialog = ({ open, onOpenChange, activeCount, pendingCo
           user_id: p.user_id,
           name: p.name,
           photo_url: p.photo_url,
+          mentee_discovery_source: (p.mentee_discovery_source as MenteeDiscoverySource | null) ?? null,
+          mentee_referrer_name: (p.mentee_referrer_name as string | null) ?? null,
           created_at: p.created_at,
           onboarding_quiz_passed: p.onboarding_quiz_passed,
           first_mentorship_booked: p.first_mentorship_booked,
@@ -345,8 +378,8 @@ const AdminMenteeBreakdownDialog = ({ open, onOpenChange, activeCount, pendingCo
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl max-h-[88vh] overflow-hidden flex flex-col gap-0 p-0 sm:rounded-2xl border-border/60 shadow-lg">
-        <DialogHeader className="px-5 pt-5 pb-4 space-y-1.5 border-b border-border/50">
+      <DialogContent className="max-w-xl w-[min(100vw-1.5rem,36rem)] sm:w-full max-h-[90dvh] !flex !flex-col gap-0 p-0 overflow-hidden sm:rounded-2xl border-border/60 shadow-lg">
+        <DialogHeader className="px-5 pt-5 pb-4 space-y-1.5 border-b border-border/50 shrink-0">
           <DialogTitle className="text-base font-semibold tracking-tight flex items-center gap-2">
             <Users className="w-4 h-4 text-muted-foreground opacity-80" />
             Usuários por etapa
@@ -358,8 +391,8 @@ const AdminMenteeBreakdownDialog = ({ open, onOpenChange, activeCount, pendingCo
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col gap-3 flex-1 min-h-0 px-5 pb-5 pt-4">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2 flex-shrink-0">
+        <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden px-5 pb-5 pt-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 shrink-0">
             <Tabs value={filter} onValueChange={(v) => setFilter(v as any)} className="w-full sm:w-auto">
               <TabsList className="h-9 w-full sm:w-auto bg-muted/50 p-1 rounded-lg">
                 <TabsTrigger value="all" className="text-[11px] px-2.5 h-7 rounded-md data-[state=active]:bg-background">
@@ -387,7 +420,7 @@ const AdminMenteeBreakdownDialog = ({ open, onOpenChange, activeCount, pendingCo
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto min-h-[200px] -mx-1 px-1 space-y-2">
+          <div className="flex-1 min-h-[min(240px,40dvh)] max-h-[min(58dvh,520px)] overflow-y-auto overscroll-contain -mx-1 px-1 space-y-2">
             {loading ? (
               <div className="flex items-center justify-center py-16">
                 <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
@@ -398,6 +431,7 @@ const AdminMenteeBreakdownDialog = ({ open, onOpenChange, activeCount, pendingCo
               filtered.map((m) => {
                 const isExpanded = expandedUser === m.user_id;
                 const nAbs = m.absenceHistory.length;
+                const discoveryLabel = getMenteeDiscoveryShortLabel(m.mentee_discovery_source);
                 return (
                   <div
                     key={m.user_id}
@@ -428,7 +462,16 @@ const AdminMenteeBreakdownDialog = ({ open, onOpenChange, activeCount, pendingCo
                             </span>
                           )}
                         </div>
-                        <p className="text-[11px] text-muted-foreground mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                        <p className="text-[11px] text-muted-foreground mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
+                          {discoveryLabel && (
+                            <span className="text-foreground/90 font-medium">Fonte: {discoveryLabel}</span>
+                          )}
+                          {m.mentee_referrer_name && (
+                            <span className="text-foreground/90 font-medium">
+                              {discoveryLabel ? " · " : ""}Indicou: {m.mentee_referrer_name}
+                            </span>
+                          )}
+                          {(discoveryLabel || m.mentee_referrer_name) && <span className="text-border">·</span>}
                           <span>Cadastro {format(new Date(m.created_at), "dd/MM/yyyy", { locale: ptBR })}</span>
                           {m.signupToFirstBookingGap && (
                             <span className="text-foreground/90">
@@ -453,6 +496,17 @@ const AdminMenteeBreakdownDialog = ({ open, onOpenChange, activeCount, pendingCo
 
                     {isExpanded && (
                       <div className="px-3.5 pb-3.5 space-y-4 border-t border-border/40 bg-muted/20">
+                        {m.mentee_referrer_name && (
+                          <div className="pt-3 rounded-lg border border-border/50 bg-background/80 px-3 py-2.5">
+                            <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mb-1">
+                              Indicação
+                            </p>
+                            <p className="text-sm text-foreground">
+                              <span className="text-muted-foreground">Quem indicou:</span>{" "}
+                              {m.mentee_referrer_name}
+                            </p>
+                          </div>
+                        )}
                         <div className="pt-3 grid grid-cols-2 gap-x-4 gap-y-2">
                           <DetailCheck label="Quiz onboarding" done={m.onboarding_quiz_passed} />
                           <DetailCheck label="Agendou mentoria" done={m.first_mentorship_booked} />

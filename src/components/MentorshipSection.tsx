@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { syncTrailProgressAfterMentorshipCompleted } from "@/lib/syncTrailProgressAfterMentorshipCompleted";
+import { menteeReconfirmationUiOpen } from "@/lib/reconfirmationWindow";
 
 // Sessions created before this date follow old auto-complete logic
 // Sessions created on or after this date require manual confirmation
@@ -253,6 +254,12 @@ const MentorshipSection = () => {
 
   // Handle reconfirmation
   const handleReconfirmPresence = async (sessionId: string) => {
+    const session = sessions.find((s) => s.id === sessionId);
+    if (session && !menteeReconfirmationUiOpen(session.scheduled_at)) {
+      toast.error("O prazo para reconfirmar (entre 6h e 3h antes da mentoria) já passou ou ainda não abriu.");
+      return;
+    }
+
     setConfirmingId(sessionId);
     const { error } = await supabase
       .from("mentor_sessions")
@@ -285,7 +292,7 @@ const MentorshipSection = () => {
       .from("mentor_sessions")
       .update({
         status: "cancelled",
-        mentor_notes: "Cancelada pelo mentorado na reconfirmação",
+        notes: "Cancelada pelo mentorado na reconfirmação",
       })
       .eq("id", sessionId);
 
@@ -547,7 +554,7 @@ const MentorshipSection = () => {
                           setConfirmingId(session.id);
                           const { error } = await supabase
                             .from("mentor_sessions")
-                            .update({ status: "cancelled", mentor_notes: "Sessão não realizada (confirmado pelo mentorado)" })
+                            .update({ status: "cancelled", notes: "Sessão não realizada (confirmado pelo mentorado)" })
                             .eq("id", session.id);
                           if (error) {
                             toast.error("Erro: " + error.message);
@@ -635,7 +642,9 @@ const MentorshipSection = () => {
                           <div className="flex flex-col items-end gap-1">
                             <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium flex items-center gap-1 ${statusLabels[session.status]?.color || "bg-gray-100"}`}>
                               {statusLabels[session.status]?.icon}
-                              {session.confirmed_by_mentor ? "Confirmada" : statusLabels[session.status]?.label || session.status}
+                              {session.status === "scheduled"
+                                ? (session.confirmed_by_mentor ? "Confirmada" : "Pendente")
+                                : (statusLabels[session.status]?.label || session.status)}
                             </span>
                           </div>
                         </div>
@@ -661,14 +670,10 @@ const MentorshipSection = () => {
                         })()}
 
                         {/* Reconfirmation section */}
-                        {(() => {
-                          const minutesUntil = (new Date(session.scheduled_at).getTime() - Date.now()) / 60_000;
-                          return session.status === "scheduled"
-                            && session.confirmed_by_mentor === true
-                            && minutesUntil <= 360
-                            && minutesUntil > 0
-                            && session.reconfirmation_confirmed === null;
-                        })() && (
+                        {session.status === "scheduled"
+                          && session.confirmed_by_mentor === true
+                          && menteeReconfirmationUiOpen(session.scheduled_at)
+                          && session.reconfirmation_confirmed === null && (
                           <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700/50 rounded-lg p-3 space-y-2">
                             <p className="text-xs font-semibold text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
                               <AlertCircle className="w-4 h-4" /> Confirme sua presença até 3h antes!
