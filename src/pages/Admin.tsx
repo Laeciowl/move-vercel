@@ -17,6 +17,7 @@ import AdminCommunitiesPanel from "@/components/admin/AdminCommunitiesPanel";
 import AdminQualityPanel from "@/components/admin/AdminQualityPanel";
 import AdminNoShowPanel from "@/components/admin/AdminNoShowPanel";
 import AdminVideosQuizPanel from "@/components/admin/AdminVideosQuizPanel";
+import { CustomDomainBadge } from "@/components/CustomDomainBadge";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -130,7 +131,10 @@ const Admin = () => {
               <Shield className="w-7 h-7 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-gradient">Painel Admin</h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-3xl font-bold text-gradient">Painel Admin</h1>
+                <CustomDomainBadge />
+              </div>
               <p className="text-muted-foreground">
                 Gerencie voluntários, conteúdos e submissões da plataforma Movê
               </p>
