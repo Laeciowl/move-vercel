@@ -1,0 +1,100 @@
+#cloud-config
+# Base machine setup for Move-B2B App Droplet (Ubuntu 24.04)
+# Installs: Docker, Docker Compose plugin, Nginx, Redis 7, fail2ban, ufw
+# Runs on first boot via DigitalOcean user-data.
+
+package_update: true
+package_upgrade: true
+
+packages:
+  - docker.io
+  - docker-compose-plugin
+  - nginx
+  - redis-server
+  - fail2ban
+  - ufw
+  - curl
+  - git
+  - htop
+
+runcmd:
+  # Docker
+  - systemctl enable docker
+  - systemctl start docker
+  - usermod -aG docker root
+
+  # Nginx
+  - systemctl enable nginx
+  - systemctl start nginx
+
+  # Redis — bind to loopback only (not exposed externally)
+  - sed -i 's/^bind .*/bind 127.0.0.1 ::1/' /etc/redis/redis.conf
+  - systemctl enable redis-server
+  - systemctl start redis-server
+
+  # fail2ban (SSH brute-force protection)
+  - systemctl enable fail2ban
+  - systemctl start fail2ban
+
+  # ufw — allow SSH, HTTP, HTTPS; deny everything else
+  - ufw default deny incoming
+  - ufw default allow outgoing
+  - ufw allow OpenSSH
+  - ufw allow 80/tcp
+  - ufw allow 443/tcp
+  - ufw --force enable
+
+  # Disable SSH password authentication (key-only)
+  - sed -i 's/^#*PasswordAuthentication .*/PasswordAuthentication no/' /etc/ssh/sshd_config
+  - systemctl reload sshd
+
+write_files:
+  - path: /etc/fail2ban/jail.local
+    owner: root:root
+    permissions: '0644'
+    content: |
+      [DEFAULT]
+      bantime  = 3600
+      findtime = 600
+      maxretry = 3
+
+      [sshd]
+      enabled  = true
+      port     = ssh
+      logpath  = %(sshd_log)s
+      backend  = %(sshd_backend)s
+
+  - path: /etc/nginx/sites-available/health
+    owner: root:root
+    permissions: '0644'
+    content: |
+      # Minimal health-check endpoint for Better Uptime / DO Monitoring
+      server {
+        listen 80 default_server;
+        server_name _;
+
+        location /health {
+          access_log off;
+          return 200 'ok\n';
+          add_header Content-Type text/plain;
+        }
+
+        # All other traffic proxied to Puma (set up by Kamal)
+        location / {
+          proxy_pass http://127.0.0.1:3000;
+          proxy_set_header Host $host;
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header X-Forwarded-Proto $scheme;
+        }
+      }
+
+  - path: /etc/motd
+    owner: root:root
+    permissions: '0644'
+    content: |
+      ==========================================
+        Move-B2B Staging Droplet
+        Provisioned by cloud-init
+        See /var/log/cloud-init-output.log
+      ==========================================
