@@ -18,6 +18,9 @@ import ReferralSection from "@/components/ReferralSection";
 import PendingReviewsBanner, { usePendingReviewsCount } from "@/components/PendingReviewsBanner";
 import ProfileCompletionBanner from "@/components/ProfileCompletionBanner";
 import MenteeLinkedInShareCard from "@/components/MenteeLinkedInShareCard";
+import TrailsDashboardCard from "@/components/TrailsDashboardCard";
+import AchievementsDashboardCard from "@/components/AchievementsDashboardCard";
+import ProgressDashboardCard from "@/components/ProgressDashboardCard";
 import { usePendingMentorCheck } from "@/hooks/usePendingMentorCheck";
 
 const Home = () => {
@@ -142,6 +145,18 @@ const Home = () => {
           <h2 className="text-lg font-semibold text-foreground mb-4">Menu de navegação</h2>
           <NavigationGrid isVolunteer={isVolunteer} isMentor={isMentor} pendingReviewsCount={isMentorado ? pendingReviewsCount : 0} />
         </motion.div>
+
+        {/* Dashboard cards: Trails, Achievements, Progress */}
+        {isMentorado && (
+          <motion.div
+            variants={{ initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0 } }}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+          >
+            <TrailsDashboardCard />
+            <AchievementsDashboardCard />
+            <ProgressDashboardCard />
+          </motion.div>
+        )}
 
         {/* Share card */}
         {isMentorado && (
