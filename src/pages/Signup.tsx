@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Eye, EyeOff, Loader2 } from "lucide-react";
@@ -10,10 +10,6 @@ import logoMove from "@/assets/logo-move.png";
 import PasswordStrengthIndicator from "@/components/PasswordStrengthIndicator";
 import UserTypeSelector, { UserType } from "@/components/UserTypeSelector";
 import type { Enums } from "@/integrations/supabase/types";
-import {
-  MENTEE_DISCOVERY_SOURCE_OPTIONS,
-  type MenteeDiscoverySource,
-} from "@/lib/menteeDiscoverySource";
 
 const emailSchema = z.string().email("E-mail inválido").max(255);
 const nameSchema = z.string().min(2, "Nome deve ter pelo menos 2 caracteres").max(100);
@@ -41,8 +37,6 @@ const professionalStatusOptions = [
   { value: "freelancer_pj", label: "Freelancer / PJ" },
 ];
 
-const menteeDiscoverySourceOptions = MENTEE_DISCOVERY_SOURCE_OPTIONS;
-
 const Signup = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -53,7 +47,7 @@ const Signup = () => {
   const [userType, setUserType] = useState<UserType>(initialType);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  
+
   // Common fields
   const [formData, setFormData] = useState({
     name: "",
@@ -64,20 +58,11 @@ const Signup = () => {
     phoneConfirm: "",
   });
 
-  // Mentee specific fields
+  // Mentee specific fields (simplified — only professional status + LGPD)
   const [menteeData, setMenteeData] = useState({
-    age: "",
     professionalStatus: "",
-    discoverySource: "" as "" | MenteeDiscoverySource,
-    /** Preenchido quando discoverySource === "indicacao" */
-    referrerName: "",
     lgpdConsent: false,
   });
-
-  const menteeAgeOverProgramLimit = useMemo(() => {
-    const n = parseInt(menteeData.age, 10);
-    return menteeData.age.trim() !== "" && !Number.isNaN(n) && n > 30;
-  }, [menteeData.age]);
 
   useEffect(() => {
     if (!authLoading && user) {
@@ -111,38 +96,9 @@ const Signup = () => {
       return false;
     }
 
-    const userAge = parseInt(menteeData.age, 10);
-    if (Number.isNaN(userAge) || userAge < 18) {
-      toast.error("Você precisa ter pelo menos 18 anos para se cadastrar.");
-      return false;
-    }
-    if (userAge > 30) {
-      toast.error(
-        "A Movê foi desenvolvida para jovens de 18 a 30 anos. Infelizmente não é possível concluir a inscrição com essa idade.",
-      );
-      return false;
-    }
-
     if (!menteeData.professionalStatus) {
       toast.error("Selecione sua situação profissional");
       return false;
-    }
-
-    if (!menteeData.discoverySource) {
-      toast.error("Conte como você conheceu a Movê");
-      return false;
-    }
-
-    if (menteeData.discoverySource === "indicacao") {
-      const who = menteeData.referrerName.trim();
-      if (who.length < 2) {
-        toast.error("Informe quem te indicou (nome ou como nos conheceu pela indicação)");
-        return false;
-      }
-      if (who.length > 200) {
-        toast.error("O nome de quem indicou deve ter no máximo 200 caracteres");
-        return false;
-      }
     }
 
     if (!menteeData.lgpdConsent) {
@@ -158,9 +114,9 @@ const Signup = () => {
     if (!validateMenteeForm()) return;
 
     setLoading(true);
-    
-    const redirectUrl = `${window.location.origin}/dashboard`;
-    
+
+    const redirectUrl = `${window.location.origin}/inicio`;
+
     try {
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
@@ -169,16 +125,11 @@ const Signup = () => {
           emailRedirectTo: redirectUrl,
           data: {
             name: formData.name.trim(),
-            age: parseInt(menteeData.age),
             city: "N/A",
             state: "N/A",
             professional_status: menteeData.professionalStatus,
             income_range: "sem_renda",
             phone: formData.phone.trim(),
-            mentee_discovery_source: menteeData.discoverySource,
-            ...(menteeData.discoverySource === "indicacao"
-              ? { mentee_referrer_name: menteeData.referrerName.trim() }
-              : {}),
           },
         },
       });
@@ -212,7 +163,7 @@ const Signup = () => {
             console.error("Error processing referral:", e);
           }
         }
-        
+
         try {
           await supabase.functions.invoke("send-notification-email", {
             body: {
@@ -236,10 +187,6 @@ const Signup = () => {
                 email: formData.email,
                 city: "N/A",
                 state: "N/A",
-                menteeDiscoveryLabel:
-                  menteeDiscoverySourceOptions.find((o) => o.value === menteeData.discoverySource)?.label ?? "",
-                menteeReferrerName:
-                  menteeData.discoverySource === "indicacao" ? menteeData.referrerName.trim() : "",
               },
               skipPreferenceCheck: true,
             },
@@ -247,7 +194,7 @@ const Signup = () => {
         } catch (emailError) {
           console.error("Error sending admin notification:", emailError);
         }
-        
+
         toast.success("Pronto! Sua conta foi criada 🎉");
         navigate("/inicio");
       }
@@ -259,7 +206,7 @@ const Signup = () => {
         toast.error("Ocorreu um erro ao criar sua conta. Tente novamente.");
       }
     }
-    
+
     setLoading(false);
   };
 
@@ -448,30 +395,6 @@ const Signup = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
-                    Idade *
-                  </label>
-                  <input
-                    type="number"
-                    value={menteeData.age}
-                    onChange={(e) => setMenteeData({ ...menteeData, age: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
-                    placeholder="Ex: 25"
-                    min={18}
-                    required
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    O projeto atende jovens de <strong className="text-foreground">18 a 30 anos</strong>.
-                  </p>
-                  {menteeAgeOverProgramLimit ? (
-                    <p className="text-sm text-destructive mt-2 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2">
-                      A Movê foi desenvolvida para jovens entre 18 e 30 anos. Infelizmente, com essa idade não é
-                      possível se inscrever como mentorado.
-                    </p>
-                  ) : null}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
                     Situação profissional atual *
                   </label>
                   <select
@@ -487,55 +410,6 @@ const Signup = () => {
                   </select>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    Como você conheceu a Movê? *
-                  </label>
-                  <select
-                    value={menteeData.discoverySource}
-                    onChange={(e) => {
-                      const v = e.target.value as MenteeDiscoverySource | "";
-                      setMenteeData({
-                        ...menteeData,
-                        discoverySource: v,
-                        referrerName: v === "indicacao" ? menteeData.referrerName : "",
-                      });
-                    }}
-                    className="w-full px-4 py-3 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
-                    required
-                  >
-                    <option value="">Selecione</option>
-                    {menteeDiscoverySourceOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Ajuda a equipe a entender de onde vêm as pessoas que chegam na plataforma.
-                  </p>
-                </div>
-
-                {menteeData.discoverySource === "indicacao" && (
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Quem te indicou? *
-                    </label>
-                    <input
-                      type="text"
-                      value={menteeData.referrerName}
-                      onChange={(e) => setMenteeData({ ...menteeData, referrerName: e.target.value })}
-                      className="w-full px-4 py-3 rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
-                      placeholder="Nome da pessoa, grupo ou como chegou até você"
-                      maxLength={200}
-                      autoComplete="name"
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Ex.: nome de um amigo, familiar, professor ou comunidade que recomendou a Movê.
-                    </p>
-                  </div>
-                )}
-
                 <div className="flex items-start gap-3 p-4 bg-accent rounded-xl">
                   <input
                     type="checkbox"
@@ -546,14 +420,14 @@ const Signup = () => {
                     required
                   />
                   <label htmlFor="lgpd" className="text-sm text-accent-foreground">
-                    Aceito que meus dados sejam usados de forma anônima pra gente medir o impacto 
+                    Aceito que meus dados sejam usados de forma anônima pra gente medir o impacto
                     do projeto e melhorar cada vez mais. Prometemos cuidar bem! *
                   </label>
                 </div>
 
                 <button
                   type="submit"
-                  disabled={loading || menteeAgeOverProgramLimit}
+                  disabled={loading}
                   className="w-full bg-gradient-hero text-primary-foreground py-3 rounded-xl font-bold shadow-button hover:opacity-90 transition-opacity disabled:opacity-70 flex items-center justify-center gap-2"
                 >
                   {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : null}

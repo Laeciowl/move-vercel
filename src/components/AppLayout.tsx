@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -13,7 +13,6 @@ import { usePendingMentorCheck } from "@/hooks/usePendingMentorCheck";
 import PendingMentorFullScreen from "@/components/PendingMentorFullScreen";
 import NotificationBell from "@/components/NotificationBell";
 import BugReportButton from "@/components/BugReportButton";
-import OnboardingQuiz from "@/components/OnboardingQuiz";
 import MenteeNpsLoginPopup from "@/components/MenteeNpsLoginPopup";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,39 +26,14 @@ interface AppLayoutProps {
 const AppLayout = ({ children }: AppLayoutProps) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, profile, signOut, loading: authLoading, refreshProfile } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const { isAdmin, loading: adminLoading } = useAdminCheck();
   const { isVolunteer, loading: volunteerLoading } = useVolunteerCheck();
   const { isMentor, loading: mentorLoading } = useMentorCheck();
   const { isPendingMentor, loading: pendingMentorLoading } = usePendingMentorCheck();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [needsQuiz, setNeedsQuiz] = useState<boolean | null>(null);
 
   const rolesLoading = adminLoading || volunteerLoading || mentorLoading || pendingMentorLoading;
-
-  // Check if mentee needs onboarding quiz
-  // Only block users who never had ANY session (no interaction at all)
-  useEffect(() => {
-    if (rolesLoading || !profile || !user) {
-      setNeedsQuiz(null);
-      return;
-    }
-    const quizPassed = profile.onboarding_quiz_passed;
-    if (!quizPassed && !isVolunteer && !isMentor && !isPendingMentor) {
-      // Check if user has any sessions at all — if yes, they're active and exempt
-      import("@/integrations/supabase/client").then(({ supabase }) => {
-        supabase
-          .from("mentor_sessions")
-          .select("id", { count: "exact", head: true })
-          .eq("user_id", user.id)
-          .then(({ count }) => {
-            setNeedsQuiz((count ?? 0) === 0);
-          });
-      });
-    } else {
-      setNeedsQuiz(false);
-    }
-  }, [profile, user, rolesLoading, isAdmin, isVolunteer, isMentor, isPendingMentor]);
 
   const handleLogout = async () => {
     await signOut();
@@ -116,8 +90,8 @@ const AppLayout = ({ children }: AppLayoutProps) => {
   const isActive = (path: string) => location.pathname === path;
   const npsUserType = (isVolunteer || isMentor) ? "mentor" : "mentorado";
 
-  // Show quiz gate for mentees who haven't passed yet
-  if (needsQuiz === null && rolesLoading) {
+  // Show loading state while roles are still resolving
+  if (rolesLoading) {
     return (
       <div className="min-h-screen min-h-dvh flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
@@ -138,15 +112,6 @@ const AppLayout = ({ children }: AppLayoutProps) => {
     !isMentor
   ) {
     return <PendingMentorFullScreen />;
-  }
-
-  if (needsQuiz) {
-    return (
-      <OnboardingQuiz onPassed={async () => {
-        await refreshProfile();
-        setNeedsQuiz(false);
-      }} />
-    );
   }
 
   return (

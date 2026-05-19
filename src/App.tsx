@@ -50,7 +50,6 @@ const GlobalOnboarding = () => {
     if (
       profile &&
       !profile.onboarding_completed &&
-      profile.onboarding_quiz_passed &&
       user
     ) {
       supabase

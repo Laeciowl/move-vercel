@@ -70,7 +70,6 @@ const Dashboard = () => {
   const [showProfileEdit, setShowProfileEdit] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showInterestsOnboarding, setShowInterestsOnboarding] = useState(false);
-  const [needsQuiz, setNeedsQuiz] = useState(false); // kept for legacy, quiz gate is now in AppLayout
   const [updating, setUpdating] = useState(false);
   const [updateData, setUpdateData] = useState({
     professionalStatus: "",
@@ -103,20 +102,12 @@ const Dashboard = () => {
       setUpdateData({
         professionalStatus: profile.professional_status,
       });
-      
+
       if (!profile.onboarding_completed && !isVolunteer) {
         setShowOnboarding(true);
       }
-
-      // Check if mentee needs onboarding quiz
-      // Applies to: new signups AND mentees who haven't booked a mentorship yet
-      // Exempt: admins, volunteers, mentors
-      const quizPassed = (profile as any).onboarding_quiz_passed;
-      if (!quizPassed && !isAdmin && !isVolunteer && !isMentor && !isPendingMentor && !profile.first_mentorship_booked) {
-        setNeedsQuiz(true);
-      }
     }
-  }, [profile, isVolunteer, isAdmin, isMentor, isPendingMentor]);
+  }, [profile, isVolunteer]);
 
   useEffect(() => {
     const fetchData = async () => {
