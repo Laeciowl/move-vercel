@@ -1754,6 +1754,7 @@ export type Database = {
       get_public_mentors_count: { Args: never; Returns: number }
       get_retention_rate: { Args: never; Returns: Json }
       get_total_completed_sessions: { Args: never; Returns: number }
+      get_total_mentor_minutes: { Args: never; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

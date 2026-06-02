@@ -1,12 +1,13 @@
 import { motion, useInView } from "framer-motion";
 import { useRef, useEffect, useState } from "react";
-import { Users, Heart, Calendar } from "lucide-react";
+import { Users, Heart, Calendar, Clock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface StatData {
   totalMentors: number;
   totalMembers: number;
   totalSessions: number;
+  totalMinutes: number;
 }
 
 const AnimatedCounter = ({ value, duration = 2 }: { value: number; duration?: number }) => {
@@ -34,7 +35,7 @@ const AnimatedCounter = ({ value, duration = 2 }: { value: number; duration?: nu
     requestAnimationFrame(animate);
   }, [isInView, value, duration]);
 
-  return <span ref={ref}>{count}</span>;
+  return <span ref={ref}>{count.toLocaleString("pt-BR")}</span>;
 };
 
 const StatsSection = () => {
@@ -42,6 +43,7 @@ const StatsSection = () => {
     totalMentors: 0,
     totalMembers: 0,
     totalSessions: 0,
+    totalMinutes: 0,
   });
   const [loading, setLoading] = useState(true);
 
@@ -49,19 +51,22 @@ const StatsSection = () => {
     const fetchStats = async () => {
       try {
         // Fetch all stats in parallel using secure RPC functions
-        const [mentorsResult, membersResult, sessionsResult] = await Promise.all([
+        const [mentorsResult, membersResult, sessionsResult, minutesResult] = await Promise.all([
           // Approved mentors count via secure RPC
           supabase.rpc("get_public_mentors_count"),
           // Total community members via secure RPC
           supabase.rpc("get_public_members_count"),
           // Total completed sessions via secure RPC
           supabase.rpc("get_total_completed_sessions"),
+          // Total minutes mentored across all completed sessions via secure RPC
+          supabase.rpc("get_total_mentor_minutes"),
         ]);
 
         setStats({
           totalMentors: mentorsResult.data || 0,
           totalMembers: membersResult.data || 0,
           totalSessions: sessionsResult.data || 0,
+          totalMinutes: minutesResult.data || 0,
         });
       } catch (error) {
         console.error("Error fetching stats:", error);
@@ -95,6 +100,13 @@ const StatsSection = () => {
       color: "text-green-500",
       bgColor: "bg-green-500/10",
     },
+    {
+      icon: Clock,
+      value: stats.totalMinutes,
+      label: "Minutos que mudaram o mundo",
+      color: "text-blue-500",
+      bgColor: "bg-blue-500/10",
+    },
   ];
 
   return (
@@ -115,7 +127,7 @@ const StatsSection = () => {
           </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
           {statCards.map((stat, index) => (
             <motion.div
               key={stat.label}
